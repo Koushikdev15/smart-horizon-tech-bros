@@ -1,0 +1,404 @@
+@import "tailwindcss";
+
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: 'Geist Variable', sans-serif;
+  --font-heading: 'Geist Variable', sans-serif;
+
+  /*
+   * Tailwind v4 synthesizes opacity-modifier utilities (e.g. bg-primary/50) itself via
+   * color-mix() for any theme color — the old v3 `/ <alpha-value>` placeholder trick is not
+   * substituted by v4 and was being emitted as a literal invalid token, silently breaking
+   * every one of these colors (computed value fell back to `transparent`). Do not re-add it.
+   */
+  --color-border: oklch(var(--border));
+  --color-input: oklch(var(--input));
+  --color-ring: oklch(var(--ring));
+  --color-background: oklch(var(--background));
+  --color-foreground: oklch(var(--foreground));
+
+  --color-primary: oklch(var(--primary));
+  --color-primary-foreground: oklch(var(--primary-foreground));
+
+  --color-secondary: oklch(var(--secondary));
+  --color-secondary-foreground: oklch(var(--secondary-foreground));
+
+  --color-destructive: oklch(var(--destructive));
+  --color-destructive-foreground: oklch(var(--destructive-foreground));
+
+  --color-muted: oklch(var(--muted));
+  --color-muted-foreground: oklch(var(--muted-foreground));
+
+  --color-accent: oklch(var(--accent));
+  --color-accent-foreground: oklch(var(--accent-foreground));
+
+  --color-success: oklch(var(--success));
+  --color-success-foreground: oklch(var(--success-foreground));
+
+  --color-warning: oklch(var(--warning));
+  --color-warning-foreground: oklch(var(--warning-foreground));
+
+  --color-popover: oklch(var(--popover));
+  --color-popover-foreground: oklch(var(--popover-foreground));
+
+  --color-card: oklch(var(--card));
+  --color-card-foreground: oklch(var(--card-foreground));
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
+
+/*
+ * AYUTRACE+ color system
+ * Primary   → deep forest green   (H152)
+ * Secondary → warm herbal green   (H130, lighter/warmer, genuinely distinct hue from primary)
+ * Accent    → golden saffron      (H68)
+ * Success   → natural green (H150) · Warning → amber (H85) · Danger → deep red — reuses --destructive
+ */
+
+/* ─── AYUTRACE+ Light Mode ─── */
+:root {
+  --background: 0.985 0.004 145;
+  --foreground: 0.18 0.012 145;
+  --card: 1 0 0;
+  --card-foreground: 0.18 0.012 145;
+  --popover: 1 0 0;
+  --popover-foreground: 0.18 0.012 145;
+  --primary: 0.40 0.13 152;
+  --primary-foreground: 0.985 0 0;
+  --secondary: 0.90 0.045 130;
+  --secondary-foreground: 0.30 0.09 130;
+  --muted: 0.965 0.004 145;
+  --muted-foreground: 0.50 0.01 145;
+  --accent: 0.74 0.16 68;
+  --accent-foreground: 0.20 0.05 68;
+  --success: 0.62 0.16 150;
+  --success-foreground: 0.985 0 0;
+  --warning: 0.80 0.14 85;
+  --warning-foreground: 0.20 0.05 85;
+  --destructive: 0.48 0.19 25;
+  --destructive-foreground: 0.985 0 0;
+  --border: 0.90 0.012 145;
+  --input: 0.92 0.012 145;
+  --ring: 0.40 0.13 152;
+  --radius: 0.875rem;
+}
+
+/* ─── AYUTRACE+ Dark Mode ("Rich Slate") ─── */
+.dark {
+  --background: 0.14 0.012 260;
+  --foreground: 0.94 0.006 145;
+  --card: 0.18 0.014 260;
+  --card-foreground: 0.94 0.006 145;
+  --popover: 0.18 0.014 260;
+  --popover-foreground: 0.94 0.006 145;
+  --primary: 0.62 0.16 152;
+  --primary-foreground: 0.12 0.012 152;
+  --secondary: 0.24 0.03 130;
+  --secondary-foreground: 0.88 0.03 130;
+  --muted: 0.20 0.012 260;
+  --muted-foreground: 0.62 0.012 260;
+  --accent: 0.74 0.15 68;
+  --accent-foreground: 0.14 0.03 68;
+  --success: 0.68 0.15 150;
+  --success-foreground: 0.12 0.02 150;
+  --warning: 0.78 0.13 85;
+  --warning-foreground: 0.16 0.03 85;
+  --destructive: 0.62 0.19 25;
+  --destructive-foreground: 0.98 0 0;
+  --border: 1 0 0 / 8%;
+  --input: 1 0 0 / 10%;
+  --ring: 0.62 0.16 152;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "cv11", "ss01";
+    font-variation-settings: "opsz" 32;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Geist Variable', sans-serif;
+  }
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: oklch(0.75 0.05 152 / 50%);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.40 0.13 152 / 70%);
+}
+
+/* ─── Glassmorphism ─── */
+.glass {
+  background: oklch(1 0 0 / 8%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid oklch(1 0 0 / 15%);
+}
+
+.glass-dark {
+  background: oklch(0.18 0.014 260 / 70%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid oklch(1 0 0 / 10%);
+}
+
+/* ─── Gradient backgrounds ─── */
+.ayur-gradient {
+  background: linear-gradient(135deg, oklch(0.40 0.13 152) 0%, oklch(0.45 0.15 200) 100%);
+}
+
+.ayur-gradient-warm {
+  background: linear-gradient(135deg, oklch(0.74 0.16 68) 0%, oklch(0.72 0.2 40) 100%);
+}
+
+.sidebar-item-active {
+  background: linear-gradient(90deg, oklch(0.40 0.13 152 / 15%) 0%, oklch(0.40 0.13 152 / 5%) 100%);
+  border-left: 3px solid oklch(0.40 0.13 152);
+  color: oklch(0.40 0.13 152);
+}
+
+/* ─── Batch Timeline ─── */
+.timeline-line {
+  position: absolute;
+  left: 20px;
+  top: 40px;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, oklch(0.40 0.13 152 / 60%), oklch(0.40 0.13 152 / 10%));
+}
+
+/* ─── Stat card hover ─── */
+.stat-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px oklch(0.40 0.13 152 / 15%);
+}
+
+/* ─── Shimmer loading ─── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, oklch(0.9 0 0) 25%, oklch(0.95 0 0) 50%, oklch(0.9 0 0) 75%);
+  background-size: 200% auto;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ─── Blockchain hash ─── */
+.blockchain-hash {
+  font-family: 'Courier New', monospace;
+  font-size: 0.75rem;
+  color: oklch(0.40 0.13 152);
+  background: oklch(0.40 0.13 152 / 8%);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid oklch(0.40 0.13 152 / 20%);
+}
+
+/* ─── Status badge colors ─── */
+.status-collection { background: oklch(0.75 0.15 200 / 15%); color: oklch(0.45 0.15 200); border: 1px solid oklch(0.75 0.15 200 / 30%); }
+.status-processing  { background: oklch(0.75 0.15 60 / 15%);  color: oklch(0.55 0.18 55);  border: 1px solid oklch(0.75 0.15 60 / 30%);  }
+.status-manufacturing { background: oklch(0.75 0.15 280 / 15%); color: oklch(0.5 0.18 280); border: 1px solid oklch(0.75 0.15 280 / 30%); }
+.status-supply      { background: oklch(0.75 0.15 162 / 15%); color: oklch(0.45 0.17 162); border: 1px solid oklch(0.75 0.15 162 / 30%); }
+.status-completed   { background: oklch(0.75 0.18 142 / 15%); color: oklch(0.42 0.18 142); border: 1px solid oklch(0.75 0.18 142 / 30%); }
+.status-rejected    { background: oklch(0.577 0.245 27 / 12%); color: oklch(0.55 0.22 25); border: 1px solid oklch(0.577 0.245 27 / 25%); }
+
+/* ─── QR display ─── */
+.qr-frame {
+  border: 4px solid oklch(0.40 0.13 152);
+  border-radius: 12px;
+  padding: 12px;
+  background: white;
+  display: inline-block;
+}
+
+/* ─── Login background ─── */
+.login-bg {
+  background:
+    radial-gradient(ellipse at 20% 50%, oklch(0.40 0.13 152 / 20%) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, oklch(0.74 0.16 68 / 15%) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 90%, oklch(0.45 0.15 200 / 20%) 0%, transparent 50%),
+    oklch(0.14 0.012 260);
+}
+
+/* ─── Animations ─── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+.float-anim {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 oklch(0.40 0.13 152 / 50%); }
+  70% { transform: scale(1); box-shadow: 0 0 0 10px oklch(0.40 0.13 152 / 0%); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 oklch(0.40 0.13 152 / 0%); }
+}
+.pulse-ring {
+  animation: pulse-ring 2s infinite;
+}
+
+/* ─── Consumer portal ─── */
+.consumer-hero {
+  background: linear-gradient(135deg, oklch(0.14 0.012 260) 0%, oklch(0.16 0.03 200) 100%);
+}
+
+/* ─── Table row hover ─── */
+.table-row-hover:hover {
+  background: oklch(0.40 0.13 152 / 5%);
+  cursor: pointer;
+}
+
+/* ─── Command palette kbd chip ─── */
+.kbd-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: 'Geist Variable', sans-serif;
+  background: oklch(var(--muted));
+  color: oklch(var(--muted-foreground));
+  border: 1px solid oklch(var(--border));
+}
+
+/* ─── Ayurvedic Theme Layout Redesign ─── */
+.ayur-sidebar-glass {
+  background: rgba(244, 247, 245, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-right: 1px solid rgba(40, 90, 60, 0.12);
+  transition: all 0.3s ease;
+}
+.dark .ayur-sidebar-glass {
+  background: rgba(13, 26, 18, 0.88);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-right: 1px solid rgba(100, 200, 150, 0.15);
+}
+
+.ayur-sidebar-item {
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.ayur-sidebar-item:hover {
+  background: rgba(40, 90, 60, 0.06);
+  color: oklch(0.40 0.13 152);
+  transform: translateX(4px);
+}
+.dark .ayur-sidebar-item:hover {
+  background: rgba(100, 220, 160, 0.08);
+  color: oklch(0.68 0.15 150);
+}
+
+.ayur-sidebar-item-active {
+  background: linear-gradient(135deg, oklch(0.40 0.13 152) 0%, oklch(0.35 0.12 140) 100%) !important;
+  color: white !important;
+  border-radius: 20px 4px 20px 4px !important;
+  box-shadow: 0 4px 15px rgba(40, 90, 60, 0.25);
+  border-left: none !important;
+  transform: scale(1.02);
+}
+.dark .ayur-sidebar-item-active {
+  background: linear-gradient(135deg, oklch(0.68 0.15 150) 0%, oklch(0.55 0.13 135) 100%) !important;
+  color: oklch(0.12 0.02 150) !important;
+  box-shadow: 0 4px 15px rgba(100, 220, 160, 0.3);
+}
+
+.ayur-main-bg {
+  position: relative;
+  /* Premium Light Mode Mesh Gradient */
+  background: 
+    radial-gradient(circle at 80% 20%, rgba(212, 175, 55, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 20% 80%, rgba(16, 185, 129, 0.06) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(250, 252, 249, 0.8) 0%, rgba(243, 247, 241, 0.95) 100%) !important;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+.dark .ayur-main-bg {
+  /* Premium Dark Mode Obsidian/Forest Mesh Gradient */
+  background: 
+    radial-gradient(circle at 80% 20%, rgba(212, 175, 55, 0.03) 0%, transparent 40%),
+    radial-gradient(circle at 20% 80%, rgba(52, 211, 153, 0.05) 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(12, 20, 16, 0.98) 0%, rgba(8, 12, 9, 1) 100%) !important;
+}
+
+/* Subtle dot pattern overlay to give structure and premium tech-ayurveda feeling */
+.ayur-main-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(16, 185, 129, 0.1) 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.8;
+  z-index: 0;
+}
+.dark .ayur-main-bg::before {
+  background-image: radial-gradient(rgba(52, 211, 153, 0.07) 1px, transparent 1px);
+}
+
+/* Translucent organic cards mimicking smooth river stones or leaves */
+.ayur-card,
+.ayur-main-bg [data-slot="card"] {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(40, 90, 60, 0.08) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 10px 30px rgba(40, 90, 60, 0.02) !important;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease !important;
+  outline: none !important;
+}
+.dark .ayur-card,
+.dark .ayur-main-bg [data-slot="card"] {
+  background: rgba(18, 30, 24, 0.75) !important;
+  border: 1px solid rgba(100, 200, 150, 0.08) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+}
+.ayur-card:hover,
+.ayur-main-bg [data-slot="card"]:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 16px 36px rgba(40, 90, 60, 0.08) !important;
+}
+.dark .ayur-card:hover,
+.dark .ayur-main-bg [data-slot="card"]:hover {
+  box-shadow: 0 16px 36px rgba(100, 200, 150, 0.12) !important;
+}
+
+/* Leaf-float micro-animation */
+@keyframes leafFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-6px) rotate(2deg); }
+}
+.leaf-float {
+  animation: leafFloat 5s ease-in-out infinite;
+}

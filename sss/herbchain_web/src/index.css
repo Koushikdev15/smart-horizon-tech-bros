@@ -1,0 +1,564 @@
+@import "tailwindcss";
+
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: 'Geist Sans', 'Inter Variable', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-heading: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', 'Geist Sans', ui-sans-serif, system-ui, sans-serif;
+
+  /*
+   * Tailwind v4 synthesizes opacity-modifier utilities (e.g. bg-primary/50) itself via
+   * color-mix() for any theme color — the old v3 `/ <alpha-value>` placeholder trick is not
+   * substituted by v4 and was being emitted as a literal invalid token, silently breaking
+   * every one of these colors (computed value fell back to `transparent`). Do not re-add it.
+   */
+  --color-border: oklch(var(--border));
+  --color-input: oklch(var(--input));
+  --color-ring: oklch(var(--ring));
+  --color-background: oklch(var(--background));
+  --color-foreground: oklch(var(--foreground));
+
+  --color-primary: oklch(var(--primary));
+  --color-primary-foreground: oklch(var(--primary-foreground));
+
+  --color-secondary: oklch(var(--secondary));
+  --color-secondary-foreground: oklch(var(--secondary-foreground));
+
+  --color-destructive: oklch(var(--destructive));
+  --color-destructive-foreground: oklch(var(--destructive-foreground));
+
+  --color-muted: oklch(var(--muted));
+  --color-muted-foreground: oklch(var(--muted-foreground));
+
+  --color-accent: oklch(var(--accent));
+  --color-accent-foreground: oklch(var(--accent-foreground));
+
+  --color-success: oklch(var(--success));
+  --color-success-foreground: oklch(var(--success-foreground));
+
+  --color-warning: oklch(var(--warning));
+  --color-warning-foreground: oklch(var(--warning-foreground));
+
+  --color-info: oklch(var(--info));
+  --color-info-foreground: oklch(var(--info-foreground));
+
+  --color-popover: oklch(var(--popover));
+  --color-popover-foreground: oklch(var(--popover-foreground));
+
+  --color-card: oklch(var(--card));
+  --color-card-foreground: oklch(var(--card-foreground));
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
+
+/*
+ * AyurTrace+ Design System — "Sandalwood & Forest"
+ * A restrained, government-grade palette for a national Ayurvedic
+ * traceability platform (Ministry of AYUSH). Every hue is desaturated
+ * and calm by design — this is a compliance instrument, not a consumer app.
+ *
+ * Primary   → Deep Forest Green   #2E5E3E  (H153)
+ * Secondary → Sage Green          #7A9E7E  (H148)
+ * Accent    → Turmeric Gold       #C89B2D  (H85)
+ * Success   → Natural Green       #3F8557  (H153)
+ * Info      → Muted Teal          #4C8C8A  (H193)
+ * Warning   → Turmeric Gold, dimmed
+ * Danger    → Muted Red           #B3463F  (H27)
+ * Background→ Warm Ivory          #F8F7F2
+ * Card      → Pure White          #FFFFFF
+ * Text      → Charcoa/* ─── Light Mode ─── */
+:root {
+  --background: 0.980 0.005 240; /* #F8FAFC Slate 50 */
+  --foreground: 0.120 0.018 250; /* #111827 */
+  --card: 1 0 0; /* #FFFFFF */
+  --card-foreground: 0.120 0.018 250;
+  --popover: 1 0 0;
+  --popover-foreground: 0.120 0.018 250;
+
+  --primary: 0.485 0.125 155; /* #1E7D57 Deep Emerald Green */
+  --primary-foreground: 1 0 0;
+
+  --secondary: 0.582 0.233 264.1; /* #3B82F6 Royal Blue */
+  --secondary-foreground: 1 0 0;
+
+  --muted: 0.93 0.008 240;
+  --muted-foreground: 0.42 0.018 250; /* #4B5563 */
+
+  --accent: 0.712 0.194 78.5; /* #F59E0B Amber */
+  --accent-foreground: 0.120 0.018 250;
+
+  --success: 0.700 0.160 150; /* #22C55E */
+  --success-foreground: 1 0 0;
+
+  --warning: 0.712 0.194 78.5;
+  --warning-foreground: 0.120 0.018 250;
+
+  --info: 0.582 0.233 264.1;
+  --info-foreground: 1 0 0;
+
+  --destructive: 0.600 0.200 25; /* #EF4444 */
+  --destructive-foreground: 1 0 0;
+
+  --border: 0.910 0.010 240; /* #E5E7EB */
+  --input: 0.910 0.010 240;
+  --ring: 0.485 0.125 155;
+  --radius: 12px;
+
+  /* Chart Colors */
+  --chart-teal: #1E7D57;
+  --chart-blue: #3b82f6;
+  --chart-amber: #f59e0b;
+  --chart-green: #22C55E;
+  --chart-purple: #8b5cf6;
+  --chart-cyan: #06b6d4;
+  --chart-red: #ef4444;
+}
+
+/* ─── Dark Mode ("Deep Cosmos") ─── */
+.dark {
+  --background: 0.075 0.018 248; /* Rich deep navy #0B1220 */
+  --foreground: 0.975 0.005 240; /* #F8FAFC crisp white */
+  --card: 0.160 0.035 165; /* Elevated card #071F1A — dark mint green */
+  --card-foreground: 0.975 0.005 240;
+  --popover: 0.160 0.035 165;
+  --popover-foreground: 0.975 0.005 240;
+
+  --primary: 0.720 0.165 175.7; /* #14B8A6 — slightly brighter in dark */
+  --primary-foreground: 0.085 0.018 248;
+
+  --secondary: 0.600 0.240 264.1; /* #3B82F6 brighter Royal Blue */
+  --secondary-foreground: 0.975 0.005 240;
+
+  --muted: 0.155 0.022 248; /* #1A2333 */
+  --muted-foreground: 0.720 0.014 245; /* #94A3B8 — Slate-400 */
+
+  --accent: 0.730 0.200 78.5; /* #F59E0B brighter Amber */
+  --accent-foreground: 0.085 0.018 248;
+
+  --success: 0.720 0.165 175.7;
+  --success-foreground: 0.085 0.018 248;
+
+  --warning: 0.730 0.200 78.5;
+  --warning-foreground: 0.085 0.018 248;
+
+  --info: 0.600 0.240 264.1;
+  --info-foreground: 0.085 0.018 248;
+
+  --destructive: 0.640 0.160 27;
+  --destructive-foreground: 0.975 0.005 240;
+
+  --border: 0.230 0.020 248; /* rgba(255,255,255,0.08) equivalent */
+  --input: 0.230 0.020 248;
+  --ring: 0.720 0.165 175.7;
+
+  /* Chart Colors matching Analytics exactly */
+  --chart-teal: #10b981;
+  --chart-blue: #3b82f6;
+  --chart-amber: #f59e0b;
+  --chart-green: #10b981;
+  --chart-purple: #8b5cf6;
+  --chart-cyan: #06b6d4;
+  --chart-red: #ef4444;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "cv11", "ss01";
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.01em;
+  }
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: oklch(var(--primary) / 25%);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(var(--primary) / 45%);
+}
+
+/* ─── Typography scale (per brief: Page 32 / Section 24 / Card 18 / Body 15-16 / Caption 13) ─── */
+.text-page-title { font-family: var(--font-heading); font-size: 2rem; font-weight: 700; letter-spacing: -0.015em; line-height: 1.2; }
+.text-section-title { font-family: var(--font-heading); font-size: 1.5rem; font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; }
+.text-card-title { font-family: var(--font-heading); font-size: 1.125rem; font-weight: 600; line-height: 1.3; }
+.text-caption { font-size: 0.8125rem; color: oklch(var(--muted-foreground)); }
+
+/* ─── Elevation — premium shadows for layered depth ─── */
+.elevate-sm { box-shadow: 0 1px 3px rgba(0, 10, 30, 0.06), 0 1px 2px rgba(0, 10, 30, 0.04); }
+.elevate-md { box-shadow: 0 4px 12px rgba(0, 10, 30, 0.08), 0 8px 24px -4px rgba(0, 10, 30, 0.06); }
+.elevate-lg { box-shadow: 0 8px 28px -6px rgba(0, 10, 30, 0.12), 0 2px 8px rgba(0, 10, 30, 0.06); }
+.dark .elevate-sm { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25); }
+.dark .elevate-md { box-shadow: 0 4px 16px rgba(0, 0, 0, 0.40), 0 8px 32px -4px rgba(0, 0, 0, 0.30); }
+.dark .elevate-lg { box-shadow: 0 12px 36px rgba(0, 0, 0, 0.50), 0 4px 12px rgba(0, 0, 0, 0.30); }
+
+/* ─── Glass — premium glassmorphism ─── */
+.glass {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(16px) saturate(1.6);
+  -webkit-backdrop-filter: blur(16px) saturate(1.6);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+}
+.dark .glass {
+  background: rgba(17, 24, 39, 0.80);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* ─── Sidebar ─── */
+.gov-sidebar {
+  position: relative;
+  background:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.02'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 40% 20%, rgba(20, 184, 166, 0.05) 0%, transparent 60%),
+    radial-gradient(ellipse at 60% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 60%),
+    linear-gradient(160deg, #F0F4F8 0%, #EBF0F6 40%, #E2E8F0 100%);
+  background-repeat: repeat;
+  border-right: 1px solid #CBD5E1;
+}
+.dark .gov-sidebar {
+  background:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 40% 20%, rgba(20, 184, 166, 0.10) 0%, transparent 60%),
+    radial-gradient(ellipse at 60% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 60%),
+    linear-gradient(160deg, #060e18 0%, #07111c 40%, #060e18 100%);
+  background-repeat: repeat;
+  border-right: 1px solid rgba(20, 184, 166, 0.15);
+}
+
+.gov-sidebar-item {
+  position: relative;
+  border-radius: 0.5rem;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.gov-sidebar-item:not(.gov-sidebar-item-active) {
+  color: #475569 !important; /* Slate-600 */
+}
+.gov-sidebar-item:not(.gov-sidebar-item-active):hover {
+  color: #0F766E !important;
+  background-color: rgba(15, 118, 110, 0.08) !important;
+}
+.dark .gov-sidebar-item:not(.gov-sidebar-item-active) {
+  color: #94A3B8 !important;
+  background-color: transparent !important;
+}
+.dark .gov-sidebar-item:not(.gov-sidebar-item-active):hover {
+  color: #2DD4BF !important;
+  background-color: rgba(20, 184, 166, 0.12) !important;
+}
+
+.gov-sidebar-item-active {
+  background-color: #FFFFFF !important;
+  color: #0F766E !important;
+  border: 1px solid #CBD5E1 !important;
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.08) !important;
+  font-weight: 600;
+}
+.dark .gov-sidebar-item-active {
+  background-color: rgba(20, 184, 166, 0.18) !important;
+  color: #2DD4BF !important;
+  border: 1px solid rgba(20, 184, 166, 0.30) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+}
+.gov-sidebar-item-active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: #0F766E;
+}
+.dark .gov-sidebar-item-active::before {
+  background: #2DD4BF;
+}
+
+/* Sidebar label and button overrides for premium contrast on dark sidebar */
+.gov-sidebar p.text-\[9\.5px\] {
+  color: #64748B !important;
+}
+.dark .gov-sidebar p.text-\[9\.5px\] {
+  color: #475569 !important;
+}
+
+.gov-sidebar button[title="Logout"] {
+  color: #475569 !important;
+}
+.gov-sidebar button[title="Logout"]:hover {
+  color: #ef4444 !important;
+}
+.dark .gov-sidebar button[title="Logout"] {
+  color: #64748B !important;
+}
+.dark .gov-sidebar button[title="Logout"]:hover {
+  color: #ef4444 !important;
+}
+
+/* Premium Sidebar Card */
+.gov-sidebar-card {
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(20, 184, 166, 0.18);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  border-radius: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.gov-sidebar-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+.dark .gov-sidebar-card {
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(20, 184, 166, 0.14);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.30);
+}
+.dark .gov-sidebar-card:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.40);
+}
+
+/* ─── Main content backdrop — dual-mode premium backgrounds ─── */
+.gov-main-bg {
+  position: relative;
+  background:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.025'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 70% 10%, rgba(20,184,166,0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 90%, rgba(59,130,246,0.04) 0%, transparent 50%),
+    linear-gradient(160deg, #E8EFF8 0%, #EDF2FA 40%, #E6EDF6 100%);
+  background-repeat: repeat, no-repeat, no-repeat, no-repeat;
+}
+.dark .gov-main-bg {
+  background:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 75% 8%, rgba(20,184,166,0.12) 0%, transparent 45%),
+    radial-gradient(ellipse at 20% 92%, rgba(59,130,246,0.10) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 50%, rgba(139,92,246,0.04) 0%, transparent 60%),
+    linear-gradient(160deg, #0B1220 0%, #101828 40%, #0D1830 70%, #0B1220 100%);
+  background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+}
+
+/* ─── Premium Card enhancements (dark mode) ─── */
+.dark [class*="card"], .dark .Card {
+  border-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+/* Header dark mode elevation */
+.dark header {
+  background: rgba(17, 24, 39, 0.92) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.07) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ─── Batch Timeline ─── */
+.timeline-line {
+  position: absolute;
+  left: 20px;
+  top: 40px;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, oklch(var(--primary) / 50%), oklch(var(--primary) / 8%));
+}
+
+/* ─── Stat / dashboard card hover ─── */
+.stat-card {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.stat-card:hover {
+  transform: scale(1.04);
+}
+.dark .stat-card {
+  background: linear-gradient(135deg, #071F1A 0%, #0A2E26 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35), 0 1px 4px rgba(0, 0, 0, 0.20) !important;
+}
+.dark .stat-card:hover {
+  border-color: rgba(20, 184, 166, 0.25) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(20, 184, 166, 0.12) !important;
+}
+
+/* ─── KPI icon glow rings (dark mode) ─── */
+.dark .stat-card [class*="rounded-lg"] {
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.25);
+}
+
+/* ─── Chart Card dark enhancements ─── */
+.dark .recharts-cartesian-grid-horizontal line,
+.dark .recharts-cartesian-grid-vertical line {
+  stroke: rgba(255,255,255,0.08) !important;
+}
+.dark .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: rgba(17, 24, 39, 0.95) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.50), inset 0 0 0 1px rgba(255,255,255,0.05) !important;
+  backdrop-filter: blur(12px);
+  color: #F8FAFC !important;
+}
+.dark .recharts-text {
+  fill: #CBD5E1 !important;
+}
+.dark .recharts-legend-item-text {
+  color: #CBD5E1 !important;
+}
+.dark .recharts-sector {
+  stroke: #101828 !important; /* Premium dark background separator */
+  stroke-width: 2.5px !important;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.dark .recharts-sector:hover {
+  filter: drop-shadow(0 0 16px rgba(255, 255, 255, 0.25));
+  opacity: 0.95;
+}
+.dark .recharts-bar-rectangle path {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.dark .recharts-bar-rectangle path:hover {
+  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.2));
+}
+
+/* ─── Loading skeleton ─── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, oklch(0.9 0 0) 25%, oklch(0.95 0 0) 50%, oklch(0.9 0 0) 75%);
+  background-size: 200% auto;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ─── Blockchain hash chip ─── */
+.blockchain-hash {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 0.75rem;
+  color: oklch(var(--primary));
+  background: oklch(var(--primary) / 7%);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid oklch(var(--primary) / 18%);
+}
+.dark .blockchain-hash {
+  background: oklch(var(--primary) / 15%);
+  border-color: oklch(var(--primary) / 35%);
+}
+
+/* ─── Status badge colors (desaturated, one hue family per stage) ─── */
+.status-collection    { background: oklch(var(--info) / 12%);      color: oklch(var(--info));      border: 1px solid oklch(var(--info) / 28%); }
+.status-processing    { background: oklch(var(--accent) / 15%);    color: oklch(0.5 0.11 85);       border: 1px solid oklch(var(--accent) / 32%); }
+.status-manufacturing { background: oklch(0.55 0.09 280 / 12%);    color: oklch(0.48 0.11 280);      border: 1px solid oklch(0.55 0.09 280 / 26%); }
+.status-supply        { background: oklch(var(--secondary));       color: oklch(var(--secondary-foreground)); border: 1px solid oklch(var(--primary) / 20%); }
+.status-completed     { background: oklch(var(--success) / 13%);   color: oklch(var(--success));     border: 1px solid oklch(var(--success) / 28%); }
+.dark .status-collection    { background: oklch(var(--info) / 20%);      color: oklch(0.80 0.15 264); border-color: oklch(var(--info) / 40%); }
+.dark .status-processing    { background: oklch(var(--accent) / 20%);    color: oklch(0.85 0.14 85);  border-color: oklch(var(--accent) / 40%); }
+.dark .status-manufacturing { background: oklch(0.65 0.11 280 / 20%);    color: oklch(0.80 0.12 280); border-color: oklch(0.65 0.11 280 / 40%); }
+.dark .status-completed     { background: oklch(var(--success) / 20%);   color: oklch(0.80 0.15 175); border-color: oklch(var(--success) / 40%); }
+.dark .status-rejected      { background: oklch(var(--destructive) / 20%); color: oklch(0.80 0.13 27);  border-color: oklch(var(--destructive) / 40%); }
+.status-rejected      { background: oklch(var(--destructive) / 10%); color: oklch(var(--destructive)); border: 1px solid oklch(var(--destructive) / 24%); }
+
+/* ─── QR display ─── */
+.qr-frame {
+  border: 3px solid oklch(var(--primary));
+  border-radius: 12px;
+  padding: 12px;
+  background: white;
+  display: inline-block;
+}
+
+/* ─── Login backdrop ─── */
+.login-bg {
+  position: relative;
+  background-color: oklch(var(--background));
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.035'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  overflow-x: hidden;
+}
+.dark .login-bg {
+  background-color: oklch(var(--background));
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+/* ─── Consumer portal hero ─── */
+.consumer-hero {
+  background: linear-gradient(160deg, oklch(0.28 0.04 156) 0%, oklch(0.20 0.03 160) 100%);
+}
+
+/* ─── Table row hover ─── */
+.table-row-hover:hover {
+  background: oklch(var(--primary) / 4%);
+  cursor: pointer;
+}
+
+/* ─── Command palette kbd chip ─── */
+.kbd-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  background: oklch(var(--muted));
+  color: oklch(var(--muted-foreground));
+  border: 1px solid oklch(var(--border));
+}
+
+/* ─── Reduced motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─── Autofill input background override ─── */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px oklch(var(--card)) inset !important;
+  -webkit-text-fill-color: oklch(var(--foreground)) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* ─── Custom Login Card for Glassmorphism ─── */
+.login-card {
+  background: oklch(var(--card));
+  border: 1px solid oklch(var(--border));
+}
+.dark .login-card {
+  background: rgba(11, 26, 41, 0.75); /* Semi-transparent dark navy/teal */
+  border: 1px solid rgba(20, 184, 166, 0.15); /* Subtle royal blue/teal border */
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.login-right-panel {
+  background: oklch(var(--card));
+}
+.dark .login-right-panel {
+  background: rgba(11, 26, 41, 0.45); /* Transparent forms */
+}
