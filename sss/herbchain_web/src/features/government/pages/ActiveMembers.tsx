@@ -7,15 +7,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { toast } from 'sonner';
 import PageHeader from '../../../components/PageHeader';
 import BatchStatusBadge from '../../../components/BatchStatusBadge';
-import { Search, PauseCircle, PlayCircle, Leaf, FlaskConical, Factory, Truck, Shield, Users, Eye } from 'lucide-react';
+import { Search, PauseCircle, PlayCircle, Leaf, FlaskConical, Factory, Truck, Shield, Users, Eye, CheckCircle, Loader2, Tractor, TreePine } from 'lucide-react';
 import type { Member } from '../../../types';
-
-// Firebase imports
-import { db } from '../../../lib/firebase';
-import { collection, onSnapshot, doc, updateDoc } from 'firebase/firestore';
+import { supabase } from '../../../lib/supabase';
 
 const roleIcons: Record<string, React.ElementType> = {
   'Collection Center': Leaf,
+  'Farmer': Tractor,
+  'Wild Collector': TreePine,
   'Processing & Laboratory': FlaskConical,
   'Manufacturer': Factory,
   'Supply Chain': Truck,
@@ -24,24 +23,40 @@ const roleIcons: Record<string, React.ElementType> = {
 
 export default function ActiveMembers() {
   const [members, setMembers] = useState<Member[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('All');
   const [selected, setSelected] = useState<Member | null>(null);
 
   useEffect(() => {
-    // Listen to Firebase members collection
-    const unsubscribe = onSnapshot(collection(db, 'members'), (snapshot) => {
-      const fetchedMembers: Member[] = [];
-      snapshot.forEach((doc) => {
-        fetchedMembers.push({ id: doc.id, ...doc.data() } as Member);
-      });
-      setMembers(fetchedMembers);
-    }, (error) => {
-      console.error("Error fetching members: ", error);
-      toast.error('Failed to load members from database');
-    });
+    const fetchMembers = async () => {
+      const { data, error } = await supabase
+        .from('members')
+        .select('*')
+        .order('registeredDate', { ascending: false });
 
-    return () => unsubscribe();
+      if (error) {
+        console.error('Error fetching members: ', error);
+        toast.error('Failed to load members from database');
+      } else {
+        setMembers((data ?? []) as Member[]);
+      }
+      setLoading(false);
+    };
+
+    fetchMembers();
+
+    // Keep the list live as registrations/approvals come in elsewhere.
+    const channel = supabase
+      .channel('members-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'members' }, () => {
+        fetchMembers();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const filtered = members.filter((m) => {
@@ -54,17 +69,26 @@ export default function ActiveMembers() {
 
   const handleToggle = async (id: string, current: string) => {
     const next = current === 'Active' ? 'Suspended' : 'Active';
-    try {
-      toast.loading(`Updating status...`, { id: 'statusUpdate' });
-      const memberRef = doc(db, 'members', id);
-      await updateDoc(memberRef, {
-        status: next
-      });
-      toast.dismiss('statusUpdate');
-      toast.success(`Member ${next === 'Active' ? 'reactivated' : 'suspended'} successfully.`);
-    } catch (error: any) {
-      toast.dismiss('statusUpdate');
+    toast.loading(`Updating status...`, { id: 'statusUpdate' });
+    const { error } = await supabase.from('members').update({ status: next }).eq('id', id);
+    toast.dismiss('statusUpdate');
+    if (error) {
       toast.error('Failed to update status: ' + error.message);
+    } else {
+      setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, status: next as Member['status'] } : m)));
+      toast.success(`Member ${next === 'Active' ? 'reactivated' : 'suspended'} successfully.`);
+    }
+  };
+
+  const handleApprove = async (id: string) => {
+    toast.loading('Approving member...', { id: 'statusUpdate' });
+    const { error } = await supabase.from('members').update({ status: 'Active' }).eq('id', id);
+    toast.dismiss('statusUpdate');
+    if (error) {
+      toast.error('Failed to approve member: ' + error.message);
+    } else {
+      setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, status: 'Active' } : m)));
+      toast.success('Member approved successfully.');
     }
   };
 
@@ -83,7 +107,7 @@ export default function ActiveMembers() {
           <Input placeholder="Search members..." className="pl-9 h-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <div className="flex gap-1.5 flex-wrap">
-          {['All', 'Collection Center', 'Processing & Laboratory', 'Manufacturer', 'Supply Chain'].map((role) => (
+          {['All', 'Collection Center', 'Farmer', 'Wild Collector', 'Processing & Laboratory', 'Manufacturer', 'Supply Chain'].map((role) => (
             <button
               key={role}
               onClick={() => setRoleFilter(role)}
@@ -112,7 +136,16 @@ export default function ActiveMembers() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((m) => {
+              {loading && (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-10">
+                    <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
+                      <Loader2 className="w-4 h-4 animate-spin" /> Loading members...
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+              {!loading && filtered.map((m) => {
                 const RoleIcon = roleIcons[m.role] || Leaf;
                 return (
                   <TableRow key={m.id} className="table-row-hover">
@@ -158,7 +191,7 @@ export default function ActiveMembers() {
                           </Button>
                         )}
                         {m.status === 'Pending' && (
-                          <Button size="sm" variant="ghost" onClick={() => handleToggle(m.id, 'Suspended')} className="h-7 px-2 text-xs text-primary">
+                          <Button size="sm" variant="ghost" onClick={() => handleApprove(m.id)} className="h-7 px-2 text-xs text-primary">
                             <CheckCircle className="w-3.5 h-3.5 mr-1" /> Approve
                           </Button>
                         )}
@@ -167,7 +200,7 @@ export default function ActiveMembers() {
                   </TableRow>
                 );
               })}
-              {filtered.length === 0 && (
+              {!loading && filtered.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     No members found in the database.

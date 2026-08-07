@@ -1,4 +1,4 @@
-export type UserRole = 'Collection Center' | 'Processing & Laboratory' | 'Manufacturer' | 'Supply Chain' | 'Government';
+export type UserRole = 'Collection Center' | 'Farmer' | 'Wild Collector' | 'Processing & Laboratory' | 'Manufacturer' | 'Supply Chain' | 'Government';
 
 export interface User {
   id: string;

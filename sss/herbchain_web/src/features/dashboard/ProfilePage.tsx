@@ -1,12 +1,14 @@
 import { useAuthStore } from '../../store/authStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Shield, Leaf, FlaskConical, Factory, Truck, Mail, Phone, MapPin, Hash, Building2, CalendarDays } from 'lucide-react';
+import { Shield, Leaf, FlaskConical, Factory, Truck, Tractor, TreePine, Mail, Phone, MapPin, Hash, Building2, CalendarDays } from 'lucide-react';
 import type { UserRole } from '../../types';
 
 const roleIcons: Record<UserRole, React.ElementType> = {
   'Government': Shield,
   'Collection Center': Leaf,
+  'Farmer': Tractor,
+  'Wild Collector': TreePine,
   'Processing & Laboratory': FlaskConical,
   'Manufacturer': Factory,
   'Supply Chain': Truck,
@@ -15,6 +17,8 @@ const roleIcons: Record<UserRole, React.ElementType> = {
 const roleColors: Record<UserRole, string> = {
   'Government': 'text-violet-600',
   'Collection Center': 'text-primary',
+  'Farmer': 'text-lime-600',
+  'Wild Collector': 'text-teal-600',
   'Processing & Laboratory': 'text-amber-600',
   'Manufacturer': 'text-blue-600',
   'Supply Chain': 'text-cyan-600',

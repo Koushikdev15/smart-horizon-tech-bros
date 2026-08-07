@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import PageHeader from '../../../components/PageHeader';
-import { Leaf, FlaskConical, Factory, Truck, CheckCircle, Tractor, TreePine, Phone, ShieldCheck, Mail } from 'lucide-react';
+import { Leaf, FlaskConical, Factory, Truck, CheckCircle, Tractor, TreePine, ShieldCheck, Mail } from 'lucide-react';
 import DocumentUpload from '../../../components/DocumentUpload';
 import { supabase } from '../../../lib/supabase';
+import { supabaseOtpClient } from '../../../lib/supabaseOtpClient';
 
 function FormField({ label, id, placeholder, type = 'text', required = false, value, onChange }: { label: string; id: string; placeholder?: string; type?: string; required?: boolean; value?: string; onChange?: (e: any) => void }) {
   return (
@@ -19,52 +20,81 @@ function FormField({ label, id, placeholder, type = 'text', required = false, va
   );
 }
 
+const RESEND_COOLDOWN_SECONDS = 60;
+
 function EmailVerification({ onVerified }: { onVerified: (email: string) => void }) {
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [codeSent, setCodeSent] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [sendLoading, setSendLoading] = useState(false);
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  // Tick the resend countdown down once a code has been sent.
+  useEffect(() => {
+    if (!codeSent || resendCooldown <= 0) return;
+    const timer = setTimeout(() => setResendCooldown((s) => s - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [codeSent, resendCooldown]);
+
+  // Going back to change the email invalidates whatever was sent/verified for the old one.
+  const resetVerification = () => {
+    const wasVerified = isVerified;
+    setOtp('');
+    setCodeSent(false);
+    setIsVerified(false);
+    setVerifyError(null);
+    setResendCooldown(0);
+    if (wasVerified) onVerified('');
+  };
 
   const sendOTP = async () => {
     if (!email) return toast.error('Please enter an email address');
-    setIsLoading(true);
-    
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email,
+    setSendLoading(true);
+    setVerifyError(null);
+
+    const { error } = await supabaseOtpClient.auth.signInWithOtp({
+      email,
       options: {
         shouldCreateUser: true,
       }
     });
 
-    setIsLoading(false);
-    
+    setSendLoading(false);
+
     if (error) {
       toast.error(error.message);
     } else {
       setCodeSent(true);
-      toast.success('Verification code sent to your email!');
+      setOtp('');
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
+      toast.success('Code Sent — check your email for the verification code.');
     }
   };
 
   const verifyOTP = async () => {
     if (!otp) return toast.error('Please enter verification code');
-    setIsLoading(true);
-    
-    const { error } = await supabase.auth.verifyOtp({
-      email: email,
+    setVerifyLoading(true);
+    setVerifyError(null);
+
+    const { error } = await supabaseOtpClient.auth.verifyOtp({
+      email,
       token: otp,
       type: 'email'
     });
 
-    setIsLoading(false);
+    setVerifyLoading(false);
+    setOtp(''); // never keep the code around longer than the verification attempt
 
     if (error) {
-      toast.error('Invalid verification code: ' + error.message);
+      setVerifyError('Invalid or expired OTP');
+      toast.error('Invalid or expired OTP');
     } else {
       setIsVerified(true);
       onVerified(email);
-      toast.success('Email verified successfully!');
+      toast.success('Email Verified');
     }
   };
 
@@ -75,7 +105,12 @@ function EmailVerification({ onVerified }: { onVerified: (email: string) => void
           <Label className="text-sm font-medium text-green-800 dark:text-green-300">Verified Email Address</Label>
           <div className="font-mono text-sm mt-0.5">{email}</div>
         </div>
-        <ShieldCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
+        <div className="flex items-center gap-3 shrink-0">
+          <button type="button" onClick={resetVerification} className="text-xs text-muted-foreground hover:text-foreground underline">
+            Change
+          </button>
+          <ShieldCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
+        </div>
       </div>
     );
   }
@@ -86,42 +121,69 @@ function EmailVerification({ onVerified }: { onVerified: (email: string) => void
         <Mail className="w-4 h-4 text-primary" />
         <h4 className="text-sm font-semibold">Email Verification Required</h4>
       </div>
-      
+
       {!codeSent ? (
         <div className="flex gap-2 items-end">
           <div className="flex-1">
             <Label className="text-xs mb-1 block">Email Address</Label>
-            <Input 
+            <Input
               type="email"
-              placeholder="user@example.com" 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
+              placeholder="user@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-          <Button type="button" onClick={sendOTP} disabled={isLoading || !email}>
-            {isLoading ? 'Sending...' : 'Send Code'}
+          <Button type="button" onClick={sendOTP} disabled={sendLoading || !email}>
+            {sendLoading ? 'Sending...' : 'Send Code'}
           </Button>
         </div>
       ) : (
-        <div className="flex gap-2 items-end animate-in fade-in">
-          <div className="flex-1">
-            <Label className="text-xs mb-1 block">Enter Verification Code</Label>
-            <Input 
-              placeholder="123456" 
-              value={otp} 
-              onChange={(e) => setOtp(e.target.value)} 
-            />
+        <div className="space-y-2 animate-in fade-in">
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <Label className="text-xs mb-1 block">Enter Verification Code</Label>
+              <Input
+                placeholder="123456"
+                inputMode="numeric"
+                maxLength={6}
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                aria-invalid={Boolean(verifyError)}
+              />
+            </div>
+            <Button type="button" onClick={verifyOTP} disabled={verifyLoading || otp.length !== 6}>
+              {verifyLoading ? 'Verifying...' : 'Verify Code'}
+            </Button>
           </div>
-          <Button type="button" onClick={verifyOTP} disabled={isLoading || !otp}>
-            {isLoading ? 'Verifying...' : 'Verify Email'}
-          </Button>
+          <div className="flex items-center justify-between text-xs">
+            <span className={verifyError ? 'text-destructive font-medium' : 'text-muted-foreground'}>
+              {verifyError ?? 'Code Sent'}
+            </span>
+            <div className="flex items-center gap-3">
+              <button type="button" onClick={resetVerification} className="text-muted-foreground hover:text-foreground underline">
+                Change email
+              </button>
+              {resendCooldown > 0 ? (
+                <span className="text-muted-foreground">Resend code in {resendCooldown}s</span>
+              ) : (
+                <button type="button" onClick={sendOTP} disabled={sendLoading} className="text-primary hover:underline font-medium">
+                  {sendLoading ? 'Sending...' : 'Resend Code'}
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-// Mock Submit Helper
+// Generates a unique Ayurvedic ID client-side (AYUR-<ROLE>-<6 char alphanumeric>)
+// so it can be shown to the admin in the success toast before/without a DB round-trip.
+const generateAyurvedicId = (roleCode: string) => {
+  const random = Math.random().toString(36).slice(2, 8).toUpperCase();
+  return `AYUR-${roleCode}-${random}`;
+};
 
 const submitToSupabase = async (collectionName: string, data: any) => {
   try {
@@ -145,6 +207,7 @@ const submitToSupabase = async (collectionName: string, data: any) => {
 
 function CollectionCenterEntityForm() {
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '', owner: '', license: '', gst: '', pan: '', email: '', region: '', capacity: '', exp: '', address: '', bank: '', phone: '', password: '', confirmPassword: '' });
 
@@ -154,28 +217,32 @@ function CollectionCenterEntityForm() {
     if (!formData.email) return toast.error('Please verify your email first');
     if (!formData.password || formData.password.length < 6) return toast.error('Password must be at least 6 characters');
     if (formData.password !== formData.confirmPassword) return toast.error('Passwords do not match');
-    
+
+    setIsSubmitting(true);
     toast.loading('Submitting registration...', { id: 'reg' });
+    const ayurvedicId = generateAyurvedicId('CC');
     const success = await submitToSupabase('members', {
       name: formData.owner,
       organizationName: formData.name,
       role: 'Collection Center',
       phone: formData.phone,
       email: formData.email,
-      password: formData.password,
       region: formData.region,
       address: formData.address,
       gst: formData.gst,
       pan: formData.pan,
       licenseNumber: formData.license,
       warehouseCapacity: formData.capacity,
-      ayurvedicId: 'AYU-CC-PENDING'
+      ayurvedicId,
+      status: 'Pending',
+      registeredDate: new Date().toISOString(),
     });
-    
+
     toast.dismiss('reg');
+    setIsSubmitting(false);
     if (success) {
       setSubmitted(true);
-      toast.success('Collection Center registered! Pending admin approval.');
+      toast.success(`Collection Center registered! Ayurvedic ID: ${ayurvedicId}`);
     }
   };
 
@@ -221,7 +288,9 @@ function CollectionCenterEntityForm() {
         <DocumentUpload label="Click or drag files to upload License, GST Certificate, PAN Card" />
       </div>
       <div className="md:col-span-2">
-        <Button type="submit" className="w-full bg-primary hover:bg-primary text-white">Register Collection Center</Button>
+        <Button type="submit" className="w-full bg-primary hover:bg-primary text-white" disabled={isSubmitting}>
+          {isSubmitting ? 'Registering...' : 'Register Collection Center'}
+        </Button>
       </div>
     </form>
   );
@@ -229,8 +298,9 @@ function CollectionCenterEntityForm() {
 
 function FarmerForm() {
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    name: '', aadhar: '', land: '', soil: '', irrigation: '', herbs: '', cert: '', address: '', bank: '', phone: '', password: '', confirmPassword: '' });
+    name: '', aadhar: '', land: '', soil: '', irrigation: '', herbs: '', cert: '', address: '', bank: '', phone: '', email: '', password: '', confirmPassword: '' });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -238,24 +308,30 @@ function FarmerForm() {
     if (!formData.email) return toast.error('Please verify your email first');
     if (!formData.password || formData.password.length < 6) return toast.error('Password must be at least 6 characters');
     if (formData.password !== formData.confirmPassword) return toast.error('Passwords do not match');
-    
+
+    setIsSubmitting(true);
     toast.loading('Submitting registration...', { id: 'reg' });
+    const ayurvedicId = generateAyurvedicId('FRM');
+    const { password: _password, confirmPassword: _confirmPassword, ...farmerDetails } = formData;
     const success = await submitToSupabase('members', {
       name: formData.name,
       organizationName: `Farm of ${formData.name}`,
-      role: 'Collection Center', // Grouping farmers under collection network for this demo
+      role: 'Farmer',
       phone: formData.phone,
       email: formData.email,
       region: 'Local',
       address: formData.address,
-      ayurvedicId: 'AYU-FRM-PENDING',
-      farmerDetails: formData
+      ayurvedicId,
+      status: 'Pending',
+      registeredDate: new Date().toISOString(),
+      farmerDetails,
     });
-    
+
     toast.dismiss('reg');
+    setIsSubmitting(false);
     if (success) {
       setSubmitted(true);
-      toast.success('Farmer registered successfully! Pending admin approval.');
+      toast.success(`Farmer registered! Ayurvedic ID: ${ayurvedicId}`);
     }
   };
 
@@ -300,7 +376,9 @@ function FarmerForm() {
         <DocumentUpload label="Click or drag files to upload Land Records, Aadhar, Organic Certificate" />
       </div>
       <div className="md:col-span-2">
-        <Button type="submit" className="w-full bg-[#166534] hover:bg-[#166534]/90 text-white">Register Farmer</Button>
+        <Button type="submit" className="w-full bg-[#166534] hover:bg-[#166534]/90 text-white" disabled={isSubmitting}>
+          {isSubmitting ? 'Registering...' : 'Register Farmer'}
+        </Button>
       </div>
     </form>
   );
@@ -308,8 +386,9 @@ function FarmerForm() {
 
 function WildCollectorForm() {
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    name: '', aadhar: '', zone: '', permit: '', tribe: '', herbs: '', exp: '', address: '', bank: '', phone: '', password: '', confirmPassword: '' });
+    name: '', aadhar: '', zone: '', permit: '', tribe: '', herbs: '', exp: '', address: '', bank: '', phone: '', email: '', password: '', confirmPassword: '' });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -317,24 +396,30 @@ function WildCollectorForm() {
     if (!formData.email) return toast.error('Please verify your email first');
     if (!formData.password || formData.password.length < 6) return toast.error('Password must be at least 6 characters');
     if (formData.password !== formData.confirmPassword) return toast.error('Passwords do not match');
-    
+
+    setIsSubmitting(true);
     toast.loading('Submitting registration...', { id: 'reg' });
+    const ayurvedicId = generateAyurvedicId('WC');
+    const { password: _password, confirmPassword: _confirmPassword, ...wildCollectorDetails } = formData;
     const success = await submitToSupabase('members', {
       name: formData.name,
       organizationName: `Wild Collector - ${formData.zone}`,
-      role: 'Collection Center',
+      role: 'Wild Collector',
       phone: formData.phone,
       email: formData.email,
       region: formData.zone,
       address: formData.address,
-      ayurvedicId: 'AYU-WC-PENDING',
-      wildCollectorDetails: formData
+      ayurvedicId,
+      status: 'Pending',
+      registeredDate: new Date().toISOString(),
+      wildCollectorDetails,
     });
-    
+
     toast.dismiss('reg');
+    setIsSubmitting(false);
     if (success) {
       setSubmitted(true);
-      toast.success('Wild Collector registered successfully! Pending admin approval.');
+      toast.success(`Wild Collector registered! Ayurvedic ID: ${ayurvedicId}`);
     }
   };
 
@@ -379,57 +464,16 @@ function WildCollectorForm() {
         <DocumentUpload label="Click or drag files to upload Forest Permit, Aadhar, Community ID" />
       </div>
       <div className="md:col-span-2">
-        <Button type="submit" className="w-full bg-[#166534] hover:bg-[#166534]/90 text-white">Register Wild Collector</Button>
+        <Button type="submit" className="w-full bg-[#166534] hover:bg-[#166534]/90 text-white" disabled={isSubmitting}>
+          {isSubmitting ? 'Registering...' : 'Register Wild Collector'}
+        </Button>
       </div>
     </form>
   );
 }
 
-function CollectionCenterForm() {
-  const [workType, setWorkType] = useState('center');
-  
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-col space-y-3 bg-muted/30 p-4 rounded-xl border border-border">
-        <Label className="text-sm font-semibold text-foreground">Type of Work</Label>
-        <div className="flex flex-wrap items-center gap-3">
-          <Button 
-            type="button" 
-            variant={workType === 'center' ? 'default' : 'outline'} 
-            onClick={() => setWorkType('center')} 
-            className={`gap-2 ${workType === 'center' ? 'bg-primary hover:bg-primary/90 text-primary-foreground' : ''}`}
-          >
-            <Leaf className="w-4 h-4" /> Collection Center
-          </Button>
-          <Button 
-            type="button" 
-            variant={workType === 'farmer' ? 'default' : 'outline'} 
-            onClick={() => setWorkType('farmer')} 
-            className={`gap-2 ${workType === 'farmer' ? 'bg-[#166534] hover:bg-[#166534]/90 text-white border-transparent' : ''}`}
-          >
-            <Tractor className="w-4 h-4" /> Farmer
-          </Button>
-          <Button 
-            type="button" 
-            variant={workType === 'wild' ? 'default' : 'outline'} 
-            onClick={() => setWorkType('wild')} 
-            className={`gap-2 ${workType === 'wild' ? 'bg-[#166534] hover:bg-[#166534]/90 text-white border-transparent' : ''}`}
-          >
-            <TreePine className="w-4 h-4" /> Wild Collector
-          </Button>
-        </div>
-      </div>
-
-      <div className="pt-2 animate-in fade-in duration-300">
-        {workType === 'center' && <CollectionCenterEntityForm />}
-        {workType === 'farmer' && <FarmerForm />}
-        {workType === 'wild' && <WildCollectorForm />}
-      </div>
-    </div>
-  );
-}
-
 function ProcessingLabForm() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ name: '', nabl: '', drug: '', gst: '', pan: '', emp: '', email: '', equip: '', address: '', bank: '', phone: '', password: '', confirmPassword: '' });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -438,8 +482,10 @@ function ProcessingLabForm() {
     if (!formData.email) return toast.error('Please verify your email first');
     if (!formData.password || formData.password.length < 6) return toast.error('Password must be at least 6 characters');
     if (formData.password !== formData.confirmPassword) return toast.error('Passwords do not match');
-    
+
+    setIsSubmitting(true);
     toast.loading('Submitting registration...', { id: 'reg' });
+    const ayurvedicId = generateAyurvedicId('PL');
     const success = await submitToSupabase('members', {
       name: formData.name, // Usually an org has a point of contact, keeping it simple
       organizationName: formData.name,
@@ -451,12 +497,15 @@ function ProcessingLabForm() {
       pan: formData.pan,
       nablCertificate: formData.nabl,
       drugLicense: formData.drug,
-      ayurvedicId: 'AYU-PL-PENDING'
+      ayurvedicId,
+      status: 'Pending',
+      registeredDate: new Date().toISOString(),
     });
-    
+
     toast.dismiss('reg');
+    setIsSubmitting(false);
     if (success) {
-      toast.success('Processing & Lab registered! Pending admin approval.');
+      toast.success(`Processing & Lab registered! Ayurvedic ID: ${ayurvedicId}`);
     }
   };
   return (
@@ -489,13 +538,16 @@ function ProcessingLabForm() {
           <Label className="text-sm font-medium">Documents Upload</Label>
           <DocumentUpload label="Click or drag files to upload NABL Certificate, Drug License, Equipment List" />
         </div>
-        <Button type="submit" className="w-full bg-amber-600 hover:bg-amber-700 text-white mt-2">Register Processing & Lab</Button>
+        <Button type="submit" className="w-full bg-amber-600 hover:bg-amber-700 text-white mt-2" disabled={isSubmitting}>
+          {isSubmitting ? 'Registering...' : 'Register Processing & Lab'}
+        </Button>
       </div>
     </form>
   );
 }
 
 function ManufacturerForm() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ name: '', mflic: '', gmp: '', drug: '', gst: '', pan: '', cap: '', email: '', bank: '', address: '', phone: '', password: '', confirmPassword: '' });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -504,8 +556,10 @@ function ManufacturerForm() {
     if (!formData.email) return toast.error('Please verify your email first');
     if (!formData.password || formData.password.length < 6) return toast.error('Password must be at least 6 characters');
     if (formData.password !== formData.confirmPassword) return toast.error('Passwords do not match');
-    
+
+    setIsSubmitting(true);
     toast.loading('Submitting registration...', { id: 'reg' });
+    const ayurvedicId = generateAyurvedicId('MF');
     const success = await submitToSupabase('members', {
       name: formData.name,
       organizationName: formData.name,
@@ -518,12 +572,15 @@ function ManufacturerForm() {
       gmpCertificate: formData.gmp,
       manufacturingLicense: formData.mflic,
       drugLicense: formData.drug,
-      ayurvedicId: 'AYU-MF-PENDING'
+      ayurvedicId,
+      status: 'Pending',
+      registeredDate: new Date().toISOString(),
     });
-    
+
     toast.dismiss('reg');
+    setIsSubmitting(false);
     if (success) {
-      toast.success('Manufacturer registered! Pending admin approval.');
+      toast.success(`Manufacturer registered! Ayurvedic ID: ${ayurvedicId}`);
     }
   };
   return (
@@ -553,13 +610,16 @@ function ManufacturerForm() {
           <Label className="text-sm font-medium">Documents Upload</Label>
           <DocumentUpload label="Click or drag files to upload GMP Certificate, Manufacturing License, Drug License" />
         </div>
-        <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-2">Register Manufacturer</Button>
+        <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-2" disabled={isSubmitting}>
+          {isSubmitting ? 'Registering...' : 'Register Manufacturer'}
+        </Button>
       </div>
     </form>
   );
 }
 
 function SupplyChainForm() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ name: '', wh: '', veh: '', vtype: '', region: '', gst: '', pan: '', email: '', bank: '', phone: '', password: '', confirmPassword: '' });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -568,8 +628,10 @@ function SupplyChainForm() {
     if (!formData.email) return toast.error('Please verify your email first');
     if (!formData.password || formData.password.length < 6) return toast.error('Password must be at least 6 characters');
     if (formData.password !== formData.confirmPassword) return toast.error('Passwords do not match');
-    
+
+    setIsSubmitting(true);
     toast.loading('Submitting registration...', { id: 'reg' });
+    const ayurvedicId = generateAyurvedicId('SC');
     const success = await submitToSupabase('members', {
       name: formData.name,
       organizationName: formData.name,
@@ -581,12 +643,15 @@ function SupplyChainForm() {
       pan: formData.pan,
       warehouseCapacity: formData.wh,
       vehicleDetails: formData.veh + ' ' + formData.vtype,
-      ayurvedicId: 'AYU-SC-PENDING'
+      ayurvedicId,
+      status: 'Pending',
+      registeredDate: new Date().toISOString(),
     });
-    
+
     toast.dismiss('reg');
+    setIsSubmitting(false);
     if (success) {
-      toast.success('Supply Chain partner registered! Pending admin approval.');
+      toast.success(`Supply Chain partner registered! Ayurvedic ID: ${ayurvedicId}`);
     }
   };
   return (
@@ -612,7 +677,9 @@ function SupplyChainForm() {
           <Label className="text-sm font-medium">Documents Upload</Label>
           <DocumentUpload label="Click or drag files to upload GST Certificate, Vehicle Registration, Warehouse License" />
         </div>
-        <Button type="submit" className="w-full bg-cyan-600 hover:bg-cyan-700 text-white mt-2">Register Supply Chain Partner</Button>
+        <Button type="submit" className="w-full bg-cyan-600 hover:bg-cyan-700 text-white mt-2" disabled={isSubmitting}>
+          {isSubmitting ? 'Registering...' : 'Register Supply Chain Partner'}
+        </Button>
       </div>
     </form>
   );
@@ -629,9 +696,15 @@ export default function MemberRegistration() {
       <Card>
         <CardContent className="pt-6">
           <Tabs defaultValue="collection">
-            <TabsList className="grid grid-cols-4 w-full mb-6">
+            <TabsList className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 w-full mb-6 h-auto">
               <TabsTrigger value="collection" className="text-xs gap-1.5 text-slate-700 dark:text-slate-300 data-[state=active]:font-bold py-2">
                 <Leaf className="w-3.5 h-3.5" /> Collection Center
+              </TabsTrigger>
+              <TabsTrigger value="farmer" className="text-xs gap-1.5 text-slate-700 dark:text-slate-300 data-[state=active]:font-bold py-2">
+                <Tractor className="w-3.5 h-3.5" /> Farmer
+              </TabsTrigger>
+              <TabsTrigger value="wild" className="text-xs gap-1.5 text-slate-700 dark:text-slate-300 data-[state=active]:font-bold py-2">
+                <TreePine className="w-3.5 h-3.5" /> Wild Collector
               </TabsTrigger>
               <TabsTrigger value="processing" className="text-xs gap-1.5 text-slate-700 dark:text-slate-300 data-[state=active]:font-bold py-2">
                 <FlaskConical className="w-3.5 h-3.5" /> Processing & Lab
@@ -644,7 +717,9 @@ export default function MemberRegistration() {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="collection"><CollectionCenterForm /></TabsContent>
+            <TabsContent value="collection"><CollectionCenterEntityForm /></TabsContent>
+            <TabsContent value="farmer"><FarmerForm /></TabsContent>
+            <TabsContent value="wild"><WildCollectorForm /></TabsContent>
             <TabsContent value="processing"><ProcessingLabForm /></TabsContent>
             <TabsContent value="manufacturer"><ManufacturerForm /></TabsContent>
             <TabsContent value="supply"><SupplyChainForm /></TabsContent>
