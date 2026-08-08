@@ -1,6 +1,7 @@
 class AppConstants {
   // App
-  static const String appName = 'HerbChain AI';
+  static const String appName = 'AyuTrace+';
+  static const String appTagline = 'Promoting Holistic Wellness & Innovation';
   static const String appVersion = '1.0.0';
 
   // API Endpoints
