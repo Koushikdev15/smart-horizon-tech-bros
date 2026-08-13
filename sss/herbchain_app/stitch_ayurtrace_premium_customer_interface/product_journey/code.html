@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Product Journey - AYUTRACE+</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600&amp;family=Hanken+Grotesk:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed": "#bcefc7",
+                        "surface": "#fcf9ee",
+                        "on-secondary-fixed": "#00210d",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed": "#261900",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-container": "#c29428",
+                        "tertiary-container": "#443000",
+                        "on-background": "#1c1c15",
+                        "surface-tint": "#3b6849",
+                        "secondary-fixed": "#b1f2be",
+                        "outline-variant": "#c1c9bf",
+                        "secondary-fixed-dim": "#96d5a3",
+                        "surface-variant": "#e5e2d8",
+                        "surface-container": "#f1eee3",
+                        "outline": "#717971",
+                        "surface-bright": "#fcf9ee",
+                        "error-container": "#ffdad6",
+                        "inverse-surface": "#31312a",
+                        "on-secondary-container": "#347047",
+                        "on-surface": "#1c1c15",
+                        "secondary": "#2e6a41",
+                        "surface-container-highest": "#e5e2d8",
+                        "secondary-container": "#b1f2be",
+                        "primary": "#002410",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed": "#00210e",
+                        "background": "#fcf9ee",
+                        "surface-container-high": "#ebe8dd",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-container": "#77a683",
+                        "on-secondary-fixed-variant": "#12512c",
+                        "on-primary-fixed-variant": "#224f32",
+                        "on-surface-variant": "#414942",
+                        "tertiary-fixed": "#ffdea2",
+                        "surface-container-low": "#f7f4e9",
+                        "on-tertiary-fixed-variant": "#5c4200",
+                        "surface-dim": "#dddacf",
+                        "on-primary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#a1d2ac",
+                        "tertiary": "#291c00",
+                        "inverse-on-surface": "#f4f1e6",
+                        "primary-container": "#0b3b20",
+                        "primary-fixed-dim": "#a1d2ac",
+                        "tertiary-fixed-dim": "#f2bf50"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-max": "1200px",
+                        "xl": "80px",
+                        "md": "24px",
+                        "sm": "12px",
+                        "lg": "48px",
+                        "gutter": "24px",
+                        "xs": "4px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["EB Garamond"],
+                        "label-caps": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "headline-lg": ["EB Garamond"],
+                        "label-md": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "headline-lg-mobile": ["EB Garamond"],
+                        "headline-md": ["EB Garamond"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "500" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "34px", "fontWeight": "500" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(252, 249, 238, 0.8);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+        }
+        .timeline-line {
+            position: absolute;
+            left: 24px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #bcefc7; /* primary-fixed */
+            z-index: 0;
+        }
+        @media (min-width: 768px) {
+            .timeline-line {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+        .ambient-shadow {
+            box-shadow: 0 20px 40px -15px rgba(11, 59, 32, 0.06);
+        }
+        .leaf-shadow-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.03;
+            background-image: radial-gradient(circle at 20% 30%, #002410 0%, transparent 40%),
+                              radial-gradient(circle at 80% 70%, #002410 0%, transparent 40%);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md h-full flex flex-col antialiased selection:bg-primary-fixed selection:text-primary">
+<div class="leaf-shadow-bg"></div>
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 glass-panel shadow-[0_20px_40px_-15px_rgba(11,59,32,0.06)] transition-all duration-300">
+<div class="flex justify-between items-center px-gutter py-md w-full max-w-container-max mx-auto">
+<div class="flex items-center gap-sm">
+<img alt="User avatar" class="w-10 h-10 rounded-full object-cover border-2 border-surface-container" data-alt="A small, circular profile picture of a user. The lighting is soft and natural, emphasizing a premium and trustworthy aesthetic in a high-end wellness app context. Warm ivory background tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAe3gb-6cLNi0O4MkzG9_D-VV1mHL2MsACM5KsPsea6wMr6VuD_1vN61sejNRl6JICNo7PRf6X9RJIPcGrzQGFMmMH0-lwhdTvhuwGSC4gM3OAxmz6_ICLTBZEsGzmqhFIrbFkBvUIxnTYW-Q6ARZZiGQNHZ4JSM6h_bGmwveirg41-q7WTimJcrhQU-lLSH4Y-YStdtVLlNqMarXgeJ_nhn1zgZZnhP6HJHQixvvKWn04Sg6auhca4"/>
+</div>
+<div class="font-display-lg text-display-lg text-primary tracking-tight">
+                AYUTRACE+
+            </div>
+<div class="flex items-center gap-sm">
+<button aria-label="eco" class="text-secondary p-2 rounded-full hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined" data-icon="eco">eco</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-grow pt-[120px] pb-[100px] md:pb-lg px-gutter max-w-container-max mx-auto w-full relative">
+<!-- Page Header -->
+<div class="text-center mb-xl">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-primary mb-sm">Product Journey</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto">From Source to You. Trace the heritage and purity of your botanical product.</p>
+</div>
+<!-- Timeline Container -->
+<div class="relative py-lg">
+<!-- Continuous Line -->
+<div class="timeline-line hidden md:block"></div>
+<!-- Mobile Line -->
+<div class="absolute left-[39px] top-0 bottom-0 w-0.5 bg-primary-fixed md:hidden z-0"></div>
+<!-- Milestone 1: Source -->
+<div class="relative flex flex-col md:flex-row items-center justify-between mb-xl group">
+<div class="hidden md:block w-[45%] text-right pr-lg">
+<div class="inline-block px-4 py-2 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-caps text-label-caps mb-2">SOURCE</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-2">Erode, Tamil Nadu</h3>
+<p class="text-on-surface-variant">Cultivated in organic soil rich in heritage.</p>
+</div>
+<!-- Node -->
+<div class="absolute left-[24px] md:left-1/2 transform -translate-x-1/2 flex items-center justify-center w-8 h-8 rounded-full bg-primary text-on-primary z-10 border-4 border-surface shadow-md group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[16px]" data-icon="location_on">location_on</span>
+</div>
+<div class="w-full md:w-[45%] pl-[64px] md:pl-lg mt-0 md:mt-0">
+<div class="md:hidden mb-2">
+<span class="px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-caps text-label-caps">SOURCE</span>
+</div>
+<div class="bg-surface-container-lowest rounded-[24px] p-6 ambient-shadow hover:shadow-[0_25px_50px_-12px_rgba(11,59,32,0.1)] transition-shadow border border-transparent hover:border-tertiary-fixed-dim/30">
+<h3 class="md:hidden font-headline-md text-headline-md text-primary mb-2">Erode, Tamil Nadu</h3>
+<p class="md:hidden text-on-surface-variant mb-4">Cultivated in organic soil rich in heritage.</p>
+<div class="w-full h-40 rounded-xl overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="A lush, sunlit organic herb farm in Tamil Nadu, India. Rows of deep green plants stretch towards the horizon. The lighting is early morning, casting soft, warm golden shadows. High-end, premium minimalist photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBw1ceNUznrxqpW2WkqsSbdgBQzZHZoAweBGMyNz7tQ2shSbjKToMq0WrY3H-ibWuXZeNBZ3g3kJcbcLD5tViiMRGbEMuvqBKkWoihLj0F9RBvlZfI8jcd5uVRiISzjQ_prfZYfrkJtPYTjQeRYDpRpSnX1yo0BXABWSMHtwZNr0dM97yk9vzm0Dr6GyUiVS0fBxtwF63E87Wh_6B9j1rpvYuALtmn5vuzpU278WiUajUoQcVjgRfid"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Milestone 2: Collection -->
+<div class="relative flex flex-col md:flex-row-reverse items-center justify-between mb-xl group">
+<div class="hidden md:block w-[45%] text-left pl-lg">
+<div class="inline-block px-4 py-2 rounded-full bg-surface-container-high text-on-surface font-label-caps text-label-caps mb-2">COLLECTION</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-2">Hand-Harvested</h3>
+<p class="text-on-surface-variant">Selected at peak potency by skilled artisans.</p>
+</div>
+<!-- Node -->
+<div class="absolute left-[24px] md:left-1/2 transform -translate-x-1/2 flex items-center justify-center w-8 h-8 rounded-full bg-primary-fixed-dim text-primary z-10 border-4 border-surface shadow-md group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[16px]" data-icon="front_hand">front_hand</span>
+</div>
+<div class="w-full md:w-[45%] pl-[64px] md:pr-lg md:pl-0 text-left md:text-right mt-0 md:mt-0">
+<div class="md:hidden mb-2">
+<span class="px-3 py-1 rounded-full bg-surface-container-high text-on-surface font-label-caps text-label-caps">COLLECTION</span>
+</div>
+<div class="bg-surface-container-lowest rounded-[24px] p-6 ambient-shadow hover:shadow-[0_25px_50px_-12px_rgba(11,59,32,0.1)] transition-shadow border border-transparent hover:border-tertiary-fixed-dim/30">
+<h3 class="md:hidden font-headline-md text-headline-md text-primary mb-2">Hand-Harvested</h3>
+<p class="md:hidden text-on-surface-variant mb-4">Selected at peak potency by skilled artisans.</p>
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-center py-2 border-b border-surface-variant">
+<span class="text-on-surface-variant font-label-md text-label-md">Date</span>
+<span class="text-primary font-body-md">Oct 12, 2023</span>
+</div>
+<div class="flex justify-between items-center py-2">
+<span class="text-on-surface-variant font-label-md text-label-md">Yield</span>
+<span class="text-primary font-body-md">Premium Grade A</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Milestone 3: Processing -->
+<div class="relative flex flex-col md:flex-row items-center justify-between mb-xl group">
+<div class="hidden md:block w-[45%] text-right pr-lg">
+<div class="inline-block px-4 py-2 rounded-full bg-surface-container-high text-on-surface font-label-caps text-label-caps mb-2">PROCESSING</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-2">Cold Extraction</h3>
+<p class="text-on-surface-variant">Preserving essential oils without heat degradation.</p>
+</div>
+<!-- Node -->
+<div class="absolute left-[24px] md:left-1/2 transform -translate-x-1/2 flex items-center justify-center w-8 h-8 rounded-full bg-primary-fixed-dim text-primary z-10 border-4 border-surface shadow-md group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[16px]" data-icon="water_drop">water_drop</span>
+</div>
+<div class="w-full md:w-[45%] pl-[64px] md:pl-lg mt-0 md:mt-0">
+<div class="md:hidden mb-2">
+<span class="px-3 py-1 rounded-full bg-surface-container-high text-on-surface font-label-caps text-label-caps">PROCESSING</span>
+</div>
+<div class="bg-surface-container-lowest rounded-[24px] p-6 ambient-shadow hover:shadow-[0_25px_50px_-12px_rgba(11,59,32,0.1)] transition-shadow border border-transparent hover:border-tertiary-fixed-dim/30">
+<h3 class="md:hidden font-headline-md text-headline-md text-primary mb-2">Cold Extraction</h3>
+<p class="md:hidden text-on-surface-variant mb-4">Preserving essential oils without heat degradation.</p>
+<div class="w-full h-32 rounded-xl overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="Close up of a highly refined, premium cold extraction process of botanical oils. Clear, golden liquid dripping slowly in a clean, modern facility. Minimalist lighting, soft shadows, pristine white and deep green environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxpjDW53IoFMRPIvEi_Dqt28hGIfAKOAv_6mtn6fw5LwFa5n13b_-ZQR5PNFFtU0mGlHI2BQi47Lac4W1kFbNVUdXpcGR7YO_U4Jfn5EEJlasqbtZ0P_bLaL8uy_acbysy5Xc-x5w12tv81vf993bo2oDFcQvzgQ3_oavItVcGx3ZMEyu_0y0JlvWIzKqJMONL0rtp0FAl5X-zRsxxwJvTYojLlX7d0sY6DHVsftc80vSWmqWVD3Y3"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Milestone 4: Laboratory -->
+<div class="relative flex flex-col md:flex-row-reverse items-center justify-between mb-xl group">
+<div class="hidden md:block w-[45%] text-left pl-lg">
+<div class="inline-block px-4 py-2 rounded-full bg-surface-container-high text-on-surface font-label-caps text-label-caps mb-2">LABORATORY</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-2">Purity Verification</h3>
+<p class="text-on-surface-variant">Tested for heavy metals, pesticides, and active compounds.</p>
+</div>
+<!-- Node -->
+<div class="absolute left-[24px] md:left-1/2 transform -translate-x-1/2 flex items-center justify-center w-8 h-8 rounded-full bg-tertiary-fixed-dim text-tertiary-container z-10 border-4 border-surface shadow-md group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[16px]" data-icon="science">science</span>
+</div>
+<div class="w-full md:w-[45%] pl-[64px] md:pr-lg md:pl-0 text-left md:text-right mt-0 md:mt-0">
+<div class="md:hidden mb-2">
+<span class="px-3 py-1 rounded-full bg-surface-container-high text-on-surface font-label-caps text-label-caps">LABORATORY</span>
+</div>
+<div class="bg-surface-container-lowest rounded-[24px] p-6 ambient-shadow hover:shadow-[0_25px_50px_-12px_rgba(11,59,32,0.1)] transition-shadow border border-transparent hover:border-tertiary-fixed-dim/30">
+<h3 class="md:hidden font-headline-md text-headline-md text-primary mb-2">Purity Verification</h3>
+<p class="md:hidden text-on-surface-variant mb-4">Tested for heavy metals, pesticides, and active compounds.</p>
+<div class="flex items-center gap-2 text-secondary-container-highest">
+<span class="material-symbols-outlined text-secondary">check_circle</span>
+<span class="font-body-md text-primary">100% Verified Pure</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Milestone 7: Your Product -->
+<div class="relative flex flex-col md:flex-row items-center justify-between group">
+<div class="hidden md:block w-[45%] text-right pr-lg">
+<div class="inline-block px-4 py-2 rounded-full bg-primary text-on-primary font-label-caps text-label-caps mb-2">YOUR PRODUCT</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-2">Ready for Wellness</h3>
+<p class="text-on-surface-variant">Delivered safely to you.</p>
+</div>
+<!-- Node -->
+<div class="absolute left-[24px] md:left-1/2 transform -translate-x-1/2 flex items-center justify-center w-10 h-10 rounded-full bg-primary text-on-primary z-10 border-4 border-surface shadow-lg group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[20px]" data-icon="star">star</span>
+</div>
+<div class="w-full md:w-[45%] pl-[64px] md:pl-lg mt-0 md:mt-0">
+<div class="md:hidden mb-2">
+<span class="px-3 py-1 rounded-full bg-primary text-on-primary font-label-caps text-label-caps">YOUR PRODUCT</span>
+</div>
+<div class="bg-primary-fixed rounded-[24px] p-6 shadow-lg border border-primary/20">
+<h3 class="md:hidden font-headline-md text-headline-md text-primary mb-2">Ready for Wellness</h3>
+<p class="md:hidden text-on-surface-variant mb-4">Delivered safely to you.</p>
+<button class="w-full bg-primary text-on-primary py-3 rounded-[12px] font-label-md text-label-md hover:opacity-90 transition-opacity">
+                            View Certificate of Authenticity
+                        </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-2 bg-surface/80 dark:bg-surface/80 backdrop-blur-[15px] shadow-[0_-10px_30px_rgba(11,59,32,0.04)] z-50 rounded-t-xl transition-all duration-300">
+<!-- Home -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant/70 hover:text-secondary transition-colors w-16" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="home">home</span>
+<span class="font-label-md text-[10px]">Home</span>
+</a>
+<!-- History (Active) -->
+<a class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed-dim font-bold hover:text-secondary transition-colors w-16 transform scale-90 duration-150" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="history" style="font-variation-settings: 'FILL' 1;">history</span>
+<span class="font-label-md text-[10px]">History</span>
+</a>
+<!-- Scan (Center FAB style) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant/70 hover:text-secondary transition-colors w-16 relative -top-4" href="#">
+<div class="bg-primary-container text-on-primary-container p-3 rounded-full shadow-lg flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="qr_code_scanner">qr_code_scanner</span>
+</div>
+<span class="font-label-md text-[10px] mt-1">Scan</span>
+</a>
+<!-- Alerts -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant/70 hover:text-secondary transition-colors w-16" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="notifications">notifications</span>
+<span class="font-label-md text-[10px]">Alerts</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant/70 hover:text-secondary transition-colors w-16" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="person">person</span>
+<span class="font-label-md text-[10px]">Profile</span>
+</a>
+</nav>
+<script>
+        // Simple script to handle scroll effects for top app bar
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 10) {
+                header.classList.add('shadow-md');
+                header.classList.remove('shadow-[0_20px_40px_-15px_rgba(11,59,32,0.06)]');
+            } else {
+                header.classList.remove('shadow-md');
+                header.classList.add('shadow-[0_20px_40px_-15px_rgba(11,59,32,0.06)]');
+            }
+        });
+    </script>
+</body></html>

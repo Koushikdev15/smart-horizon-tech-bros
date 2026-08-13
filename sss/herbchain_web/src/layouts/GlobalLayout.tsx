@@ -10,7 +10,7 @@ import { LogoMark } from '@/components/Logo';
 import BotanicalBackground from '../components/BotanicalBackground';
 import {
   LogOut, Shield, Menu, X,
-  Bell, Sun, Moon, Command as CommandIcon,
+  Bell, Sun, Moon, Search,
   ChevronRight, Pin, Clock, Globe,
 } from 'lucide-react';
 
@@ -183,7 +183,7 @@ export default function GlobalLayout() {
         onClick={() => handleNav(item.id)}
         title={sidebarCollapsed ? item.label : undefined}
         className={`group w-full flex items-center gap-3 px-3 py-2.5 text-sm mb-0.5 gov-sidebar-item
-          ${isActive ? 'gov-sidebar-item-active' : 'text-[#64748B] hover:text-[#0F766E] hover:bg-[#0F766E]/5 dark:text-[#94A3B8] dark:hover:text-[#14B8A6] dark:hover:bg-[#14B8A6]/8'}
+          ${isActive ? 'gov-sidebar-item-active' : 'text-[#64748B] hover:text-[#0F766E] hover:bg-[#0F766E]/5 dark:text-[#94A3B8] dark:hover:text-[#10B981] dark:hover:bg-[#10B981]/8'}
           ${sidebarCollapsed ? 'justify-center' : ''}`}
       >
         <item.icon className="w-4 h-4 shrink-0" />
@@ -206,13 +206,13 @@ export default function GlobalLayout() {
     <>
       {/* Logo */}
       <div className={`flex items-center gap-3 px-4 py-5 border-b border-border/30 ${sidebarCollapsed ? 'justify-center px-2' : ''}`}>
-        <div className="w-9 h-9 rounded-lg bg-[#14B8A6]/20 flex items-center justify-center shrink-0">
-          <LogoMark className="w-5 h-5 text-[#14B8A6]" />
+        <div className="w-9 h-9 rounded-lg bg-[#10B981]/15 flex items-center justify-center shrink-0">
+          <LogoMark className="w-5 h-5 text-[#10B981]" />
         </div>
         {!sidebarCollapsed && (
           <div>
-            <h2 className="text-base font-bold font-heading leading-tight text-slate-800 dark:text-[#F8FAFC]">
-              <span className="text-[#14B8A6]">Ayu</span>Trace<span className="text-[#F59E0B]">+</span>
+            <h2 className="text-base font-bold font-heading leading-tight text-slate-800 dark:text-white" style={{ fontSize: '20px' }}>
+              <span className="text-[#10B981]">Herb</span>Chain
             </h2>
             <p className="text-[9.5px] text-slate-600 dark:text-[#94A3B8] uppercase tracking-widest font-semibold">Ministry of AYUSH</p>
           </div>
@@ -223,8 +223,8 @@ export default function GlobalLayout() {
       {/* Role badge */}
       {!sidebarCollapsed && (
         <div className="mx-3 my-3 px-3 py-2.5 flex items-center gap-2 gov-sidebar-card">
-          <div className="w-6 h-6 rounded-md flex items-center justify-center bg-[#14B8A6]/20 shrink-0">
-            <RoleIcon className="w-3.5 h-3.5 text-[#14B8A6]" />
+          <div className="w-6 h-6 rounded-md flex items-center justify-center bg-[#10B981]/20 shrink-0">
+            <RoleIcon className="w-3.5 h-3.5 text-[#10B981]" />
           </div>
           <div className="min-w-0">
             <p className="text-xs font-bold truncate text-slate-800 dark:text-[#F8FAFC]">{user.role}</p>
@@ -260,7 +260,7 @@ export default function GlobalLayout() {
       {/* User footer */}
       <div className={`border-t border-border/30 p-3 ${sidebarCollapsed ? 'flex justify-center' : ''}`}>
         {sidebarCollapsed ? (
-          <button onClick={logout} className="w-8 h-8 rounded-lg flex items-center justify-center text-[#94A3B8] hover:text-[#2DD4BF] hover:bg-[#14B8A6]/20 transition-colors">
+          <button onClick={logout} className="w-8 h-8 rounded-lg flex items-center justify-center text-[#94A3B8] hover:text-[#10B981] hover:bg-[#10B981]/20 transition-colors">
             <LogOut className="w-4 h-4" />
           </button>
         ) : (
@@ -268,12 +268,12 @@ export default function GlobalLayout() {
             <button
               onClick={() => navigate('/app/profile')}
               title="View Profile"
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 cursor-pointer hover:ring-2 hover:ring-[#14B8A6]/40 transition-all ${colors.badge}`}
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 cursor-pointer hover:ring-2 hover:ring-[#10B981]/40 transition-all ${colors.badge}`}
             >
               {user.name.charAt(0)}
             </button>
             <div className="flex-1 min-w-0 cursor-pointer" onClick={() => navigate('/app/profile')} title="View Profile">
-              <p className="text-sm font-bold truncate text-slate-800 hover:text-[#0F766E] dark:text-[#F8FAFC] dark:hover:text-[#2DD4BF] transition-colors">{user.name}</p>
+              <p className="text-sm font-bold truncate text-slate-800 hover:text-[#0F766E] dark:text-[#F8FAFC] dark:hover:text-[#10B981] transition-colors">{user.name}</p>
               <p className="text-xs text-slate-600 dark:text-[#94A3B8] truncate">{user.ayurvedicId}</p>
             </div>
             <button onClick={logout} className="w-7 h-7 rounded-md flex items-center justify-center text-slate-600 hover:text-destructive hover:bg-destructive/10 dark:text-[#94A3B8] transition-colors" title="Logout">
@@ -296,14 +296,14 @@ export default function GlobalLayout() {
       <aside
         className={`fixed md:sticky top-0 left-0 z-40 h-[100dvh] shrink-0 border-r border-border transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
           ${mobileSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'}
-          ${sidebarCollapsed ? 'w-[72px]' : 'w-[280px]'}
-          bg-[#F8FAFC] dark:bg-[#0B1120]`}
+          ${sidebarCollapsed ? 'w-[72px]' : 'w-[260px]'}
+          bg-[#F8FAFC] dark:bg-[#1E293B]`}
       >
-        {/* Sidebar Botanical Leaves */}
+        {/* Sidebar Botanical Leaves (light mode only — dark mode uses the clean premium glass look) */}
         {!sidebarCollapsed && (
-          <div className="absolute inset-0 pointer-events-none select-none z-0 overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none select-none z-0 overflow-hidden dark:hidden">
             {/* Top-right branch */}
-            <svg viewBox="0 0 200 200" fill="none" className="absolute right-[-2.5rem] top-12 w-32 h-32 rotate-[-15deg] text-[#14B8A6] opacity-[0.12]" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 200 200" fill="none" className="absolute right-[-2.5rem] top-12 w-32 h-32 rotate-[-15deg] text-[#10B981] opacity-[0.12]" xmlns="http://www.w3.org/2000/svg">
               <path d="M20 180 C50 160 120 120 180 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               <path d="M40 155 Q20 130 50 135 C70 138 60 150 40 155 Z" fill="currentColor"/>
               <path d="M65 135 Q45 110 75 115 C95 118 85 130 65 135 Z" fill="currentColor"/>
@@ -353,7 +353,7 @@ export default function GlobalLayout() {
       {/* Main area */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0 relative gov-main-bg">
         {/* Header */}
-        <header className="h-20 bg-card border-b border-border flex items-center justify-between px-6 shrink-0 gap-3 z-30 sticky top-0 shadow-sm">
+        <header className="h-[72px] bg-card border-b border-border flex items-center justify-between px-6 shrink-0 gap-3 z-30 sticky top-0 shadow-sm">
           <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={() => { toggleSidebar(); setMobileSidebarOpen(!mobileSidebarOpen); }}
@@ -364,9 +364,9 @@ export default function GlobalLayout() {
             <div className="flex items-center gap-2 min-w-0">
               {navItems.find((n) => n.id === activeNavItem) && (
                 <>
-                  <span className="text-primary text-sm font-semibold hidden sm:inline">{user.role}</span>
-                  <ChevronRight className="w-3 h-3 text-muted-foreground hidden sm:inline" />
-                  <span className="text-sm font-semibold truncate">
+                  <span className="text-muted-foreground text-sm hidden sm:inline">{user.role}</span>
+                  <span className="text-muted-foreground text-sm hidden sm:inline">/</span>
+                  <span className="text-sm font-semibold text-foreground truncate">
                     {navItems.find((n) => n.id === activeNavItem)?.label}
                   </span>
                 </>
@@ -381,7 +381,7 @@ export default function GlobalLayout() {
                 onClick={() => setCommandOpen(true)}
                 className="flex items-center gap-2 text-sm px-4 py-2 w-full rounded-lg border border-border text-muted-foreground hover:border-primary/40 hover:bg-primary/[0.04] hover:text-primary transition-all justify-between"
               >
-                <span className="flex items-center gap-1.5"><CommandIcon className="w-4 h-4" /> Search batches, hashes, or shipments...</span>
+                <span className="flex items-center gap-1.5"><Search className="w-4 h-4" /> Search shipments, IDs, or herbs...</span>
                 <span className="kbd-chip">⌘K</span>
               </button>
             </div>
@@ -419,13 +419,19 @@ export default function GlobalLayout() {
               </AnimatePresence>
             </div>
 
-            {/* User avatar */}
+            {/* User profile widget */}
             <button
               onClick={() => navigate('/app/profile')}
               title="View Profile"
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all ${colors.badge}`}
+              className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-lg cursor-pointer hover:bg-muted transition-colors"
             >
-              {user.name.charAt(0)}
+              <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 ${colors.badge}`}>
+                {user.name.charAt(0)}
+              </span>
+              <span className="hidden lg:block text-left leading-tight">
+                <span className="block text-sm font-semibold text-foreground truncate max-w-[120px]">{user.name}</span>
+              </span>
+              <ChevronRight className="hidden lg:block w-3.5 h-3.5 text-muted-foreground rotate-90 shrink-0" />
             </button>
           </div>
         </header>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AYUTRACE+ History</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary": "#291c00",
+                        "inverse-on-surface": "#f4f1e6",
+                        "error-container": "#ffdad6",
+                        "on-primary-container": "#77a683",
+                        "primary-fixed": "#bcefc7",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#347047",
+                        "surface-variant": "#e5e2d8",
+                        "on-error": "#ffffff",
+                        "surface-container-low": "#f7f4e9",
+                        "outline-variant": "#c1c9bf",
+                        "on-primary": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "background": "#fcf9ee",
+                        "secondary-fixed-dim": "#96d5a3",
+                        "on-error-container": "#93000a",
+                        "inverse-surface": "#31312a",
+                        "surface-tint": "#3b6849",
+                        "outline": "#717971",
+                        "on-primary-fixed": "#00210e",
+                        "on-secondary": "#ffffff",
+                        "surface-container": "#f1eee3",
+                        "primary-container": "#0b3b20",
+                        "tertiary-container": "#443000",
+                        "surface-container-high": "#ebe8dd",
+                        "on-surface": "#1c1c15",
+                        "on-tertiary-fixed-variant": "#5c4200",
+                        "error": "#ba1a1a",
+                        "surface-bright": "#fcf9ee",
+                        "on-background": "#1c1c15",
+                        "on-tertiary-container": "#c29428",
+                        "secondary-container": "#b1f2be",
+                        "secondary": "#2e6a41",
+                        "tertiary-fixed-dim": "#f2bf50",
+                        "primary": "#002410",
+                        "surface-dim": "#dddacf",
+                        "surface-container-highest": "#e5e2d8",
+                        "on-tertiary-fixed": "#261900",
+                        "tertiary-fixed": "#ffdea2",
+                        "on-secondary-fixed": "#00210d",
+                        "secondary-fixed": "#b1f2be",
+                        "on-surface-variant": "#414942",
+                        "surface": "#fcf9ee",
+                        "inverse-primary": "#a1d2ac",
+                        "on-secondary-fixed-variant": "#12512c",
+                        "on-primary-fixed-variant": "#224f32",
+                        "primary-fixed-dim": "#a1d2ac"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "sm": "12px",
+                        "xs": "4px",
+                        "md": "24px",
+                        "lg": "48px",
+                        "gutter": "24px",
+                        "xl": "80px",
+                        "container-max": "1200px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Hanken Grotesk"],
+                        "label-caps": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "headline-lg": ["EB Garamond"],
+                        "headline-lg-mobile": ["EB Garamond"],
+                        "headline-md": ["EB Garamond"],
+                        "label-md": ["Hanken Grotesk"],
+                        "display-lg": ["EB Garamond"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "34px", "fontWeight": "500" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "500" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600&amp;family=Hanken+Grotesk:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+        .leaf-shadow {
+            background-image: radial-gradient(circle at center, rgba(11, 59, 32, 0.03) 0%, transparent 70%);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen relative overflow-x-hidden flex flex-col">
+<!-- Ambient Background Leaves -->
+<div class="fixed top-0 left-0 w-[400px] h-[400px] leaf-shadow rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none z-0"></div>
+<div class="fixed bottom-0 right-0 w-[500px] h-[500px] leaf-shadow rounded-full translate-x-1/3 translate-y-1/3 pointer-events-none z-0"></div>
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 z-50 backdrop-blur-md bg-background/80 dark:bg-background/80 shadow-[0_20px_40px_-15px_rgba(11,59,32,0.06)] flex justify-between items-center px-gutter py-base w-full">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-variant flex items-center justify-center shrink-0">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A portrait photograph of a serene person in soft natural lighting, serving as a user profile avatar. The style is premium, clean, and organic, consistent with a high-end wellness application. The background is a subtle warm ivory." src="https://lh3.googleusercontent.com/aida-public/AB6AXuACay6bo6jfT6QedGROTB3ha7i6RsqXaWpAM32YdR5Kfq5OcW53I4VSDCgVlf5x1Cl0k87cL0f9yecO9vD5HGJEPuAQWXYrWWLgRw68XRvqCS3echaz-nIFQkT99U8j8824ryUscQv9jY6MR0f9CT2L1CGiC1Qjtq-XX84GLVoCOjhsIWHkH429pUL9HwcCfnzgkbQemL7DBYrpSW5qTD04BvFDCvpTWxSsqtYDHAaRai0oo-GvmX7H"/>
+</div>
+<h1 class="font-display-lg text-headline-lg-mobile text-primary dark:text-primary-fixed tracking-tight">AYUTRACE+</h1>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors text-primary dark:text-primary-fixed active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="notifications_active">notifications_active</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow z-10 pb-[100px] px-gutter max-w-container-max mx-auto w-full">
+<!-- Header & Filters -->
+<div class="mt-lg mb-md">
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-primary mb-md">Scan History</h2>
+<div class="flex gap-sm overflow-x-auto pb-4 scrollbar-hide -mx-gutter px-gutter md:mx-0 md:px-0">
+<button class="px-4 py-2 rounded-full bg-primary-container text-on-primary-container font-label-md text-label-md whitespace-nowrap shadow-[0_10px_20px_rgba(11,59,32,0.08)]">All</button>
+<button class="px-4 py-2 rounded-full bg-surface-container-high text-on-surface-variant font-label-md text-label-md whitespace-nowrap border border-outline-variant hover:bg-surface-container transition-colors">Verified</button>
+<button class="px-4 py-2 rounded-full bg-surface-container-high text-on-surface-variant font-label-md text-label-md whitespace-nowrap border border-outline-variant hover:bg-surface-container transition-colors">Warning</button>
+<button class="px-4 py-2 rounded-full bg-surface-container-high text-on-surface-variant font-label-md text-label-md whitespace-nowrap border border-outline-variant hover:bg-surface-container transition-colors">Recalled</button>
+</div>
+</div>
+<!-- History List (Bento-style layout on desktop, stacked on mobile) -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<!-- Card 1 -->
+<article class="bg-surface-container-lowest rounded-[24px] p-4 shadow-[0_15px_35px_-10px_rgba(11,59,32,0.05)] hover:shadow-[0_20px_40px_-10px_rgba(11,59,32,0.08)] transition-all duration-300 relative group overflow-hidden border border-surface-variant">
+<div class="absolute inset-0 bg-gradient-to-br from-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+<div class="flex items-start gap-4">
+<div class="w-20 h-24 rounded-xl bg-surface-container-low overflow-hidden shrink-0 relative">
+<img alt="Ashwagandha Capsules" class="w-full h-full object-cover" data-alt="A premium glass bottle of Ashwagandha capsules sitting on a warm ivory surface. Soft, natural light illuminates the amber glass, creating gentle reflections. A single fresh green leaf rests subtly near the base, emphasizing purity and Ayurvedic heritage." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_qF_qxxlaZASscEQXXVPS7lw8nqiDBUsAezBfL2PF33J0R8HzrEkrb7Rqif-kXftLpEXzqhaUibwu_j2fPD7odLvUmKtZu9aHB819wtDI0hu8ckerRuC4GL8nXP-2jQRBK5elN8RhDdVt6RErBgvd2mH8f3k1gxndSuBpL1SyoMxaQEWotLYtTgj2ZjlfOnjhAY_IHKqO8AlQRU_pAOcMJFTaxbnKqHX57Y34jnYjls5riehfHoKY"/>
+</div>
+<div class="flex-grow flex flex-col justify-between h-24 py-1">
+<div>
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-label-md text-body-md text-on-surface font-semibold truncate pr-2">Ashwagandha Capsules</h3>
+<div class="bg-secondary/10 text-secondary px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
+<span class="material-symbols-outlined text-[14px] filled-icon" data-icon="check_circle">check_circle</span>
+<span class="font-label-caps text-label-caps">VERIFIED</span>
+</div>
+</div>
+<p class="font-label-md text-label-md text-on-surface-variant">Oct 24, 2023</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]" data-icon="verified_user">verified_user</span>
+<span class="font-label-md text-label-md text-secondary font-medium">96 Trust Score</span>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 2 -->
+<article class="bg-surface-container-lowest rounded-[24px] p-4 shadow-[0_15px_35px_-10px_rgba(11,59,32,0.05)] hover:shadow-[0_20px_40px_-10px_rgba(11,59,32,0.08)] transition-all duration-300 relative group overflow-hidden border border-surface-variant">
+<div class="flex items-start gap-4">
+<div class="w-20 h-24 rounded-xl bg-surface-container-low overflow-hidden shrink-0 relative">
+<img alt="Turmeric Extract" class="w-full h-full object-cover" data-alt="A minimal, elegant jar of pure Turmeric powder. The vibrant golden-orange powder contrasts beautifully against a soft cream background. Shot in bright, diffused light conveying a premium, organic wellness aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC42opQPsdW2zAApTKyyDCKCAjsCwKAuJV-egv1qmXFzOH-P0SlldDQVvLfch9BY0vbFJ0w6-w_51YIXkHhiuNE0rQoaTXiNy4-QmUYFU9w5ziSJfxOjLzzP1NgJ9uGnWqnHLj-malfPlRXN8gH700c6uC4ia8Kk2XPz5IbSk7XWfllcHbLxFjGG4TAXmAO6P7EDUM2pN0SwALkissPvdP3bmO1914iZLfb7h_qSuvAsh2Cxx2eKQA1"/>
+</div>
+<div class="flex-grow flex flex-col justify-between h-24 py-1">
+<div>
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-label-md text-body-md text-on-surface font-semibold truncate pr-2">Turmeric Extract</h3>
+<div class="bg-secondary/10 text-secondary px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
+<span class="material-symbols-outlined text-[14px] filled-icon" data-icon="check_circle">check_circle</span>
+<span class="font-label-caps text-label-caps">VERIFIED</span>
+</div>
+</div>
+<p class="font-label-md text-label-md text-on-surface-variant">Oct 18, 2023</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]" data-icon="verified_user">verified_user</span>
+<span class="font-label-md text-label-md text-secondary font-medium">92 Trust Score</span>
+</div>
+</div>
+</div>
+</article>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 rounded-t-[24px] bg-surface-container-low/80 dark:bg-surface-container-low/80 backdrop-blur-md shadow-[0_-10px_30px_rgba(11,59,32,0.04)] flex justify-around items-center px-4 py-3 w-full pb-safe">
+<!-- Home -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant opacity-70 hover:bg-surface-container-high transition-colors active:scale-90 duration-200 rounded-xl px-2 py-2 w-16">
+<span class="material-symbols-outlined mb-1" data-icon="home">home</span>
+<span class="font-label-md text-[10px] leading-tight">Home</span>
+</button>
+<!-- History (Active) -->
+<button class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-xl px-4 py-2 hover:bg-surface-container-high transition-colors active:scale-90 duration-200">
+<span class="material-symbols-outlined mb-1 filled-icon" data-icon="history">history</span>
+<span class="font-label-md text-[12px] font-semibold leading-tight">History</span>
+</button>
+<!-- Scan -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant opacity-70 hover:bg-surface-container-high transition-colors active:scale-90 duration-200 rounded-xl px-2 py-2 w-16">
+<span class="material-symbols-outlined mb-1" data-icon="qr_code_scanner">qr_code_scanner</span>
+<span class="font-label-md text-[10px] leading-tight">Scan</span>
+</button>
+<!-- Alerts -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant opacity-70 hover:bg-surface-container-high transition-colors active:scale-90 duration-200 rounded-xl px-2 py-2 w-16">
+<span class="material-symbols-outlined mb-1" data-icon="notifications">notifications</span>
+<span class="font-label-md text-[10px] leading-tight">Alerts</span>
+</button>
+<!-- Profile -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant opacity-70 hover:bg-surface-container-high transition-colors active:scale-90 duration-200 rounded-xl px-2 py-2 w-16">
+<span class="material-symbols-outlined mb-1" data-icon="person">person</span>
+<span class="font-label-md text-[10px] leading-tight">Profile</span>
+</button>
+</nav>
+<style>
+        /* Hide scrollbar for horizontal scroll area */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* iOS Safe Area padding for bottom nav */
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            .pb-safe {
+                padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+            }
+        }
+    </style>
+</body></html>

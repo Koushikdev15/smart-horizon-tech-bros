@@ -118,42 +118,42 @@
   --chart-red: #ef4444;
 }
 
-/* ─── Dark Mode ("Deep Cosmos") ─── */
+/* ─── Dark Mode ("HerbChain Premium") ─── */
 .dark {
-  --background: 0.075 0.018 248; /* Rich deep navy #0B1220 */
-  --foreground: 0.975 0.005 240; /* #F8FAFC crisp white */
-  --card: 0.160 0.035 165; /* Elevated card #071F1A — dark mint green */
-  --card-foreground: 0.975 0.005 240;
-  --popover: 0.160 0.035 165;
-  --popover-foreground: 0.975 0.005 240;
+  --background: 0.208 0.042 265.755; /* #0F172A Slate 900 */
+  --foreground: 1 0 0; /* #FFFFFF pure white */
+  --card: 0.279 0.041 260.031; /* #1E293B Slate 800 */
+  --card-foreground: 1 0 0;
+  --popover: 0.279 0.041 260.031;
+  --popover-foreground: 1 0 0;
 
-  --primary: 0.720 0.165 175.7; /* #14B8A6 — slightly brighter in dark */
-  --primary-foreground: 0.085 0.018 248;
+  --primary: 0.696 0.17 162.48; /* #10B981 Emerald Green */
+  --primary-foreground: 1 0 0;
 
-  --secondary: 0.600 0.240 264.1; /* #3B82F6 brighter Royal Blue */
-  --secondary-foreground: 0.975 0.005 240;
+  --secondary: 0.769 0.188 70.08; /* #F59E0B Muted Gold */
+  --secondary-foreground: 0.208 0.042 265.755;
 
-  --muted: 0.155 0.022 248; /* #1A2333 */
-  --muted-foreground: 0.720 0.014 245; /* #94A3B8 — Slate-400 */
+  --muted: 0.279 0.041 260.031; /* #1E293B */
+  --muted-foreground: 0.704 0.04 256.788; /* #94A3B8 Light Slate */
 
-  --accent: 0.730 0.200 78.5; /* #F59E0B brighter Amber */
-  --accent-foreground: 0.085 0.018 248;
+  --accent: 0.769 0.188 70.08; /* #F59E0B Muted Gold */
+  --accent-foreground: 0.208 0.042 265.755;
 
-  --success: 0.720 0.165 175.7;
-  --success-foreground: 0.085 0.018 248;
+  --success: 0.696 0.17 162.48;
+  --success-foreground: 1 0 0;
 
-  --warning: 0.730 0.200 78.5;
-  --warning-foreground: 0.085 0.018 248;
+  --warning: 0.769 0.188 70.08;
+  --warning-foreground: 0.208 0.042 265.755;
 
-  --info: 0.600 0.240 264.1;
-  --info-foreground: 0.085 0.018 248;
+  --info: 0.623 0.214 259.815; /* #3B82F6 */
+  --info-foreground: 1 0 0;
 
-  --destructive: 0.640 0.160 27;
-  --destructive-foreground: 0.975 0.005 240;
+  --destructive: 0.637 0.237 25.331; /* #EF4444 */
+  --destructive-foreground: 1 0 0;
 
-  --border: 0.230 0.020 248; /* rgba(255,255,255,0.08) equivalent */
-  --input: 0.230 0.020 248;
-  --ring: 0.720 0.165 175.7;
+  --border: 0.372 0.044 257.287; /* #334155 Slate 700 */
+  --input: 0.372 0.044 257.287;
+  --ring: 0.696 0.17 162.48;
 
   /* Chart Colors matching Analytics exactly */
   --chart-teal: #10b981;
@@ -235,13 +235,9 @@
   border-right: 1px solid #CBD5E1;
 }
 .dark .gov-sidebar {
-  background:
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E"),
-    radial-gradient(ellipse at 40% 20%, rgba(20, 184, 166, 0.10) 0%, transparent 60%),
-    radial-gradient(ellipse at 60% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 60%),
-    linear-gradient(160deg, #060e18 0%, #07111c 40%, #060e18 100%);
+  background: #1E293B;
   background-repeat: repeat;
-  border-right: 1px solid rgba(20, 184, 166, 0.15);
+  border-right: 1px solid #334155;
 }
 
 .gov-sidebar-item {
@@ -261,8 +257,8 @@
   background-color: transparent !important;
 }
 .dark .gov-sidebar-item:not(.gov-sidebar-item-active):hover {
-  color: #2DD4BF !important;
-  background-color: rgba(20, 184, 166, 0.12) !important;
+  color: #10B981 !important;
+  background-color: rgba(16, 185, 129, 0.10) !important;
 }
 
 .gov-sidebar-item-active {
@@ -273,10 +269,10 @@
   font-weight: 600;
 }
 .dark .gov-sidebar-item-active {
-  background-color: rgba(20, 184, 166, 0.18) !important;
-  color: #2DD4BF !important;
-  border: 1px solid rgba(20, 184, 166, 0.30) !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+  background-color: rgba(16, 185, 129, 0.10) !important;
+  color: #10B981 !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
 }
 .gov-sidebar-item-active::before {
   content: "";
@@ -289,7 +285,7 @@
   background: #0F766E;
 }
 .dark .gov-sidebar-item-active::before {
-  background: #2DD4BF;
+  background: #10B981;
 }
 
 /* Sidebar label and button overrides for premium contrast on dark sidebar */
@@ -346,12 +342,9 @@
 }
 .dark .gov-main-bg {
   background:
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E"),
-    radial-gradient(ellipse at 75% 8%, rgba(20,184,166,0.12) 0%, transparent 45%),
-    radial-gradient(ellipse at 20% 92%, rgba(59,130,246,0.10) 0%, transparent 45%),
-    radial-gradient(ellipse at 50% 50%, rgba(139,92,246,0.04) 0%, transparent 60%),
-    linear-gradient(160deg, #0B1220 0%, #101828 40%, #0D1830 70%, #0B1220 100%);
-  background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+    radial-gradient(ellipse 60% 40% at 90% 0%, rgba(16, 185, 129, 0.10) 0%, transparent 70%),
+    #0F172A;
+  background-repeat: no-repeat, no-repeat;
 }
 
 /* ─── Premium Card enhancements (dark mode) ─── */
@@ -361,10 +354,10 @@
 
 /* Header dark mode elevation */
 .dark header {
-  background: rgba(17, 24, 39, 0.92) !important;
-  border-bottom-color: rgba(255, 255, 255, 0.07) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(15, 23, 42, 0.85) !important;
+  border-bottom-color: #334155 !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 /* ─── Batch Timeline ─── */
@@ -385,13 +378,15 @@
   transform: scale(1.04);
 }
 .dark .stat-card {
-  background: linear-gradient(135deg, #071F1A 0%, #0A2E26 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35), 0 1px 4px rgba(0, 0, 0, 0.20) !important;
+  background: rgba(30, 41, 59, 0.78) !important;
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid #334155 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
 }
 .dark .stat-card:hover {
-  border-color: rgba(20, 184, 166, 0.25) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(20, 184, 166, 0.12) !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(16, 185, 129, 0.15) !important;
 }
 
 /* ─── KPI icon glow rings (dark mode) ─── */

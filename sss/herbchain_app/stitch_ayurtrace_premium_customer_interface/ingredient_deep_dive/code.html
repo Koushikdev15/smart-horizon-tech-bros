@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AYUTRACE+ Ingredients</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&amp;family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-surface-variant": "#414942",
+                      "secondary": "#2e6a41",
+                      "surface-container": "#f1eee3",
+                      "surface-dim": "#dddacf",
+                      "on-secondary-fixed-variant": "#12512c",
+                      "surface-container-highest": "#e5e2d8",
+                      "primary-fixed": "#bcefc7",
+                      "inverse-primary": "#a1d2ac",
+                      "primary-container": "#0b3b20",
+                      "tertiary-container": "#443000",
+                      "secondary-fixed": "#b1f2be",
+                      "tertiary-fixed-dim": "#f2bf50",
+                      "inverse-surface": "#31312a",
+                      "on-error-container": "#93000a",
+                      "primary-fixed-dim": "#a1d2ac",
+                      "on-primary": "#ffffff",
+                      "surface-container-lowest": "#ffffff",
+                      "on-secondary-fixed": "#00210d",
+                      "tertiary": "#291c00",
+                      "background": "#fcf9ee",
+                      "error": "#ba1a1a",
+                      "on-secondary-container": "#347047",
+                      "on-tertiary-fixed-variant": "#5c4200",
+                      "surface-container-high": "#ebe8dd",
+                      "outline-variant": "#c1c9bf",
+                      "on-secondary": "#ffffff",
+                      "tertiary-fixed": "#ffdea2",
+                      "on-background": "#1c1c15",
+                      "primary": "#002410",
+                      "on-tertiary-fixed": "#261900",
+                      "error-container": "#ffdad6",
+                      "outline": "#717971",
+                      "secondary-fixed-dim": "#96d5a3",
+                      "surface": "#fcf9ee",
+                      "surface-bright": "#fcf9ee",
+                      "inverse-on-surface": "#f4f1e6",
+                      "on-error": "#ffffff",
+                      "secondary-container": "#b1f2be",
+                      "on-primary-fixed-variant": "#224f32",
+                      "on-surface": "#1c1c15",
+                      "on-tertiary-container": "#c29428",
+                      "surface-tint": "#3b6849",
+                      "on-tertiary": "#ffffff",
+                      "surface-variant": "#e5e2d8",
+                      "on-primary-container": "#77a683",
+                      "on-primary-fixed": "#00210e",
+                      "surface-container-low": "#f7f4e9"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "24px",
+                      "md": "24px",
+                      "xs": "4px",
+                      "container-max": "1200px",
+                      "lg": "48px",
+                      "base": "8px",
+                      "xl": "80px",
+                      "sm": "12px"
+              },
+              "fontFamily": {
+                      "body-lg": [
+                              "Hanken Grotesk"
+                      ],
+                      "label-md": [
+                              "Hanken Grotesk"
+                      ],
+                      "display-lg": [
+                              "EB Garamond"
+                      ],
+                      "body-md": [
+                              "Hanken Grotesk"
+                      ],
+                      "label-caps": [
+                              "Hanken Grotesk"
+                      ],
+                      "headline-md": [
+                              "EB Garamond"
+                      ],
+                      "headline-lg-mobile": [
+                              "EB Garamond"
+                      ],
+                      "headline-lg": [
+                              "EB Garamond"
+                      ]
+              },
+              "fontSize": {
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.1em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "28px",
+                              {
+                                      "lineHeight": "34px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "fontWeight": "500"
+                              }
+                      ]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        .ambient-shadow {
+            box-shadow: 0 20px 40px -15px rgba(11,59,32,0.06);
+        }
+        .ambient-shadow-lg {
+            box-shadow: 0 30px 60px -20px rgba(11,59,32,0.08);
+        }
+        .glass-effect {
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+        }
+        .gold-glow:hover {
+            box-shadow: inset 0 0 0 1px #c29428, 0 10px 30px -10px rgba(194, 148, 40, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-50 w-full bg-surface/80 glass-effect shadow-[0_20px_40px_-15px_rgba(11,59,32,0.06)]">
+<div class="flex justify-between items-center px-gutter py-md w-full max-w-container-max mx-auto">
+<div class="flex items-center gap-sm">
+<img alt="User avatar profile image" class="w-10 h-10 rounded-full object-cover shadow-sm" data-alt="A high-quality, professional headshot of an individual, framed in a circle, representing a user profile avatar in a minimalist wellness app context. The lighting is soft and flattering, set against a clean, warm ivory background to match a premium UI design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzlK00XWoRowF92MpkIm6-8ej8ZzypQ1nGtHLQ6ZlxBDBB4Hkd2nAkK7pE3_RF1XKei74mQ8kCdUDbwiCHsmkVXqIc4AwQ5V5lkY_w5qtmjcxeEMtJNMhD3vry6fqyU9a2s4LLmZbt9rXBA-PpUm-wJBOwVMeOGLP7e-mPi08afnV8RiJdE8T-l7oQRaGsYPNwSyf7dMYrrfnu_p8B7PXn1jge9jDKgCx-5mHM5Q935c7H5FL-qEL1"/>
+</div>
+<h1 class="font-display-lg text-display-lg text-primary tracking-tight">AYUTRACE+</h1>
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-secondary hover:opacity-80 transition-opacity active:scale-95 duration-200">
+<span class="material-symbols-outlined">eco</span>
+</button>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="max-w-container-max mx-auto px-gutter pt-lg pb-xl">
+<header class="mb-lg md:mb-xl text-center md:text-left">
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-primary mb-xs">Botanical Ingredients</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">Discover the pure, sustainably sourced Ayurvedic herbs that compose our formula, verified for authenticity and potency.</p>
+</header>
+<!-- Bento Grid for Ingredients -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md md:gap-lg">
+<!-- Ashwagandha Card -->
+<article class="bg-surface-container-lowest rounded-[24px] overflow-hidden ambient-shadow transition-all duration-300 hover:-translate-y-1 gold-glow group">
+<div class="relative h-64 w-full">
+<img alt="Ashwagandha Root" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A macro, ultra-high-resolution photograph of dried Ashwagandha root (Withania somnifera) resting on a clean, textured cream surface. The lighting is soft and natural, casting delicate ambient shadows that highlight the fibrous, earthy texture of the root. The aesthetic is premium, organic, and meticulously clean, suitable for a high-end wellness brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAu0pcS-2ML58LG6HbkegWW2hv3d5YX1P3b1vcnx60G3zP34g6m7eJaNgBCxd4Izd2Zlj_P6NrwI1T13V0T9X9P_sklykhyWCdRRyq5lxYmIOfujS4hPgz_UDWlpzT-ZcqBuvX4_0hx5seDgHq_FMht5CmR8r4VyFFLhu4MAp5_H9npJ6eJj00syRGGA8txOa1fxHmFWqPXfDUjccL8_2u4PrdMuPdsx_DvOrPmckELwAkChla0BXoK"/>
+<!-- Verified Seal -->
+<div class="absolute top-4 right-4 bg-surface/90 glass-effect rounded-full px-4 py-2 flex items-center gap-2 shadow-sm border border-tertiary-fixed-dim/30">
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-[18px]">verified</span>
+<span class="font-label-caps text-label-caps text-on-surface uppercase tracking-wider">Trace Verified</span>
+</div>
+<!-- Tags -->
+<div class="absolute bottom-4 left-4 flex gap-2">
+<span class="bg-primary-fixed text-on-primary-fixed font-label-caps text-label-caps px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">Organic</span>
+<span class="bg-secondary-fixed text-on-secondary-fixed font-label-caps text-label-caps px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">Sustainably Sourced</span>
+</div>
+</div>
+<div class="p-lg">
+<div class="mb-md">
+<h3 class="font-headline-md text-headline-md text-primary mb-1">Ashwagandha</h3>
+<p class="font-body-md text-body-md text-on-surface-variant italic">Withania somnifera</p>
+</div>
+<p class="font-body-md text-body-md text-on-surface mb-md">
+                        Revered as a premier adaptogen in Ayurvedic tradition, our ethically harvested Ashwagandha root helps the body manage stress, supports restorative sleep, and promotes overall vitality. Each batch is rigorously tested for high withanolide content.
+                    </p>
+<div class="pt-sm border-t border-surface-variant/50 flex justify-between items-center">
+<a class="inline-flex items-center gap-2 font-label-md text-label-md text-secondary hover:text-primary transition-colors" href="#">
+                            Learn More
+                            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</a>
+<button class="w-10 h-10 rounded-full border-[1.5px] border-primary flex items-center justify-center text-tertiary-container hover:bg-surface-dim transition-colors group" title="View Traceability Data">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">qr_code_scanner</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Amla Card -->
+<article class="bg-surface-container-lowest rounded-[24px] overflow-hidden ambient-shadow transition-all duration-300 hover:-translate-y-1 gold-glow group">
+<div class="relative h-64 w-full">
+<img alt="Amla Fruit" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A stunning, highly detailed close-up of fresh, vibrant green Amla fruit (Indian Gooseberry) on a subtle warm ivory background. The composition is minimal and elegant, with soft, diffused lighting that highlights the smooth texture and subtle translucency of the fruit, evoking a sense of pristine natural health and premium quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVpfez1S2IttomQ7kUvY9qVAGS6m8npusxlR_Owjjc_DSZyBpRjdVfng3gMKn7yrF0cVkf8cwLqskHDE37e1p4IFIOhkmRA6b09mkpxy5bjaZ_sflkHn5MmGfQI3WvhKAAP_ee4la8veRDSVr8wGzqEvIzg77nR87o4BIzsEI5Fh321toIYrGq0WHHouKq4XRGYWfK5T1t2CQ2dxvM2enevCIKpFgs8OK-DqPlYjUxuseFsY7_RPnC"/>
+<!-- Verified Seal -->
+<div class="absolute top-4 right-4 bg-surface/90 glass-effect rounded-full px-4 py-2 flex items-center gap-2 shadow-sm border border-tertiary-fixed-dim/30">
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-[18px]">verified</span>
+<span class="font-label-caps text-label-caps text-on-surface uppercase tracking-wider">Trace Verified</span>
+</div>
+<!-- Tags -->
+<div class="absolute bottom-4 left-4 flex gap-2">
+<span class="bg-primary-fixed text-on-primary-fixed font-label-caps text-label-caps px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">Wildcrafted</span>
+<span class="bg-secondary-fixed text-on-secondary-fixed font-label-caps text-label-caps px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">Pure</span>
+</div>
+</div>
+<div class="p-lg">
+<div class="mb-md">
+<h3 class="font-headline-md text-headline-md text-primary mb-1">Amla</h3>
+<p class="font-body-md text-body-md text-on-surface-variant italic">Phyllanthus emblica</p>
+</div>
+<p class="font-body-md text-body-md text-on-surface mb-md">
+                        Also known as Indian Gooseberry, Amla is an ancient botanical treasure packed with natural Vitamin C and potent antioxidants. It supports immune function, promotes radiant skin, and aids in healthy digestion. Hand-picked at peak ripeness.
+                    </p>
+<div class="pt-sm border-t border-surface-variant/50 flex justify-between items-center">
+<a class="inline-flex items-center gap-2 font-label-md text-label-md text-secondary hover:text-primary transition-colors" href="#">
+                            Learn More
+                            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</a>
+<button class="w-10 h-10 rounded-full border-[1.5px] border-primary flex items-center justify-center text-tertiary-container hover:bg-surface-dim transition-colors group" title="View Traceability Data">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">qr_code_scanner</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Tulsi Card (Placeholder to fill grid if needed, or keep to 2) -->
+<article class="bg-surface-container-lowest rounded-[24px] overflow-hidden ambient-shadow transition-all duration-300 hover:-translate-y-1 gold-glow group md:col-span-2">
+<div class="flex flex-col md:flex-row h-full">
+<div class="relative h-64 md:h-auto md:w-2/5 md:min-w-[300px]">
+<img alt="Tulsi Leaves" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A refined, top-down photograph of fresh Tulsi (Holy Basil) leaves resting gently on a pristine cream surface. The image emphasizes the intricate vein structure of the leaves and their vibrant, healthy green color. The lighting is soft and even, creating minimal, elegant shadows that convey a sense of calm, purity, and high-end botanical wellness." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSu0m4IKVF_53F2zrC1tWrzrWGBw2Wcdas92v1WQiLtCx0J7TahNj7ULx6Ff2kdnEHkdkV2XNF3OnRqBv5zEklkAsrc9eTiJoTIDUHCyTuy9vzm9rrtSa4_OJHTB7kw0AHjDwJGiaffOIJigeBnSs1FE2mZYy2dO2j8P6v1OyOq_FMGGqdH5863V1P-EEwZwjMJTk4XZ5JUp5EhVw6Qy9FptLmPMrUxGkHRG1vHk8HbvaXp4VqZooG"/>
+<!-- Verified Seal -->
+<div class="absolute top-4 left-4 bg-surface/90 glass-effect rounded-full px-4 py-2 flex items-center gap-2 shadow-sm border border-tertiary-fixed-dim/30">
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-[18px]">verified</span>
+<span class="font-label-caps text-label-caps text-on-surface uppercase tracking-wider">Trace Verified</span>
+</div>
+</div>
+<div class="p-lg md:w-3/5 flex flex-col justify-center">
+<div class="mb-sm flex gap-2">
+<span class="bg-primary-fixed text-on-primary-fixed font-label-caps text-label-caps px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">Organic</span>
+</div>
+<div class="mb-md">
+<h3 class="font-headline-md text-headline-md text-primary mb-1">Tulsi (Holy Basil)</h3>
+<p class="font-body-md text-body-md text-on-surface-variant italic">Ocimum tenuiflorum</p>
+</div>
+<p class="font-body-md text-body-md text-on-surface mb-md max-w-xl">
+                            Considered the 'Queen of Herbs' in Ayurveda, Tulsi offers profound uplifting and clarifying properties. Cultivated in nutrient-rich soils, our Tulsi helps elevate mood, supports respiratory health, and provides a calming effect on the nervous system.
+                        </p>
+<div class="pt-sm border-t border-surface-variant/50 flex justify-between items-center max-w-xl">
+<a class="inline-flex items-center gap-2 font-label-md text-label-md text-secondary hover:text-primary transition-colors" href="#">
+                                Learn More
+                                <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</a>
+<button class="w-10 h-10 rounded-full border-[1.5px] border-primary flex items-center justify-center text-tertiary-container hover:bg-surface-dim transition-colors group" title="View Traceability Data">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">qr_code_scanner</span>
+</button>
+</div>
+</div>
+</div>
+</article>
+</div>
+</main>
+<!-- BottomNavBar (Visible on Mobile, Hidden on Desktop) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-2 bg-surface/80 dark:bg-surface/80 backdrop-blur-[15px] z-50 rounded-t-xl shadow-[0_-10px_30px_rgba(11,59,32,0.04)]">
+<!-- Active Tab: Home -->
+<a class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed-dim font-bold transform scale-90 duration-150 group" href="#">
+<div class="mb-1 rounded-full p-1 group-active:bg-primary-container group-active:shadow-lg transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+</div>
+<span class="font-label-md text-label-md">Home</span>
+</a>
+<!-- Inactive Tab: History -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant/70 hover:text-secondary transition-colors group" href="#">
+<div class="mb-1 rounded-full p-1">
+<span class="material-symbols-outlined">history</span>
+</div>
+<span class="font-label-md text-label-md">History</span>
+</a>
+<!-- Inactive Tab: Scan -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant/70 hover:text-secondary transition-colors group" href="#">
+<div class="mb-1 rounded-full p-1">
+<span class="material-symbols-outlined">qr_code_scanner</span>
+</div>
+<span class="font-label-md text-label-md">Scan</span>
+</a>
+<!-- Inactive Tab: Alerts -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant/70 hover:text-secondary transition-colors group" href="#">
+<div class="mb-1 rounded-full p-1">
+<span class="material-symbols-outlined">notifications</span>
+</div>
+<span class="font-label-md text-label-md">Alerts</span>
+</a>
+<!-- Inactive Tab: Profile -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant/70 hover:text-secondary transition-colors group" href="#">
+<div class="mb-1 rounded-full p-1">
+<span class="material-symbols-outlined">person</span>
+</div>
+<span class="font-label-md text-label-md">Profile</span>
+</a>
+</nav>
+</body></html>

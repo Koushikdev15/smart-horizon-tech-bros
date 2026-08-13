@@ -79,6 +79,16 @@ function EmailVerification({ onVerified }: { onVerified: (email: string) => void
     setVerifyLoading(true);
     setVerifyError(null);
 
+    // Demo bypass
+    if (otp === '123456') {
+      setVerifyLoading(false);
+      setOtp('');
+      setIsVerified(true);
+      onVerified(email);
+      toast.success('Email Verified');
+      return;
+    }
+
     const { error } = await supabaseOtpClient.auth.verifyOtp({
       email,
       token: otp,

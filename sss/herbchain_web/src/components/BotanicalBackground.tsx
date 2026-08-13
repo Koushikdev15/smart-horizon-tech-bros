@@ -96,7 +96,7 @@ const AyurvedicLeafBroad = ({ className, ...props }: React.SVGProps<SVGSVGElemen
 
 export default function BotanicalBackground() {
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0">
+    <div className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0 dark:hidden">
       {/* Soft radial glow behind the main content area to focus attention */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(20,184,166,0.07)_0%,transparent_65%)] dark:bg-[radial-gradient(circle_at_50%_35%,rgba(20,184,166,0.03)_0%,transparent_65%)]" />
 

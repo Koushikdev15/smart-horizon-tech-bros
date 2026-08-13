@@ -1,0 +1,106 @@
+Role,Field Label,Form Field Key,Required in UI,Input Type,Saved to Supabase Column,Notes
+Collection Center,Organization Name,name,Yes,text,organizationName,
+Collection Center,Owner Name,owner,Yes,text,name,Stored as the row's "name" (contact person)
+Collection Center,Ayurvedic License No.,license,Yes,text,licenseNumber,
+Collection Center,GST Number,gst,Yes,text,gst,
+Collection Center,PAN Number,pan,Yes,text,pan,
+Collection Center,Email Address,email,Yes (OTP verified),email,email,Must pass Send Code / Verify Code OTP flow before submit is allowed
+Collection Center,Phone Number,phone,Yes,tel,phone,
+Collection Center,Create Password,password,Yes (min 6 chars),password,Not saved,Used for UI validation only; password is stripped before the DB insert
+Collection Center,Confirm Password,confirmPassword,Yes (must match password),password,Not saved,Stripped before the DB insert
+Collection Center,Assigned Region,region,Yes,text,region,
+Collection Center,Warehouse Capacity (kg),capacity,No,number,warehouseCapacity,
+Collection Center,Experience (Years),exp,No,number,Not saved,Captured in the form but not currently sent to the database
+Collection Center,Address,address,Yes,textarea,address,
+Collection Center,Bank Details,bank,No,text,Not saved,Captured in the form but not currently sent to the database
+Collection Center,Documents Upload,(none),No,file upload,Not saved,UI only; not bound to form state or persisted
+Collection Center,Ayurvedic ID,(none),Auto-generated,system,ayurvedicId,Format AYUR-CC-XXXXXX (generated on submit)
+Collection Center,Status,(none),Auto-generated,system,status,Always inserted as "Pending"
+Collection Center,Registered Date,(none),Auto-generated,system,registeredDate,Set to current timestamp on submit
+Farmer,Full Name,name,Yes,text,name; also in farmerDetails JSON,
+Farmer,Aadhar Number,aadhar,Yes,text,farmerDetails JSON only,
+Farmer,Email Address,email,Yes (OTP verified),email,email; also in farmerDetails JSON,Must pass Send Code / Verify Code OTP flow before submit is allowed
+Farmer,Phone Number,phone,Yes,tel,phone; also in farmerDetails JSON,
+Farmer,Create Password,password,Yes (min 6 chars),password,Not saved,Stripped before the DB insert (including from farmerDetails JSON)
+Farmer,Confirm Password,confirmPassword,Yes (must match password),password,Not saved,Stripped before the DB insert
+Farmer,Total Land Area (Acres),land,Yes,number,farmerDetails JSON only,
+Farmer,Soil Type,soil,No,text,farmerDetails JSON only,
+Farmer,Irrigation Method,irrigation,No,text,farmerDetails JSON only,
+Farmer,Primary Herbs Cultivated,herbs,Yes,text,farmerDetails JSON only,
+Farmer,Organic Certification Status,cert,No,text,farmerDetails JSON only,
+Farmer,Farm Address / Location,address,Yes,textarea,address; also in farmerDetails JSON,
+Farmer,Bank Details,bank,No,text,farmerDetails JSON only,
+Farmer,Documents Upload,(none),No,file upload,Not saved,UI only; not bound to form state or persisted
+Farmer,Organization Name,(none),Auto-generated,system,organizationName,Set to "Farm of <Full Name>"
+Farmer,Region,(none),Auto-generated,system,region,Hardcoded to "Local"
+Farmer,Ayurvedic ID,(none),Auto-generated,system,ayurvedicId,Format AYUR-FRM-XXXXXX (generated on submit)
+Farmer,Status,(none),Auto-generated,system,status,Always inserted as "Pending"
+Farmer,Registered Date,(none),Auto-generated,system,registeredDate,Set to current timestamp on submit
+Wild Collector,Full Name,name,Yes,text,name; also in wildCollectorDetails JSON,
+Wild Collector,Aadhar Number,aadhar,Yes,text,wildCollectorDetails JSON only,
+Wild Collector,Email Address,email,Yes (OTP verified),email,email; also in wildCollectorDetails JSON,Must pass Send Code / Verify Code OTP flow before submit is allowed
+Wild Collector,Phone Number,phone,Yes,tel,phone; also in wildCollectorDetails JSON,
+Wild Collector,Create Password,password,Yes (min 6 chars),password,Not saved,Stripped before the DB insert (including from wildCollectorDetails JSON)
+Wild Collector,Confirm Password,confirmPassword,Yes (must match password),password,Not saved,Stripped before the DB insert
+Wild Collector,Primary Forest Zone / Region,zone,Yes,text,region; also in wildCollectorDetails JSON,
+Wild Collector,Wild Collection Permit No.,permit,Yes,text,wildCollectorDetails JSON only,
+Wild Collector,Tribes/Community Affiliation,tribe,No,text,wildCollectorDetails JSON only,
+Wild Collector,Target Herbs Collected,herbs,Yes,text,wildCollectorDetails JSON only,
+Wild Collector,Experience in Wildcrafting (Yrs),exp,No,number,wildCollectorDetails JSON only,
+Wild Collector,Base Address,address,Yes,textarea,address; also in wildCollectorDetails JSON,
+Wild Collector,Bank Details,bank,No,text,wildCollectorDetails JSON only,
+Wild Collector,Documents Upload,(none),No,file upload,Not saved,UI only; not bound to form state or persisted
+Wild Collector,Organization Name,(none),Auto-generated,system,organizationName,Set to "Wild Collector - <Zone>"
+Wild Collector,Ayurvedic ID,(none),Auto-generated,system,ayurvedicId,Format AYUR-WC-XXXXXX (generated on submit)
+Wild Collector,Status,(none),Auto-generated,system,status,Always inserted as "Pending"
+Wild Collector,Registered Date,(none),Auto-generated,system,registeredDate,Set to current timestamp on submit
+Processing & Laboratory,Lab/Unit Name,name,Yes,text,name and organizationName,
+Processing & Laboratory,NABL Certificate No.,nabl,Yes,text,nablCertificate,
+Processing & Laboratory,Drug License No.,drug,Yes,text,drugLicense,
+Processing & Laboratory,GST Number,gst,Yes,text,gst,
+Processing & Laboratory,PAN Number,pan,Yes,text,pan,
+Processing & Laboratory,No. of Employees,emp,No,number,Not saved,Captured in the form but not currently sent to the database
+Processing & Laboratory,Email Address,email,Yes (OTP verified),email,email,Must pass Send Code / Verify Code OTP flow before submit is allowed
+Processing & Laboratory,Phone Number,phone,Yes,tel,phone,
+Processing & Laboratory,Create Password,password,Yes (min 6 chars),password,Not saved,Stripped before the DB insert
+Processing & Laboratory,Confirm Password,confirmPassword,Yes (must match password),password,Not saved,Stripped before the DB insert
+Processing & Laboratory,Testing Equipment,equip,No,textarea,Not saved,Captured in the form but not currently sent to the database
+Processing & Laboratory,Address,address,Yes,textarea,address,
+Processing & Laboratory,Bank Details,bank,No,text,Not saved,Captured in the form but not currently sent to the database
+Processing & Laboratory,Documents Upload,(none),No,file upload,Not saved,UI only; not bound to form state or persisted
+Processing & Laboratory,Ayurvedic ID,(none),Auto-generated,system,ayurvedicId,Format AYUR-PL-XXXXXX (generated on submit)
+Processing & Laboratory,Status,(none),Auto-generated,system,status,Always inserted as "Pending"
+Processing & Laboratory,Registered Date,(none),Auto-generated,system,registeredDate,Set to current timestamp on submit
+Manufacturer,Manufacturer Name,name,Yes,text,name and organizationName,
+Manufacturer,Manufacturing License,mflic,Yes,text,manufacturingLicense,
+Manufacturer,GMP Certificate No.,gmp,Yes,text,gmpCertificate,
+Manufacturer,Drug License No.,drug,Yes,text,drugLicense,
+Manufacturer,GST Number,gst,Yes,text,gst,
+Manufacturer,PAN Number,pan,Yes,text,pan,
+Manufacturer,Factory Capacity (units/day),cap,No,number,Not saved,Captured in the form but not currently sent to the database
+Manufacturer,Email Address,email,Yes (OTP verified),email,email,Must pass Send Code / Verify Code OTP flow before submit is allowed
+Manufacturer,Phone Number,phone,Yes,tel,phone,
+Manufacturer,Create Password,password,Yes (min 6 chars),password,Not saved,Stripped before the DB insert
+Manufacturer,Confirm Password,confirmPassword,Yes (must match password),password,Not saved,Stripped before the DB insert
+Manufacturer,Bank Details,bank,No,text,Not saved,Captured in the form but not currently sent to the database
+Manufacturer,Factory Address,address,Yes,textarea,address,
+Manufacturer,Documents Upload,(none),No,file upload,Not saved,UI only; not bound to form state or persisted
+Manufacturer,Ayurvedic ID,(none),Auto-generated,system,ayurvedicId,Format AYUR-MF-XXXXXX (generated on submit)
+Manufacturer,Status,(none),Auto-generated,system,status,Always inserted as "Pending"
+Manufacturer,Registered Date,(none),Auto-generated,system,registeredDate,Set to current timestamp on submit
+Supply Chain,Company Name,name,Yes,text,name and organizationName,
+Supply Chain,Warehouse Capacity (sq.ft),wh,Yes,text,warehouseCapacity,
+Supply Chain,Number of Vehicles,veh,No,text,vehicleDetails (combined with Vehicle Types),
+Supply Chain,Vehicle Types,vtype,No,text,vehicleDetails (combined with Number of Vehicles),
+Supply Chain,Operating Region,region,Yes,text,region,
+Supply Chain,GST Number,gst,Yes,text,gst,
+Supply Chain,PAN Number,pan,Yes,text,pan,
+Supply Chain,Email Address,email,Yes (OTP verified),email,email,Must pass Send Code / Verify Code OTP flow before submit is allowed
+Supply Chain,Phone Number,phone,Yes,tel,phone,
+Supply Chain,Create Password,password,Yes (min 6 chars),password,Not saved,Stripped before the DB insert
+Supply Chain,Confirm Password,confirmPassword,Yes (must match password),password,Not saved,Stripped before the DB insert
+Supply Chain,Bank Details,bank,No,text,Not saved,Captured in the form but not currently sent to the database
+Supply Chain,Documents Upload,(none),No,file upload,Not saved,UI only; not bound to form state or persisted
+Supply Chain,Ayurvedic ID,(none),Auto-generated,system,ayurvedicId,Format AYUR-SC-XXXXXX (generated on submit)
+Supply Chain,Status,(none),Auto-generated,system,status,Always inserted as "Pending"
+Supply Chain,Registered Date,(none),Auto-generated,system,registeredDate,Set to current timestamp on submit

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Alerts - AYUTRACE+</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600&amp;family=Hanken+Grotesk:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary": "#291c00",
+                        "inverse-on-surface": "#f4f1e6",
+                        "error-container": "#ffdad6",
+                        "on-primary-container": "#77a683",
+                        "primary-fixed": "#bcefc7",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#347047",
+                        "surface-variant": "#e5e2d8",
+                        "on-error": "#ffffff",
+                        "surface-container-low": "#f7f4e9",
+                        "outline-variant": "#c1c9bf",
+                        "on-primary": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "background": "#fcf9ee",
+                        "secondary-fixed-dim": "#96d5a3",
+                        "on-error-container": "#93000a",
+                        "inverse-surface": "#31312a",
+                        "surface-tint": "#3b6849",
+                        "outline": "#717971",
+                        "on-primary-fixed": "#00210e",
+                        "on-secondary": "#ffffff",
+                        "surface-container": "#f1eee3",
+                        "primary-container": "#0b3b20",
+                        "tertiary-container": "#443000",
+                        "surface-container-high": "#ebe8dd",
+                        "on-surface": "#1c1c15",
+                        "on-tertiary-fixed-variant": "#5c4200",
+                        "error": "#ba1a1a",
+                        "surface-bright": "#fcf9ee",
+                        "on-background": "#1c1c15",
+                        "on-tertiary-container": "#c29428",
+                        "secondary-container": "#b1f2be",
+                        "secondary": "#2e6a41",
+                        "tertiary-fixed-dim": "#f2bf50",
+                        "primary": "#002410",
+                        "surface-dim": "#dddacf",
+                        "surface-container-highest": "#e5e2d8",
+                        "on-tertiary-fixed": "#261900",
+                        "tertiary-fixed": "#ffdea2",
+                        "on-secondary-fixed": "#00210d",
+                        "secondary-fixed": "#b1f2be",
+                        "on-surface-variant": "#414942",
+                        "surface": "#fcf9ee",
+                        "inverse-primary": "#a1d2ac",
+                        "on-secondary-fixed-variant": "#12512c",
+                        "on-primary-fixed-variant": "#224f32",
+                        "primary-fixed-dim": "#a1d2ac"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "sm": "12px",
+                        "xs": "4px",
+                        "md": "24px",
+                        "lg": "48px",
+                        "gutter": "24px",
+                        "xl": "80px",
+                        "container-max": "1200px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Hanken Grotesk"],
+                        "label-caps": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "headline-lg": ["EB Garamond"],
+                        "headline-lg-mobile": ["EB Garamond"],
+                        "headline-md": ["EB Garamond"],
+                        "label-md": ["Hanken Grotesk"],
+                        "display-lg": ["EB Garamond"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "34px", "fontWeight": "500" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "500" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #F8F5EA;
+            background-image: url('data:image/svg+xml;utf8,<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="leaves" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M10 50 Q 30 20, 50 50 T 90 50" fill="none" stroke="%23E5E2D8" stroke-width="0.5" stroke-dasharray="2,2"/><circle cx="50" cy="50" r="1" fill="%23E5E2D8"/></pattern></defs><rect width="100%" height="100%" fill="url(%23leaves)"/></svg>');
+        }
+    </style>
+</head>
+<body class="min-h-screen text-on-surface font-body-md relative overflow-x-hidden pb-24">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 z-50 backdrop-blur-md bg-background/80 shadow-[0_20px_40px_-15px_rgba(11,59,32,0.06)]">
+<div class="flex justify-between items-center px-gutter py-base w-full max-w-container-max mx-auto">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant bg-surface-variant">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A macro photography style portrait of an elegant wellness practitioner. The lighting is soft and natural, emphasizing a calm and trustworthy demeanor. The background is softly blurred with a hint of natural green foliage. The aesthetic aligns with premium minimalist Ayurvedic lifestyle imagery." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4lfg3KB0NTCm7ETm4OLq-4AGuf91Zxm27vuM1xbojQ3uYC6t4SH4UYm-3tggLx-FM4BZrxE9Fsd-pzijbrEnsY8y3ZsnJsVu21SxIVw4NawFdJVcwa9XcyokGgS5I1-Uy0Nvx_6eN1rXks9z6a7Om2nPt_ZSQZsHDdOUduHJcegZVZg7qXwhgz0T1lBEP6F_KJxoEsW_QK4ryXfPeRzE6f4k0fjjzaqg-m7K0wh4suRMAkOpDstjw"/>
+</div>
+<h1 class="font-display-lg text-headline-lg-mobile text-primary tracking-tight">AYUTRACE+</h1>
+</div>
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-primary hover:bg-surface-container-high transition-colors active:scale-95">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">notifications_active</span>
+</button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="max-w-container-max mx-auto px-gutter pt-lg pb-xl">
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-primary mb-md">Alerts &amp; Notifications</h2>
+<div class="flex flex-col gap-6">
+<!-- Recall Alert -->
+<div class="bg-surface-container-lowest rounded-[24px] p-[20px] shadow-[0_20px_40px_-15px_rgba(11,59,32,0.06)] relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+<div class="absolute top-0 left-0 w-1 h-full bg-error"></div>
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-full bg-error-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<div>
+<h3 class="font-label-md text-label-md text-error mb-1">Batch Recall: Triphala Churna</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-2">Important notice regarding Batch #TC-2023-44. Please do not consume. Click for instructions on return and replacement.</p>
+<span class="font-label-caps text-label-caps text-outline">Just now</span>
+</div>
+</div>
+</div>
+<!-- Expiry Alert -->
+<div class="bg-surface-container-lowest rounded-[24px] p-[20px] shadow-[0_20px_40px_-15px_rgba(11,59,32,0.06)] relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+<div class="absolute top-0 left-0 w-1 h-full bg-tertiary-fixed-dim"></div>
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-full bg-tertiary-fixed flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-tertiary-container" style="font-variation-settings: 'FILL' 1;">update</span>
+</div>
+<div>
+<h3 class="font-label-md text-label-md text-on-tertiary-fixed-variant mb-1">Product Expiring Soon: Amla Juice</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-2">Your verified bottle of pure Amla Juice is approaching its optimal usage window (Expires in 14 days). Ensure you consume it for maximum potency.</p>
+<span class="font-label-caps text-label-caps text-outline">2 hours ago</span>
+</div>
+</div>
+</div>
+<!-- Verification Update -->
+<div class="bg-surface-container-lowest rounded-[24px] p-[20px] shadow-[0_20px_40px_-15px_rgba(11,59,32,0.06)] relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+<div class="absolute top-0 left-0 w-1 h-full bg-secondary"></div>
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-secondary-container" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<div>
+<h3 class="font-label-md text-label-md text-secondary mb-1">New Batch Verified: Brahmi Tablets</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-2">The latest harvest of sustainably sourced Brahmi has passed all purity tests. Full traceability report is now available.</p>
+<span class="font-label-caps text-label-caps text-outline">Yesterday</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 rounded-t-[24px] bg-surface-container-low/80 backdrop-blur-md shadow-[0_-10px_30px_rgba(11,59,32,0.04)]">
+<div class="flex justify-around items-center px-4 py-3 w-full">
+<button class="flex flex-col items-center justify-center text-on-surface-variant opacity-70 hover:bg-surface-container-high transition-colors active:scale-90 duration-200 rounded-xl px-4 py-2">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-md text-label-md mt-1">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant opacity-70 hover:bg-surface-container-high transition-colors active:scale-90 duration-200 rounded-xl px-4 py-2">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-label-md text-label-md mt-1">History</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant opacity-70 hover:bg-surface-container-high transition-colors active:scale-90 duration-200 rounded-xl px-4 py-2">
+<span class="material-symbols-outlined" data-icon="qr_code_scanner">qr_code_scanner</span>
+<span class="font-label-md text-label-md mt-1">Scan</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-xl px-4 py-2 hover:bg-surface-container-high transition-colors active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="notifications" style="font-variation-settings: 'FILL' 1;">notifications</span>
+<span class="font-label-md text-label-md mt-1">Alerts</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant opacity-70 hover:bg-surface-container-high transition-colors active:scale-90 duration-200 rounded-xl px-4 py-2">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-md text-label-md mt-1">Profile</span>
+</button>
+</div>
+</nav>
+</body></html>

@@ -32,7 +32,7 @@ export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
       sidebarCollapsed: false,
-      darkMode: false,
+      darkMode: true,
       activeBatchId: null,
       activeNavItem: 'dashboard',
       pinnedNavItems: {},

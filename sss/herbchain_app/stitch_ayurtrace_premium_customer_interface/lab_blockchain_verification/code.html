@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Laboratory &amp; Blockchain Verification - AYUTRACE+</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&amp;family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary-fixed": "#bcefc7",
+                      "surface": "#fcf9ee",
+                      "on-secondary-fixed": "#00210d",
+                      "error": "#ba1a1a",
+                      "on-tertiary-fixed": "#261900",
+                      "on-secondary": "#ffffff",
+                      "on-tertiary": "#ffffff",
+                      "on-tertiary-container": "#c29428",
+                      "tertiary-container": "#443000",
+                      "on-background": "#1c1c15",
+                      "surface-tint": "#3b6849",
+                      "secondary-fixed": "#b1f2be",
+                      "outline-variant": "#c1c9bf",
+                      "secondary-fixed-dim": "#96d5a3",
+                      "surface-variant": "#e5e2d8",
+                      "surface-container": "#f1eee3",
+                      "outline": "#717971",
+                      "surface-bright": "#fcf9ee",
+                      "error-container": "#ffdad6",
+                      "inverse-surface": "#31312a",
+                      "on-secondary-container": "#347047",
+                      "on-surface": "#1c1c15",
+                      "secondary": "#2e6a41",
+                      "surface-container-highest": "#e5e2d8",
+                      "secondary-container": "#b1f2be",
+                      "primary": "#002410",
+                      "on-error": "#ffffff",
+                      "on-primary-fixed": "#00210e",
+                      "background": "#fcf9ee",
+                      "surface-container-high": "#ebe8dd",
+                      "surface-container-lowest": "#ffffff",
+                      "on-primary-container": "#77a683",
+                      "on-secondary-fixed-variant": "#12512c",
+                      "on-primary-fixed-variant": "#224f32",
+                      "on-surface-variant": "#414942",
+                      "tertiary-fixed": "#ffdea2",
+                      "surface-container-low": "#f7f4e9",
+                      "on-tertiary-fixed-variant": "#5c4200",
+                      "surface-dim": "#dddacf",
+                      "on-primary": "#ffffff",
+                      "on-error-container": "#93000a",
+                      "inverse-primary": "#a1d2ac",
+                      "tertiary": "#291c00",
+                      "inverse-on-surface": "#f4f1e6",
+                      "primary-container": "#0b3b20",
+                      "primary-fixed-dim": "#a1d2ac",
+                      "tertiary-fixed-dim": "#f2bf50"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "container-max": "1200px",
+                      "xl": "80px",
+                      "md": "24px",
+                      "sm": "12px",
+                      "lg": "48px",
+                      "gutter": "24px",
+                      "xs": "4px",
+                      "base": "8px"
+              },
+              "fontFamily": {
+                      "display-lg": [
+                              "EB Garamond"
+                      ],
+                      "label-caps": [
+                              "Hanken Grotesk"
+                      ],
+                      "body-lg": [
+                              "Hanken Grotesk"
+                      ],
+                      "headline-lg": [
+                              "EB Garamond"
+                      ],
+                      "label-md": [
+                              "Hanken Grotesk"
+                      ],
+                      "body-md": [
+                              "Hanken Grotesk"
+                      ],
+                      "headline-lg-mobile": [
+                              "EB Garamond"
+                      ],
+                      "headline-md": [
+                              "EB Garamond"
+                      ]
+              },
+              "fontSize": {
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.1em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "label-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "28px",
+                              {
+                                      "lineHeight": "34px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "500"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        body {
+            background-color: theme('colors.surface');
+            color: theme('colors.on-surface');
+        }
+        
+        .shadow-ambient {
+            box-shadow: 0 20px 40px -15px rgba(11, 59, 32, 0.06);
+        }
+
+        .glass-effect {
+            background: rgba(252, 249, 238, 0.8);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+        }
+        
+        .verified-stroke {
+            border: 1px solid theme('colors.secondary-fixed-dim');
+        }
+        
+        .card-hover-effect {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover-effect:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 25px 45px -12px rgba(11, 59, 32, 0.08);
+            border-color: theme('colors.tertiary-fixed-dim');
+        }
+        
+        .pattern-bg {
+            background-image: radial-gradient(theme('colors.secondary-fixed-dim') 1px, transparent 1px);
+            background-size: 20px 20px;
+            opacity: 0.1;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col font-body-md">
+<!-- Top Navigation (Transactional, no shell navs) -->
+<header class="w-full glass-effect fixed top-0 z-50 border-b border-surface-variant/30 px-gutter py-md">
+<div class="max-w-container-max mx-auto flex items-center justify-between">
+<button class="text-on-surface-variant hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">arrow_back</span>
+</button>
+<div class="font-display-lg text-headline-lg-mobile md:text-headline-lg text-primary tracking-tight font-semibold">
+                AYUTRACE+
+            </div>
+<div class="w-6"></div> <!-- Spacer for flex centering -->
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow pt-24 pb-32 px-gutter max-w-container-max mx-auto w-full flex flex-col gap-lg">
+<!-- Header Section -->
+<section class="text-center mt-md md:mt-lg fade-in">
+<div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-secondary-fixed/20 text-secondary mb-4">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">science</span>
+</div>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-primary mb-2">
+                Laboratory Verified <span class="text-secondary">✓</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto">
+                Comprehensive multi-stage scientific analysis confirms purity, identity, and safety standards.
+            </p>
+</section>
+<!-- Lab Results Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-md w-full">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest rounded-2xl p-md shadow-ambient verified-stroke card-hover-effect relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl text-secondary">fingerprint</span>
+</div>
+<div class="flex items-start justify-between relative z-10">
+<div>
+<h3 class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Botanical Profile</h3>
+<p class="font-headline-md text-headline-md text-primary">Identity</p>
+</div>
+<div class="flex items-center gap-xs bg-secondary-fixed/30 px-3 py-1 rounded-full text-secondary font-label-md text-label-md font-medium">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                        Passed
+                    </div>
+</div>
+<div class="mt-sm text-on-surface-variant text-sm border-t border-surface-variant pt-sm">
+                    Macroscopic and microscopic authentication completed. Matches <em>Azadirachta indica</em> reference standard.
+                </div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest rounded-2xl p-md shadow-ambient verified-stroke card-hover-effect relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl text-secondary">water_drop</span>
+</div>
+<div class="flex items-start justify-between relative z-10">
+<div>
+<h3 class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Contaminant Screen</h3>
+<p class="font-headline-md text-headline-md text-primary">Purity</p>
+</div>
+<div class="flex items-center gap-xs bg-secondary-fixed/30 px-3 py-1 rounded-full text-secondary font-label-md text-label-md font-medium">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                        Passed
+                    </div>
+</div>
+<div class="mt-sm text-on-surface-variant text-sm border-t border-surface-variant pt-sm">
+                    Microbial limits within Ayurvedic Pharmacopoeia guidelines. No synthetic adulterants detected.
+                </div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest rounded-2xl p-md shadow-ambient verified-stroke card-hover-effect relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl text-secondary">weight</span>
+</div>
+<div class="flex items-start justify-between relative z-10">
+<div>
+<h3 class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Toxicology</h3>
+<p class="font-headline-md text-headline-md text-primary">Heavy Metals</p>
+</div>
+<div class="flex items-center gap-xs bg-secondary-fixed/30 px-3 py-1 rounded-full text-secondary font-label-md text-label-md font-medium">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                        Passed
+                    </div>
+</div>
+<div class="mt-sm text-on-surface-variant text-sm border-t border-surface-variant pt-sm">
+                    ICP-MS analysis confirms Lead, Arsenic, Cadmium, and Mercury are well below WHO permissible limits.
+                </div>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface-container-lowest rounded-2xl p-md shadow-ambient verified-stroke card-hover-effect relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl text-secondary">biotech</span>
+</div>
+<div class="flex items-start justify-between relative z-10">
+<div>
+<h3 class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-1">Molecular Level</h3>
+<p class="font-headline-md text-headline-md text-primary">DNA Verification</p>
+</div>
+<div class="flex items-center gap-xs bg-secondary-fixed/30 px-3 py-1 rounded-full text-secondary font-label-md text-label-md font-medium">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">verified</span>
+                        Verified
+                    </div>
+</div>
+<div class="mt-sm text-on-surface-variant text-sm border-t border-surface-variant pt-sm">
+                    DNA barcoding confirms absolute species authenticity and geographical origin lineage.
+                </div>
+</div>
+</section>
+<!-- Blockchain Section -->
+<section class="mt-8">
+<div class="bg-primary text-on-primary rounded-3xl p-lg relative overflow-hidden shadow-2xl">
+<!-- Abstract Circuit/Leaf Background Pattern -->
+<div class="absolute inset-0 pattern-bg"></div>
+<div class="absolute -top-24 -right-24 w-64 h-64 bg-secondary/30 rounded-full blur-3xl"></div>
+<div class="absolute -bottom-24 -left-24 w-64 h-64 bg-tertiary-fixed-dim/20 rounded-full blur-3xl"></div>
+<div class="relative z-10 flex flex-col md:flex-row items-center gap-md">
+<div class="flex-shrink-0 bg-surface-container-lowest/10 p-4 rounded-2xl backdrop-blur-md border border-white/10">
+<span class="material-symbols-outlined text-5xl text-tertiary-fixed-dim" style="font-variation-settings: 'FILL' 1;">hub</span>
+</div>
+<div class="text-center md:text-left flex-grow">
+<h2 class="font-headline-md text-headline-md mb-2 text-surface flex items-center justify-center md:justify-start gap-2">
+                            Blockchain Verified <span class="text-tertiary-fixed-dim">✓</span>
+</h2>
+<p class="font-body-md text-body-md text-surface-variant/90 max-w-xl">
+                            Your product's traceability record has been securely verified on an immutable ledger, ensuring absolute transparency from soil to seal.
+                        </p>
+</div>
+<div class="mt-4 md:mt-0 flex-shrink-0">
+<div class="text-xs text-surface-variant/60 font-mono tracking-widest text-center md:text-right">
+                             TX HASH<br/>
+<span class="text-surface-variant/90">0x8F9...3A1</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Action Area -->
+<div class="fixed bottom-0 left-0 w-full p-gutter glass-effect border-t border-surface-variant/30 z-50 flex justify-center">
+<div class="w-full max-w-md mx-auto">
+<button class="w-full bg-primary text-on-primary font-label-md text-label-md py-4 rounded-xl shadow-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+                Done
+            </button>
+</div>
+</div>
+</body></html>

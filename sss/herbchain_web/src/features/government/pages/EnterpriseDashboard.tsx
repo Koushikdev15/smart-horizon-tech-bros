@@ -1,212 +1,180 @@
-import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, PackageCheck, ClipboardCheck, Activity, ArrowUpRight, ArrowDownRight, GitCommit } from 'lucide-react';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, ScatterChart, Scatter, ZAxis
-} from 'recharts';
+import { Button } from '@/components/ui/button';
+import { Package, Activity, Leaf as LeafIcon, AlertTriangle, CheckCircle2, MoreHorizontal } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-// Minimal Custom Tooltip for Recharts
-const MinimalTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-card border border-border shadow-sm rounded-lg p-2 text-xs">
-        <p className="font-semibold text-foreground mb-1">{label || payload[0].payload.name}</p>
-        {payload.map((entry: any, index: number) => (
-          <p key={index} className="text-muted-foreground">
-            <span className="font-medium" style={{ color: entry.color }}>{entry.name}:</span> {entry.value}
-          </p>
-        ))}
-      </div>
-    );
-  }
-  return null;
+const statCards = [
+  { title: 'Total Shipments In-Transit', value: '1,240', subtext: '+12% from last week', tone: 'emerald', icon: Package },
+  { title: 'Active Nodes', value: '45', subtext: 'All systems operational', tone: 'gray', icon: Activity },
+  { title: 'Total Verified Herbs (kg)', value: '8,450', subtext: '+400kg today', tone: 'emerald', icon: LeafIcon },
+  { title: 'Flagged / Delayed', value: '3', subtext: 'Requires attention', tone: 'red', icon: AlertTriangle },
+];
+
+const ledgerEntries = [
+  { id: 1, label: 'Batch #Ashwagandha-092 verified', hash: '0x7aB...9f2', time: '2 mins ago' },
+  { id: 2, label: 'Batch #Turmeric-071 minted', hash: '0x3cE...a41', time: '9 mins ago' },
+  { id: 3, label: 'Batch #Brahmi-058 verified', hash: '0x9F1...d67', time: '18 mins ago' },
+  { id: 4, label: 'Batch #Neem-114 shipped', hash: '0x2bA...5c9', time: '32 mins ago' },
+  { id: 5, label: 'Batch #Tulsi-203 verified', hash: '0x8D4...12e', time: '47 mins ago' },
+];
+
+const inventory = [
+  { herb: 'Ashwagandha', origin: 'Kerala', status: 'In Transit', grade: 'A+' },
+  { herb: 'Turmeric', origin: 'Tamil Nadu', status: 'Processing', grade: 'A' },
+  { herb: 'Brahmi', origin: 'Uttarakhand', status: 'Stored', grade: 'A+' },
+  { herb: 'Neem', origin: 'Rajasthan', status: 'In Transit', grade: 'B+' },
+  { herb: 'Tulsi', origin: 'Karnataka', status: 'Stored', grade: 'A' },
+];
+
+const mapNodes = [
+  { id: 'kerala', label: 'Kerala Farms', x: 16, y: 80 },
+  { id: 'kochi', label: 'Kochi Collection', x: 30, y: 60 },
+  { id: 'chennai', label: 'Chennai Processing', x: 55, y: 46 },
+  { id: 'bangalore', label: 'Bengaluru Hub', x: 42, y: 28 },
+  { id: 'mumbai', label: 'Mumbai Distribution', x: 68, y: 14 },
+];
+
+const mapRoutes = [
+  'M16,80 C24,70 26,64 30,60',
+  'M30,60 C40,52 48,48 55,46',
+  'M55,46 C50,38 46,34 42,28',
+  'M42,28 C52,22 60,18 68,14',
+];
+
+const statusPill: Record<string, string> = {
+  'In Transit': 'bg-blue-500/15 text-blue-400 border border-blue-500/30',
+  'Stored': 'bg-slate-500/15 text-slate-300 border border-slate-500/30',
+  'Processing': 'bg-[#F59E0B]/15 text-[#F59E0B] border border-[#F59E0B]/30',
 };
-
-// 1. KPI Data
-const kpiData = [
-  { title: "Total Members", value: "2,845", trend: "+12.5%", isPositive: true, icon: Users },
-  { title: "Active Batches", value: "15,230", trend: "+8.2%", isPositive: true, icon: PackageCheck },
-  { title: "Pending Approvals", value: "142", trend: "-2.4%", isPositive: false, icon: ClipboardCheck },
-  { title: "System Health", value: "99.99%", trend: "0.0%", isPositive: true, icon: Activity },
-];
-
-// 2. Bar Chart Data (Monthly Operations)
-const barData = [
-  { month: 'Jan', ops: 4000 },
-  { month: 'Feb', ops: 3000 },
-  { month: 'Mar', ops: 5000 },
-  { month: 'Apr', ops: 4500 },
-  { month: 'May', ops: 6000 },
-  { month: 'Jun', ops: 5500 },
-];
-
-// 3. Donut Chart Data (Member Distribution)
-const donutData = [
-  { name: 'Farmers', value: 450, color: '#3B82F6' },
-  { name: 'Collections', value: 300, color: '#10B981' },
-  { name: 'Labs', value: 150, color: '#F59E0B' },
-  { name: 'Manufacturers', value: 200, color: '#8B5CF6' },
-];
-
-// 4. Audit Trail Data
-const auditData = [
-  { id: 'EVT-001', time: '10:45 AM', action: 'New Manufacturer Approved', entity: 'Gov Admin', status: 'Success' },
-  { id: 'EVT-002', time: '10:30 AM', action: 'Smart Contract Deployed', entity: 'System', status: 'Success' },
-  { id: 'EVT-003', time: '09:15 AM', action: 'Lab Audit Failed', entity: 'Ayush Lab Hub', status: 'Failed' },
-  { id: 'EVT-004', time: '08:50 AM', action: 'Batch BT-102 Minted', entity: 'Kerala Farmers Node', status: 'Success' },
-  { id: 'EVT-005', time: '08:00 AM', action: 'Daily Backup Completed', entity: 'System', status: 'Success' },
-];
-
-// 5. Node Map Data (Simulating a Supply Chain topology using ScatterChart)
-const nodeData = [
-  { x: 10, y: 50, z: 200, name: 'Farms' },
-  { x: 30, y: 70, z: 250, name: 'Collection' },
-  { x: 50, y: 40, z: 300, name: 'Processing' },
-  { x: 70, y: 60, z: 350, name: 'Manufacturer' },
-  { x: 90, y: 50, z: 200, name: 'Retail' },
-];
 
 export default function EnterpriseDashboard() {
   return (
-    <div className="text-foreground animate-in fade-in duration-500">
-      <div className="grid grid-cols-12 gap-6">
-        
-        {/* ROW 1: KPIs */}
-        <div className="col-span-12 grid grid-cols-4 gap-6">
-          {kpiData.map((kpi, index) => {
-            const Icon = kpi.icon;
-            return (
-              <Card key={index} className="border-border shadow-sm rounded-xl bg-card/95 backdrop-blur hover:scale-[1.02] hover:shadow-lg transition-all duration-300">
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">{kpi.title}</p>
-                    <div className="flex items-baseline gap-2">
-                      <h3 className="text-2xl font-bold text-foreground">{kpi.value}</h3>
-                      <span className={`flex items-center text-[11px] font-bold px-1.5 py-0.5 rounded ${kpi.isPositive ? 'text-emerald-600 bg-emerald-500/10' : 'text-rose-600 bg-rose-500/10'}`}>
-                        {kpi.isPositive ? <ArrowUpRight className="w-3 h-3 mr-0.5" /> : <ArrowDownRight className="w-3 h-3 mr-0.5" />}
-                        {kpi.trend}
-                      </span>
-                    </div>
+    <div className="text-foreground animate-in fade-in duration-500 space-y-6">
+      {/* Section A: Quick Stats Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {statCards.map((kpi) => {
+          const Icon = kpi.icon;
+          const subColor = kpi.tone === 'emerald' ? 'text-[#10B981]' : kpi.tone === 'red' ? 'text-[#EF4444]' : 'text-muted-foreground';
+          return (
+            <Card key={kpi.title} className="stat-card rounded-xl hover:scale-100">
+              <CardContent className="p-5">
+                <div className="flex items-start justify-between">
+                  <p className="text-sm text-muted-foreground">{kpi.title}</p>
+                  <div className="w-9 h-9 rounded-lg bg-[#10B981]/10 flex items-center justify-center shrink-0">
+                    <Icon className="w-4.5 h-4.5 text-[#10B981]" />
                   </div>
-                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center border border-border">
-                    <Icon className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-
-        {/* ROW 2: Core Workspace + Supporting Analytics */}
-        <div className="col-span-12 grid grid-cols-12 gap-6 min-h-0">
-          
-          {/* Main Workspace (8 Col) - Topological Node Map */}
-          <Card className="col-span-12 lg:col-span-8 flex flex-col border-border shadow-sm rounded-xl bg-card/95 backdrop-blur hover:shadow-lg transition-all duration-300 min-h-[400px]">
-            <CardHeader className="py-4 border-b border-border">
-              <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <GitCommit className="w-4 h-4 text-indigo-500" />
-                Live Supply Chain Topology
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 p-4 min-h-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="opacity-10" vertical={false} />
-                  <XAxis type="number" dataKey="x" hide domain={[0, 100]} />
-                  <YAxis type="number" dataKey="y" hide domain={[0, 100]} />
-                  <ZAxis type="number" dataKey="z" range={[400, 1000]} />
-                  <Tooltip content={<MinimalTooltip />} cursor={{ strokeDasharray: '3 3' }} />
-                  <Scatter name="Nodes" data={nodeData} fill="#6366F1">
-                    {nodeData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#14B8A6'][index % 5]} />
-                    ))}
-                  </Scatter>
-                </ScatterChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Supporting Analytics (4 Col) */}
-          <div className="col-span-12 lg:col-span-4 flex flex-col gap-6">
-            {/* Widget 1: Monthly Operations */}
-            <Card className="flex-1 flex flex-col border-border shadow-sm rounded-xl bg-card/95 backdrop-blur hover:shadow-lg transition-all duration-300 min-h-[250px]">
-              <CardHeader className="py-3 border-b border-border">
-                <CardTitle className="text-xs font-semibold text-foreground">Monthly Operations</CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 p-2 min-h-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={barData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="opacity-10" />
-                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'currentColor' }} className="text-muted-foreground" />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'currentColor' }} className="text-muted-foreground" />
-                    <Tooltip content={<MinimalTooltip />} />
-                    <Bar dataKey="ops" fill="#3B82F6" radius={[4, 4, 0, 0]} maxBarSize={30} />
-                  </BarChart>
-                </ResponsiveContainer>
+                </div>
+                <h3 className="text-3xl font-bold text-foreground mt-2">{kpi.value}</h3>
+                <p className={`text-xs font-medium mt-1 ${subColor}`}>{kpi.subtext}</p>
               </CardContent>
             </Card>
+          );
+        })}
+      </div>
 
-            {/* Widget 2: Member Distribution */}
-            <Card className="flex-1 flex flex-col border-border shadow-sm rounded-xl bg-card/95 backdrop-blur hover:shadow-lg transition-all duration-300 min-h-[250px]">
-              <CardHeader className="py-3 border-b border-border">
-                <CardTitle className="text-xs font-semibold text-foreground">Member Distribution</CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 p-2 min-h-0 flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={donutData} cx="50%" cy="50%" innerRadius="60%" outerRadius="80%" paddingAngle={2} dataKey="value">
-                      {donutData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<MinimalTooltip />} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* ROW 3: Audit Trail */}
-        <Card className="col-span-12 border-border shadow-sm rounded-xl bg-card/95 backdrop-blur overflow-hidden hover:shadow-lg transition-all duration-300">
-          <CardHeader className="py-3 border-b border-border">
-            <CardTitle className="text-sm font-semibold text-foreground">Recent Audit Activities</CardTitle>
+      {/* Section B: Main Visualizations */}
+      <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
+        {/* Left 60%: Live Tracking Map */}
+        <Card className="lg:col-span-6 rounded-xl overflow-hidden hover:scale-100 hover:shadow-sm">
+          <CardHeader className="border-b border-border py-4">
+            <CardTitle className="text-sm font-semibold">Live Supply Chain Routes</CardTitle>
           </CardHeader>
-          <div className="p-0">
-            <Table>
-              <TableHeader className="bg-muted/50">
-                <TableRow className="border-b border-border hover:bg-transparent">
-                  <TableHead className="py-2 text-xs font-medium text-muted-foreground h-8">Event ID</TableHead>
-                  <TableHead className="py-2 text-xs font-medium text-muted-foreground h-8">Timestamp</TableHead>
-                  <TableHead className="py-2 text-xs font-medium text-muted-foreground h-8">Action</TableHead>
-                  <TableHead className="py-2 text-xs font-medium text-muted-foreground h-8">Entity</TableHead>
-                  <TableHead className="py-2 text-xs font-medium text-muted-foreground h-8">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {auditData.map((row) => (
-                  <TableRow key={row.id} className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors">
-                    <TableCell className="py-2 font-mono text-xs text-muted-foreground">{row.id}</TableCell>
-                    <TableCell className="py-2 text-xs text-muted-foreground">{row.time}</TableCell>
-                    <TableCell className="py-2 text-xs font-medium text-foreground">{row.action}</TableCell>
-                    <TableCell className="py-2 text-xs text-muted-foreground">{row.entity}</TableCell>
-                    <TableCell className="py-2">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${
-                        row.status === 'Success' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'
-                      }`}>
-                        {row.status}
-                      </span>
-                    </TableCell>
-                  </TableRow>
+          <CardContent className="p-0">
+            <div className="relative h-[340px] bg-[#0B1220] overflow-hidden">
+              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <defs>
+                  <pattern id="dashboardGrid" width="8" height="8" patternUnits="userSpaceOnUse">
+                    <path d="M 8 0 L 0 0 0 8" fill="none" stroke="#334155" strokeWidth="0.15" />
+                  </pattern>
+                </defs>
+                <rect width="100" height="100" fill="url(#dashboardGrid)" />
+                {mapRoutes.map((d, i) => (
+                  <path key={i} d={d} fill="none" stroke="#10B981" strokeWidth="0.6" strokeLinecap="round" strokeDasharray="2 2" opacity="0.7">
+                    <animate attributeName="stroke-dashoffset" from="20" to="0" dur="1.5s" repeatCount="indefinite" />
+                  </path>
                 ))}
-              </TableBody>
-            </Table>
-          </div>
+              </svg>
+              {mapNodes.map((node) => (
+                <div
+                  key={node.id}
+                  className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1.5"
+                  style={{ left: `${node.x}%`, top: `${node.y}%` }}
+                >
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-60" />
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-[#10B981] ring-2 ring-[#0B1220]" />
+                  </span>
+                  <span className="text-[10px] text-slate-300 bg-[#0B1220]/80 px-1.5 py-0.5 rounded whitespace-nowrap">{node.label}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
         </Card>
 
+        {/* Right 40%: Recent Blockchain Transactions */}
+        <Card className="lg:col-span-4 rounded-xl hover:scale-100 hover:shadow-sm">
+          <CardHeader className="border-b border-border py-4">
+            <CardTitle className="text-sm font-semibold">Latest Ledger Entries</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="divide-y divide-border">
+              {ledgerEntries.map((entry) => (
+                <div key={entry.id} className="flex items-start gap-3 px-5 py-3.5 hover:bg-muted/50 transition-colors">
+                  <CheckCircle2 className="w-4 h-4 text-[#10B981] mt-0.5 shrink-0 drop-shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-foreground truncate">{entry.label}</p>
+                    <p className="blockchain-hash mt-1 inline-block">{entry.hash}</p>
+                  </div>
+                  <span className="text-xs text-muted-foreground shrink-0">{entry.time}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Section C: Inventory Overview Table */}
+      <Card className="rounded-xl overflow-hidden hover:scale-100 hover:shadow-sm">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <span className="text-sm font-semibold font-heading">Critical Herb Inventory</span>
+          <Button variant="outline" size="sm">View All</Button>
+        </div>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader className="bg-muted/40">
+              <TableRow className="hover:bg-transparent border-b border-border">
+                <TableHead className="text-xs">Herb Name</TableHead>
+                <TableHead className="text-xs">Origin</TableHead>
+                <TableHead className="text-xs">Current Status</TableHead>
+                <TableHead className="text-xs">Quality Grade</TableHead>
+                <TableHead className="text-xs text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {inventory.map((row, i) => (
+                <TableRow
+                  key={row.herb}
+                  className={`border-b border-border last:border-0 hover:bg-muted/40 transition-colors ${i % 2 === 1 ? 'bg-muted/10' : ''}`}
+                >
+                  <TableCell className="font-medium text-sm">{row.herb}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{row.origin}</TableCell>
+                  <TableCell>
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold ${statusPill[row.status]}`}>
+                      {row.status}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-sm font-semibold text-[#F59E0B]">{row.grade}</TableCell>
+                  <TableCell className="text-right">
+                    <button className="text-muted-foreground hover:text-foreground transition-colors">
+                      <MoreHorizontal className="w-4 h-4 inline-block" />
+                    </button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }

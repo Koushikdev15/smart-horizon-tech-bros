@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AyurTrace Copilot - Premium Botanical AI Assistant</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&amp;family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                            "primary-fixed": "#bcefc7",
+                            "surface": "#fcf9ee",
+                            "on-secondary-fixed": "#00210d",
+                            "error": "#ba1a1a",
+                            "on-tertiary-fixed": "#261900",
+                            "on-secondary": "#ffffff",
+                            "on-tertiary": "#ffffff",
+                            "on-tertiary-container": "#c29428",
+                            "tertiary-container": "#443000",
+                            "on-background": "#1c1c15",
+                            "surface-tint": "#3b6849",
+                            "secondary-fixed": "#b1f2be",
+                            "outline-variant": "#c1c9bf",
+                            "secondary-fixed-dim": "#96d5a3",
+                            "surface-variant": "#e5e2d8",
+                            "surface-container": "#f1eee3",
+                            "outline": "#717971",
+                            "surface-bright": "#fcf9ee",
+                            "error-container": "#ffdad6",
+                            "inverse-surface": "#31312a",
+                            "on-secondary-container": "#347047",
+                            "on-surface": "#1c1c15",
+                            "secondary": "#2e6a41",
+                            "surface-container-highest": "#e5e2d8",
+                            "secondary-container": "#b1f2be",
+                            "primary": "#002410",
+                            "on-error": "#ffffff",
+                            "on-primary-fixed": "#00210e",
+                            "background": "#fcf9ee",
+                            "surface-container-high": "#ebe8dd",
+                            "surface-container-lowest": "#ffffff",
+                            "on-primary-container": "#77a683",
+                            "on-secondary-fixed-variant": "#12512c",
+                            "on-primary-fixed-variant": "#224f32",
+                            "on-surface-variant": "#414942",
+                            "tertiary-fixed": "#ffdea2",
+                            "surface-container-low": "#f7f4e9",
+                            "on-tertiary-fixed-variant": "#5c4200",
+                            "surface-dim": "#dddacf",
+                            "on-primary": "#ffffff",
+                            "on-error-container": "#93000a",
+                            "inverse-primary": "#a1d2ac",
+                            "tertiary": "#291c00",
+                            "inverse-on-surface": "#f4f1e6",
+                            "primary-container": "#0b3b20",
+                            "primary-fixed-dim": "#a1d2ac",
+                            "tertiary-fixed-dim": "#f2bf50"
+                    },
+                    "borderRadius": {
+                            "DEFAULT": "0.25rem",
+                            "lg": "0.5rem",
+                            "xl": "0.75rem",
+                            "full": "9999px"
+                    },
+                    "spacing": {
+                            "container-max": "1200px",
+                            "xl": "80px",
+                            "md": "24px",
+                            "sm": "12px",
+                            "lg": "48px",
+                            "gutter": "24px",
+                            "xs": "4px",
+                            "base": "8px"
+                    },
+                    "fontFamily": {
+                            "display-lg": ["EB Garamond"],
+                            "label-caps": ["Hanken Grotesk"],
+                            "body-lg": ["Hanken Grotesk"],
+                            "headline-lg": ["EB Garamond"],
+                            "label-md": ["Hanken Grotesk"],
+                            "body-md": ["Hanken Grotesk"],
+                            "headline-lg-mobile": ["EB Garamond"],
+                            "headline-md": ["EB Garamond"]
+                    },
+                    "fontSize": {
+                            "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                            "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                            "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                            "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "500" }],
+                            "label-md": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                            "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                            "headline-lg-mobile": ["28px", { "lineHeight": "34px", "fontWeight": "500" }],
+                            "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "500" }]
+                    }
+                },
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        .shadow-ambient {
+            box-shadow: 0 20px 40px -15px rgba(11,59,32,0.06);
+        }
+        
+        /* Subtle botanical background effect */
+        .bg-botanical {
+            background-color: theme('colors.surface');
+            background-image: radial-gradient(circle at 100% 0%, theme('colors.secondary-fixed-dim' / 10%) 0%, transparent 40%),
+                              radial-gradient(circle at 0% 100%, theme('colors.primary-fixed' / 10%) 0%, transparent 40%);
+        }
+        
+        /* Glassmorphism for inputs and bubbles */
+        .glass-surface {
+            background: rgba(252, 249, 238, 0.7);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(193, 201, 191, 0.3);
+        }
+        
+        /* Custom scrollbar for chat area */
+        .chat-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .chat-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .chat-scroll::-webkit-scrollbar-thumb {
+            background-color: theme('colors.outline-variant');
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body class="bg-botanical text-on-surface antialiased min-h-screen flex flex-col font-body-md relative overflow-hidden">
+<!-- TopAppBar -->
+<header class="docked full-width top-0 z-50 bg-surface/80 dark:bg-surface/80 backdrop-blur-[15px] shadow-[0_20px_40px_-15px_rgba(11,59,32,0.06)] flex justify-between items-center px-gutter py-md w-full max-w-container-max mx-auto">
+<div class="flex items-center gap-sm cursor-pointer hover:opacity-80 transition-opacity active:scale-95 duration-200">
+<!-- User avatar profile image (Leading Avatar) -->
+<img class="w-10 h-10 rounded-full object-cover shadow-sm" data-alt="A small, circular, high-end profile avatar image of a sophisticated user in a natural setting. Soft natural lighting, premium minimalist style. Warm ivory background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgBG14_jPkgmV2hrWfXXJxH6TOqLMkon5LZG71OWSirw0b8nBSzbE4wvwisatd-I0teS40-WdLph5atRVC2n2rFJZ6vtAbxXw9TtMHBiP3nwjsC_goXSjLf9BwxukilKM-p6h1wLSjMS34YDkzzXdlnrW6qd0fBZWv_RVDCeWRcZXPfHS7cY6s_REz--5yJHRFJf9BqtkykwRr6UDUkm3Rx7POp6kGIJBobEd9JUI5C7oGqKo37XwU"/>
+<span class="font-display-lg text-display-lg text-primary dark:text-primary-fixed-dim tracking-tight hidden md:inline-block">AYUTRACE+</span>
+</div>
+<!-- Desktop Nav -->
+<nav class="hidden md:flex items-center gap-lg">
+<a class="text-on-surface-variant hover:opacity-80 transition-opacity font-label-md text-label-md" href="#">Home</a>
+<a class="text-on-surface-variant hover:opacity-80 transition-opacity font-label-md text-label-md" href="#">History</a>
+<a class="text-secondary font-bold hover:opacity-80 transition-opacity font-label-md text-label-md" href="#">Copilot</a>
+<a class="text-on-surface-variant hover:opacity-80 transition-opacity font-label-md text-label-md" href="#">Profile</a>
+</nav>
+<div class="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity active:scale-95 duration-200 text-secondary dark:text-secondary-fixed">
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">eco</span>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-grow flex flex-col max-w-3xl w-full mx-auto px-gutter pb-32 pt-lg md:pt-xl relative z-10">
+<!-- Header Section -->
+<div class="text-center mb-lg space-y-2">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-primary tracking-tight">AyurTrace Copilot ✨</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Understand your Ayurvedic product better.</p>
+</div>
+<!-- Chat Area -->
+<div class="flex-grow flex flex-col gap-md overflow-y-auto chat-scroll pb-lg" id="chat-container">
+<!-- AI Welcome Bubble -->
+<div class="flex items-start gap-sm animate-[fadeIn_0.5s_ease-out]">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center flex-shrink-0 mt-1">
+<span class="material-symbols-outlined text-secondary-fixed text-sm" data-weight="fill" style="font-variation-settings: 'FILL' 1;">psychiatry</span>
+</div>
+<div class="bg-surface-container-low rounded-2xl rounded-tl-none p-4 max-w-[85%] shadow-ambient border border-outline-variant/30">
+<p class="font-body-md text-on-surface">Namaste. I am your AyurTrace Copilot. How can I assist you with your botanical product today?</p>
+</div>
+</div>
+<!-- User Bubble -->
+<div class="flex items-start justify-end gap-sm animate-[fadeIn_0.5s_ease-out_0.2s_both]">
+<div class="bg-primary text-on-primary rounded-2xl rounded-tr-none p-4 max-w-[85%] shadow-ambient">
+<p class="font-body-md">Can you tell me about the Ashwagandha root in batch #4928?</p>
+</div>
+</div>
+<!-- AI Response Bubble -->
+<div class="flex items-start gap-sm animate-[fadeIn_0.5s_ease-out_0.4s_both]">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center flex-shrink-0 mt-1">
+<span class="material-symbols-outlined text-secondary-fixed text-sm" data-weight="fill" style="font-variation-settings: 'FILL' 1;">psychiatry</span>
+</div>
+<div class="bg-surface-container-low rounded-2xl rounded-tl-none p-4 max-w-[85%] shadow-ambient border border-outline-variant/30 space-y-3">
+<p class="font-body-md text-on-surface">Certainly. The Ashwagandha root (Withania somnifera) in batch #4928 was harvested on October 14th from our certified organic partner farm in the Rajasthan region.</p>
+<p class="font-body-md text-on-surface text-sm opacity-80">It has passed all heavy metal and purity tests with a 99.8% verified organic trace score.</p>
+</div>
+</div>
+</div>
+<!-- Sticky Input Area -->
+<div class="fixed bottom-0 left-0 w-full bg-gradient-to-t from-surface via-surface to-transparent pb-md pt-lg px-gutter z-40 md:relative md:bg-none md:p-0 md:pt-4">
+<div class="max-w-3xl mx-auto flex flex-col gap-sm">
+<!-- Suggested Prompts -->
+<div class="flex overflow-x-auto gap-2 pb-2 chat-scroll no-scrollbar -mx-gutter px-gutter md:mx-0 md:px-0">
+<button class="flex-shrink-0 px-4 py-2 rounded-full border border-outline-variant text-on-surface-variant font-label-md text-sm hover:border-primary hover:text-primary transition-colors bg-surface-bright shadow-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">verified</span> Is this product authentic?
+                    </button>
+<button class="flex-shrink-0 px-4 py-2 rounded-full border border-outline-variant text-on-surface-variant font-label-md text-sm hover:border-primary hover:text-primary transition-colors bg-surface-bright shadow-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">travel_explore</span> Where did this herb come from?
+                    </button>
+<button class="flex-shrink-0 px-4 py-2 rounded-full border border-outline-variant text-on-surface-variant font-label-md text-sm hover:border-primary hover:text-primary transition-colors bg-surface-bright shadow-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">science</span> Explain this laboratory report
+                    </button>
+</div>
+<!-- Input Field -->
+<div class="relative glass-surface rounded-xl shadow-ambient overflow-hidden group focus-within:border-primary focus-within:ring-1 focus-within:ring-tertiary-fixed transition-all duration-300">
+<div class="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">
+<span class="material-symbols-outlined">psychiatry</span>
+</div>
+<input class="w-full bg-transparent border-none py-4 pl-10 pr-12 focus:ring-0 font-body-md text-on-surface placeholder-on-surface-variant/50" placeholder="Ask about purity, origins, or usage..." type="text"/>
+<button class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-on-primary hover:bg-primary-container transition-colors shadow-sm">
+<span class="material-symbols-outlined text-sm">send</span>
+</button>
+</div>
+<p class="text-center text-xs text-on-surface-variant/60 font-label-caps mt-1">AyurTrace Copilot uses AI to summarize verified traceability data.</p>
+</div>
+<!-- BottomNavBar spacing for mobile -->
+<div class="h-20 md:hidden"></div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-2 bg-surface/80 dark:bg-surface/80 backdrop-blur-[15px] shadow-[0_-10px_30px_rgba(11,59,32,0.04)] z-50 rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant/70 hover:text-secondary transition-colors font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mb-1">home</span>
+<span class="text-xs">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/70 hover:text-secondary transition-colors font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mb-1">history</span>
+<span class="text-xs">History</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/70 hover:text-secondary transition-colors font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mb-1 text-2xl">qr_code_scanner</span>
+<span class="text-xs">Scan</span>
+</a>
+<!-- Copilot Active Tab -->
+<a class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed-dim font-bold transform scale-90 duration-150 font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mb-1 text-secondary" data-weight="fill" style="font-variation-settings: 'FILL' 1;">psychiatry</span>
+<span class="text-xs text-secondary">Copilot</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/70 hover:text-secondary transition-colors font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="text-xs">Profile</span>
+</a>
+</nav>
+<style>
+        /* Hide scrollbar for suggested prompts but allow scrolling */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</body></html>

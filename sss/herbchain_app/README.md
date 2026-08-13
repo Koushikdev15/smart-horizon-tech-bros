@@ -1,31 +1,56 @@
-# HerbChain AI Mobile Application
+# Welcome to your Expo app 👋
 
-A production-ready Flutter application for the HerbChain AI ecosystem tailored for Farmers and Wild Collectors.
+This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-## Architecture
+## Get started
 
-This application follows Clean Architecture principles:
-- **Presentation Layer**: Riverpod state management, GoRouter navigation, and a modular feature-first UI approach.
-- **Data/Repository Layer**: Dio for API communication, SQLite for robust offline-first data persistence, and Flutter Secure Storage for JWTs.
-- **Offline Sync Engine**: Captures GPS coordinates, multiple photos, and collection data locally if the internet is unavailable. The app automatically syncs when the connection is restored.
+1. Install dependencies
 
-## Getting Started
+   ```bash
+   npm install
+   ```
 
-### Prerequisites
-- Flutter SDK >= 3.12.0
-- Dart SDK >= 3.2.0
+2. Start the app
 
-### Installation Guide
-1. Navigate to the project directory: `cd herbchain_app`
-2. Run `flutter pub get` to install all dependencies.
-   - **Note for Windows users**: Ensure **Developer Mode** is enabled in your system settings to allow symlinks for Flutter plugins.
-3. An `.env` file has been automatically generated in the root directory. You can update the `API_BASE_URL` as needed.
+   ```bash
+   npx expo start
+   ```
 
-### Running the App
-- Start the application using `flutter run` on an emulator or a physical device.
+In the output, you'll find options to open the app in a
 
-## Important Native Configurations
-While the Flutter codebase is complete, for a production build, please ensure you configure native permissions in your `android/app/src/main/AndroidManifest.xml` and `ios/Runner/Info.plist`:
-- Location permissions (`ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`)
-- Camera permissions (`CAMERA`)
-- Storage permissions (if saving images to gallery)
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+
+You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+
+## Get a fresh project
+
+When you're ready, run:
+
+```bash
+npm run reset-project
+```
+
+This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+
+### Other setup steps
+
+- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
+- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
+- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+
+## Learn more
+
+To learn more about developing your project with Expo, look at the following resources:
+
+- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+
+## Join the community
+
+Join our community of developers creating universal apps.
+
+- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
+- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.

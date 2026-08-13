@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Saved Products - AYUTRACE+</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&amp;family=EB+Garamond:wght@500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface-variant": "#414942",
+                        "secondary": "#2e6a41",
+                        "surface-container": "#f1eee3",
+                        "surface-dim": "#dddacf",
+                        "on-secondary-fixed-variant": "#12512c",
+                        "surface-container-highest": "#e5e2d8",
+                        "primary-fixed": "#bcefc7",
+                        "inverse-primary": "#a1d2ac",
+                        "primary-container": "#0b3b20",
+                        "tertiary-container": "#443000",
+                        "secondary-fixed": "#b1f2be",
+                        "tertiary-fixed-dim": "#f2bf50",
+                        "inverse-surface": "#31312a",
+                        "on-error-container": "#93000a",
+                        "primary-fixed-dim": "#a1d2ac",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed": "#00210d",
+                        "tertiary": "#291c00",
+                        "background": "#fcf9ee",
+                        "error": "#ba1a1a",
+                        "on-secondary-container": "#347047",
+                        "on-tertiary-fixed-variant": "#5c4200",
+                        "surface-container-high": "#ebe8dd",
+                        "outline-variant": "#c1c9bf",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed": "#ffdea2",
+                        "on-background": "#1c1c15",
+                        "primary": "#002410",
+                        "on-tertiary-fixed": "#261900",
+                        "error-container": "#ffdad6",
+                        "outline": "#717971",
+                        "secondary-fixed-dim": "#96d5a3",
+                        "surface": "#fcf9ee",
+                        "surface-bright": "#fcf9ee",
+                        "inverse-on-surface": "#f4f1e6",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#b1f2be",
+                        "on-primary-fixed-variant": "#224f32",
+                        "on-surface": "#1c1c15",
+                        "on-tertiary-container": "#c29428",
+                        "surface-tint": "#3b6849",
+                        "on-tertiary": "#ffffff",
+                        "surface-variant": "#e5e2d8",
+                        "on-primary-container": "#77a683",
+                        "on-primary-fixed": "#00210e",
+                        "surface-container-low": "#f7f4e9"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "md": "24px",
+                        "xs": "4px",
+                        "container-max": "1200px",
+                        "lg": "48px",
+                        "base": "8px",
+                        "xl": "80px",
+                        "sm": "12px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Hanken Grotesk"],
+                        "label-md": ["Hanken Grotesk"],
+                        "display-lg": ["EB Garamond"],
+                        "body-md": ["Hanken Grotesk"],
+                        "label-caps": ["Hanken Grotesk"],
+                        "headline-md": ["EB Garamond"],
+                        "headline-lg-mobile": ["EB Garamond"],
+                        "headline-lg": ["EB Garamond"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "34px", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .ambient-shadow {
+            box-shadow: 0 20px 40px -15px rgba(11,59,32,0.06);
+        }
+        .tulsi-bg-tl {
+            background-image: radial-gradient(circle at top left, rgba(177, 242, 190, 0.1) 0%, transparent 40%);
+        }
+        .tulsi-bg-br {
+            background-image: radial-gradient(circle at bottom right, rgba(177, 242, 190, 0.1) 0%, transparent 40%);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen relative overflow-x-hidden tulsi-bg-tl">
+<div class="fixed inset-0 tulsi-bg-br pointer-events-none -z-10"></div>
+<!-- TopAppBar -->
+<header class="docked full-width top-0 z-50 bg-surface/80 dark:bg-surface/80 backdrop-blur-[15px] shadow-[0_20px_40px_-15px_rgba(11,59,32,0.06)] sticky hidden md:flex">
+<div class="flex justify-between items-center px-gutter py-md w-full max-w-container-max mx-auto">
+<div class="flex items-center gap-4">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="A small, premium circular avatar showing a serene individual with a subtle natural background, light mode aesthetic, organic feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIFyeFndyolwxRyiwF3uHd1D15NjJsyrKuS4Szc2QE9Ie-MabuFCfg7rfxm5l2ulyTeaxHpgl_X1hqlbiAYj_gTFAYNxZ2Baomud0fkVBHNjyfINk0qOBBx8IKqoJDYD4hK_6djSuZftNfeqds0wL8LMYSLjwONP79oCHgvir5oRMuvxIKm25q57PpEaSvuHBW_dQrkoWWSywq4suTUcKT8dWDIJqPCrQAcrnIC4CQWpUTXXxy8SxT"/>
+<span class="font-display-lg text-display-lg text-primary dark:text-primary-fixed-dim tracking-tight text-secondary dark:text-secondary-fixed">AYUTRACE+</span>
+</div>
+<div class="flex items-center gap-6">
+<!-- Nav Items (Desktop only - mapped to Bottom Nav logic for illustration, Profile is active) -->
+<nav class="flex gap-6">
+<a class="text-on-surface-variant hover:opacity-80 transition-opacity font-label-md text-label-md" href="#">Home</a>
+<a class="text-on-surface-variant hover:opacity-80 transition-opacity font-label-md text-label-md" href="#">History</a>
+<a class="text-on-surface-variant hover:opacity-80 transition-opacity font-label-md text-label-md" href="#">Scan</a>
+<a class="text-on-surface-variant hover:opacity-80 transition-opacity font-label-md text-label-md" href="#">Alerts</a>
+<a class="text-secondary font-bold hover:opacity-80 transition-opacity font-label-md text-label-md flex flex-col items-center after:content-[''] after:w-1 after:h-1 after:bg-secondary after:rounded-full after:mt-1" href="#">Profile</a>
+</nav>
+<button class="hover:opacity-80 transition-opacity active:scale-95 duration-200">
+<span class="material-symbols-outlined text-on-surface-variant">eco</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Mobile Header Fallback for content context -->
+<header class="md:hidden pt-8 pb-4 px-gutter flex justify-between items-center sticky top-0 bg-surface/80 backdrop-blur-md z-40 shadow-sm">
+<span class="font-headline-lg-mobile text-headline-lg-mobile text-primary tracking-tight">Saved Products</span>
+</header>
+<main class="max-w-container-max mx-auto px-gutter py-lg md:py-xl pb-[120px] md:pb-xl space-y-lg">
+<!-- Header & Search -->
+<section class="space-y-6">
+<h1 class="hidden md:block font-display-lg text-display-lg text-primary">Saved Products</h1>
+<div class="flex flex-col md:flex-row gap-4">
+<div class="relative flex-grow group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-tertiary-container">search</span>
+<input class="w-full pl-12 pr-4 py-4 bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-on-surface placeholder:text-outline focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all shadow-sm" placeholder="Search your saved holistic remedies..." type="text"/>
+</div>
+<!-- Filters -->
+<div class="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-primary-container text-on-primary font-label-md text-label-md transition-colors">All</button>
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-surface-container-lowest border border-outline-variant text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-low transition-colors">Immunity</button>
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-surface-container-lowest border border-outline-variant text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-low transition-colors">Digestion</button>
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-surface-container-lowest border border-outline-variant text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-low transition-colors">Sleep</button>
+</div>
+</div>
+</section>
+<!-- Product Grid (Bento/Card Layout) -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Product Card 1 -->
+<article class="group bg-surface-container-lowest rounded-[24px] overflow-hidden ambient-shadow hover:shadow-[0_25px_50px_-12px_rgba(11,59,32,0.1)] transition-all duration-300 border border-transparent hover:border-tertiary-fixed flex flex-col relative">
+<div class="absolute top-4 right-4 z-10 flex items-center gap-1 bg-surface-container-lowest/90 backdrop-blur-sm px-3 py-1.5 rounded-full border border-tertiary-fixed shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-tertiary-container">verified</span>
+<span class="font-label-caps text-label-caps text-tertiary-container">VERIFIED</span>
+</div>
+<div class="h-48 md:h-56 w-full relative overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A premium glass bottle of Ashwagandha herbal extract, sitting on a clean, light wood surface. Soft, natural sunlight filtering through leaves casts gentle shadows. Minimalist, premium ayurvedic aesthetic, highly detailed." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDP892qYhf3IYExtjk8EVhm6icCbXe-RSoV74APU-Q8VtEJoLD7SWmmhOtn1BtdIM6_-NmMqVsiwzsaY5v94meOLp2-HuQp-iUEHYkXsryQLLhkNC40Wn5TNFcqISovC7L3M1ENngb98a8I0bEztdldqC1eXFPEoQJGC9jt7CJvVh1DYY-LBV9CcEOw4iZ5-EJRrLbt9KBlYOYER_SiEHwc7XW6_43PJ0jb7eJkWIa0sSAR7uHqtIMW"/>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="flex gap-2 mb-3">
+<span class="px-3 py-1 bg-secondary-container/30 text-secondary font-label-caps text-label-caps rounded-full">Immunity</span>
+<span class="px-3 py-1 bg-surface-container-high text-on-surface-variant font-label-caps text-label-caps rounded-full">Organic</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-2">Ashwagandha Root Extract</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 line-clamp-2 flex-grow">A potent adaptogen sourced from certified organic farms in Rajasthan, aiding in stress relief and vitality.</p>
+<div class="flex items-center justify-between mt-auto">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">eco</span>
+<span class="font-label-md text-label-md text-secondary">Trust Score: 98/100</span>
+</div>
+<button class="bg-primary-container text-on-primary font-label-md text-label-md px-4 py-2 rounded-[12px] hover:opacity-90 transition-opacity">Details</button>
+</div>
+</div>
+</article>
+<!-- Product Card 2 -->
+<article class="group bg-surface-container-lowest rounded-[24px] overflow-hidden ambient-shadow hover:shadow-[0_25px_50px_-12px_rgba(11,59,32,0.1)] transition-all duration-300 border border-transparent hover:border-tertiary-fixed flex flex-col relative">
+<div class="absolute top-4 right-4 z-10 flex items-center gap-1 bg-surface-container-lowest/90 backdrop-blur-sm px-3 py-1.5 rounded-full border border-tertiary-fixed shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-tertiary-container">verified</span>
+<span class="font-label-caps text-label-caps text-tertiary-container">VERIFIED</span>
+</div>
+<div class="h-48 md:h-56 w-full relative overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A beautifully crafted jar of Triphala powder, resting on a smooth marble surface next to a small wooden spoon and a sprig of fresh herbs. Soft, high-key lighting, premium wellness aesthetic, extremely sharp." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAuSg-d4keifsIteFuLJMWX6uonoWEVnP43sHx5gK4eS4p-3Tc2GkCLHC8fynk9TGAV-UiYDnsE7864Q-BCDy9w9gA3lBh2LAG1gXYgn2UvE2PXU2Bj7GcurR9Ct0qQgHx8OWGnd7l2bdPT-QKeENBTmcRVjeH9_ZyhP_O67yFsBi8qF47iAVFYxkDrGpq2bWXwDB46hm1l7YXgPUOAYkCRfhlwJWqae1o4YgjJ8REEemWAk7I2K-xw"/>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="flex gap-2 mb-3">
+<span class="px-3 py-1 bg-secondary-container/30 text-secondary font-label-caps text-label-caps rounded-full">Digestion</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-2">Triphala Blend Premium</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 line-clamp-2 flex-grow">Traditional three-fruit formula meticulously blended for gentle daily detoxification and digestive harmony.</p>
+<div class="flex items-center justify-between mt-auto">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">eco</span>
+<span class="font-label-md text-label-md text-secondary">Trust Score: 95/100</span>
+</div>
+<button class="bg-primary-container text-on-primary font-label-md text-label-md px-4 py-2 rounded-[12px] hover:opacity-90 transition-opacity">Details</button>
+</div>
+</div>
+</article>
+<!-- Product Card 3 (Image Background variant for visual interest) -->
+<article class="group rounded-[24px] overflow-hidden ambient-shadow hover:shadow-[0_25px_50px_-12px_rgba(11,59,32,0.1)] transition-all duration-300 flex flex-col relative min-h-[400px]">
+<div class="absolute inset-0 bg-surface-container">
+<div class="bg-cover bg-center w-full h-full group-hover:scale-105 transition-transform duration-700" data-alt="A lush, macro photograph of fresh Brahmi leaves glowing in soft morning sunlight. The green is vibrant and pure, symbolizing mental clarity and natural healing. Premium photography, shallow depth of field." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCWR4HSbS0LitVP6_Sm0ZTETOrbXWo0D1Mo7ylf-sOKQKvvXE9eVHDxLsKEMpLbXh6zgsv7QWHiyYK58Q-_X4SpaVxlhbi7-jYV-ykL_2hF7mmwp9awB77bCwnRAUmaTmQQ4YegQwRP0GR46uOrRNY2tbrIug682wVlc70zmy3E0WSc4MRhtYLoZvulb5jzVRTQHyJAIV-PbNTBgn1W2ZbWmu_ayJxDYEODXwcZcw0Nauqtatycla4K')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/40 to-transparent"></div>
+</div>
+<div class="absolute top-4 right-4 z-10 flex items-center gap-1 bg-surface-container-lowest/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-on-primary/30 shadow-sm text-on-primary">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+<span class="font-label-caps text-label-caps">VERIFIED</span>
+</div>
+<div class="p-6 flex flex-col justify-end flex-grow relative z-10">
+<div class="flex gap-2 mb-3">
+<span class="px-3 py-1 bg-surface-container-lowest/20 backdrop-blur-md text-on-primary border border-on-primary/30 font-label-caps text-label-caps rounded-full">Cognitive</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-primary mb-2">Brahmi Mind Elixir</h3>
+<p class="font-body-md text-body-md text-on-primary/80 mb-6 line-clamp-2">Pure extract from wild-harvested Brahmi, known to enhance clarity, focus, and overall cognitive wellness.</p>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2 text-on-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">eco</span>
+<span class="font-label-md text-label-md">Trust Score: 99/100</span>
+</div>
+<button class="bg-surface-container-lowest/20 backdrop-blur-md border border-on-primary/30 text-on-primary font-label-md text-label-md px-4 py-2 rounded-[12px] hover:bg-surface-container-lowest/30 transition-colors">Details</button>
+</div>
+</div>
+</article>
+</section>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden docked full-width bottom-0 z-50 rounded-t-xl bg-surface/80 dark:bg-surface/80 backdrop-blur-[15px] shadow-[0_-10px_30px_rgba(11,59,32,0.04)] fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-2 border-none">
+<a class="flex flex-col items-center justify-center text-on-surface-variant/70 hover:text-secondary transition-colors group" href="#">
+<span class="material-symbols-outlined mb-1 group-active:scale-90 duration-150">home</span>
+<span class="font-label-md text-label-md">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/70 hover:text-secondary transition-colors group" href="#">
+<span class="material-symbols-outlined mb-1 group-active:scale-90 duration-150">history</span>
+<span class="font-label-md text-label-md">History</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/70 hover:text-secondary transition-colors group" href="#">
+<div class="bg-surface-container-highest p-2 rounded-full mb-1 group-active:bg-primary-container group-active:shadow-lg group-active:text-on-primary transition-all duration-150">
+<span class="material-symbols-outlined">qr_code_scanner</span>
+</div>
+<span class="font-label-md text-label-md">Scan</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/70 hover:text-secondary transition-colors group" href="#">
+<span class="material-symbols-outlined mb-1 group-active:scale-90 duration-150">notifications</span>
+<span class="font-label-md text-label-md">Alerts</span>
+</a>
+<!-- Active Tab: Profile (Closest semantic match for 'Saved Products' which implies user-specific data) -->
+<a class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed-dim font-bold hover:text-secondary transition-colors group" href="#">
+<span class="material-symbols-outlined mb-1 group-active:scale-90 duration-150" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</a>
+</nav>
+</body></html>
