@@ -6,6 +6,7 @@ import {
   LineChart, Line
 } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useActiveMembers } from './useActiveMembers';
 
 const MinimalTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -23,7 +24,8 @@ const MinimalTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-// 1. KPI Data
+// 1. KPI Data. "Active Farmers" is replaced with a live count at render time —
+// the rest are still placeholder figures pending real collection data.
 const kpiData = [
   { title: "Herbs Collected Today", value: "4,250 kg", trend: "+15.2%", isPositive: true, icon: Leaf },
   { title: "Pending Collections", value: "18", trend: "-2.0%", isPositive: true, icon: Clock },
@@ -69,13 +71,33 @@ const auditData = [
 ];
 
 export default function CollectionDashboard() {
+  // Live counts of Government-approved members, shared with the Farmers and
+  // Wild Collectors registry pages.
+  const { members: farmers, loading: farmersLoading } = useActiveMembers('Farmer');
+  const { members: collectors, loading: collectorsLoading } = useActiveMembers('Wild Collector');
+
+  const kpis = kpiData.map((kpi) =>
+    kpi.title === 'Active Farmers'
+      ? {
+          ...kpi,
+          // Real figure, so the invented trend badge is dropped rather than
+          // pairing a true number with a made-up delta.
+          value: farmersLoading ? '—' : String(farmers.length),
+          trend: undefined as string | undefined,
+          subtitle: collectorsLoading
+            ? undefined
+            : `${collectors.length} wild collector${collectors.length === 1 ? '' : 's'}`,
+        }
+      : { ...kpi, subtitle: undefined as string | undefined },
+  );
+
   return (
     <div className="text-foreground animate-in fade-in duration-500">
       <div className="grid grid-cols-12 gap-6">
-        
+
         {/* ROW 1: KPIs */}
         <div className="col-span-12 grid grid-cols-4 gap-6">
-          {kpiData.map((kpi, index) => {
+          {kpis.map((kpi, index) => {
             const Icon = kpi.icon;
             return (
               <Card key={index} className="border-border shadow-sm rounded-xl bg-card/95 backdrop-blur hover:scale-[1.02] hover:shadow-lg transition-all duration-300">
@@ -84,11 +106,16 @@ export default function CollectionDashboard() {
                     <p className="text-sm text-muted-foreground mb-1">{kpi.title}</p>
                     <div className="flex items-baseline gap-2">
                       <h3 className="text-2xl font-bold text-foreground">{kpi.value}</h3>
-                      <span className={`flex items-center text-[11px] font-bold px-1.5 py-0.5 rounded ${kpi.isPositive ? 'text-emerald-600 bg-emerald-500/10' : 'text-rose-600 bg-rose-500/10'}`}>
-                        {kpi.isPositive ? <ArrowUpRight className="w-3 h-3 mr-0.5" /> : <ArrowDownRight className="w-3 h-3 mr-0.5" />}
-                        {kpi.trend}
-                      </span>
+                      {kpi.trend && (
+                        <span className={`flex items-center text-[11px] font-bold px-1.5 py-0.5 rounded ${kpi.isPositive ? 'text-emerald-600 bg-emerald-500/10' : 'text-rose-600 bg-rose-500/10'}`}>
+                          {kpi.isPositive ? <ArrowUpRight className="w-3 h-3 mr-0.5" /> : <ArrowDownRight className="w-3 h-3 mr-0.5" />}
+                          {kpi.trend}
+                        </span>
+                      )}
                     </div>
+                    {kpi.subtitle && (
+                      <p className="text-[11px] text-muted-foreground mt-0.5">{kpi.subtitle}</p>
+                    )}
                   </div>
                   <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center border border-border">
                     <Icon className="w-5 h-5 text-muted-foreground" />

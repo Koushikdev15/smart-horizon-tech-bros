@@ -6,9 +6,10 @@ import { Label } from '@/components/ui/label';
 import PageHeader from '../../../components/PageHeader';
 import DocumentUpload from '../../../components/DocumentUpload';
 import { toast } from 'sonner';
-import { MapPin, Sparkles, CheckCircle, Package } from 'lucide-react';
+import { MapPin, Sparkles, CheckCircle, Package, Loader2, Lock, UserCheck, AlertCircle } from 'lucide-react';
 import { useBatchStore } from '../../../store/useBatchStore';
-import type { Batch } from '../../../types';
+import { useActiveMembers } from '../useActiveMembers';
+import type { Batch, UserRole } from '../../../types';
 
 const HERB_MASTER_DB: Record<string, string> = {
   'Ashwagandha': 'Withania somnifera',
@@ -80,13 +81,40 @@ export default function CreateBatch() {
   const [generating, setGenerating] = useState(false);
   const [aiSummary, setAiSummary] = useState('');
   const [form, setForm] = useState({
-    collectorType: 'Farmer', collectorName: '', species: '', botanicalName: '',
+    collectorType: 'Farmer', collectorId: '', collectorName: '', species: '', botanicalName: '',
     quantity: '', unit: 'kg', harvestDate: '', harvestTime: '', method: '',
     region: '', gpsLocation: '', moisture: '', storageCondition: '',
     qualityObservations: '', estimatedGrade: '', sustainabilityNotes: '', remarks: '',
   });
 
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
+
+  // Government-approved collectors of the currently selected type. Switching the
+  // type re-queries, so the name list always matches Farmer vs Wild Collector.
+  const { members: collectors, loading: collectorsLoading, error: collectorsError } =
+    useActiveMembers(form.collectorType as UserRole);
+
+  const selectedCollector = collectors.find((m) => m.ayurvedicId === form.collectorId);
+
+  // Everything after the collector card stays locked until one is chosen, so a
+  // batch can never be recorded against an unidentified collector.
+  const collectorChosen = Boolean(selectedCollector);
+
+  const handleCollectorTypeChange = (type: string) => {
+    // Clear the previous pick — a Farmer id is not valid under Wild Collector.
+    setForm((f) => ({ ...f, collectorType: type, collectorId: '', collectorName: '' }));
+  };
+
+  const handleCollectorChange = (ayurvedicId: string) => {
+    const member = collectors.find((m) => m.ayurvedicId === ayurvedicId);
+    setForm((f) => ({
+      ...f,
+      collectorId: ayurvedicId,
+      collectorName: member?.name ?? '',
+      // Prefill the harvest region from the member's registered region; still editable.
+      region: member?.region && !f.region ? member.region : f.region,
+    }));
+  };
 
   const generateAISummary = async () => {
     if (!form.species || !form.quantity) {
@@ -103,6 +131,7 @@ export default function CreateBatch() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedCollector) { toast.error(`Please select a ${form.collectorType.toLowerCase()} first.`); return; }
     if (!aiSummary) { toast.error('Please generate the AI summary before submitting.'); return; }
     await new Promise((r) => setTimeout(r, 1000));
     
@@ -125,8 +154,9 @@ export default function CreateBatch() {
           time: new Date().toTimeString().split(' ')[0].slice(0, 5),
           stage: 'Collection Center',
           action: 'Batch Created',
-          actor: form.collectorName || form.collectorType,
-          details: `Harvested ${form.quantity}${form.unit} of ${form.species}. Forwarded to Processing.`
+          // Attribute to the verified member, not a free-typed name.
+          actor: `${selectedCollector.name} (${selectedCollector.ayurvedicId})`,
+          details: `Harvested ${form.quantity}${form.unit} of ${form.species} by ${form.collectorType} ${selectedCollector.name}. Forwarded to Processing.`
         }
       ]
     };
@@ -150,7 +180,7 @@ export default function CreateBatch() {
             setAiSummary(''); 
             setBatchId(generateBatchId()); 
             setForm({
-              collectorType: 'Farmer', collectorName: '', species: '', botanicalName: '',
+              collectorType: 'Farmer', collectorId: '', collectorName: '', species: '', botanicalName: '',
               quantity: '', unit: 'kg', harvestDate: '', harvestTime: '', method: '',
               region: '', gpsLocation: '', moisture: '', storageCondition: '',
               qualityObservations: '', estimatedGrade: '', sustainabilityNotes: '', remarks: '',
@@ -172,22 +202,100 @@ export default function CreateBatch() {
       />
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Collector Info */}
+        {/* Collector Info — must be completed before the rest of the form unlocks */}
         <Card>
-          <CardHeader><CardTitle className="text-base">Collector Information</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-primary text-white text-[11px] font-bold flex items-center justify-center shrink-0">1</span>
+              Collector Information
+            </CardTitle>
+          </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-1.5">
               <Label className="text-sm font-medium">Collector Type<span className="text-red-500">*</span></Label>
-              <select className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring" value={form.collectorType} onChange={(e) => set('collectorType', e.target.value)}>
+              <select
+                className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                value={form.collectorType}
+                onChange={(e) => handleCollectorTypeChange(e.target.value)}
+              >
                 <option>Farmer</option><option>Wild Collector</option>
               </select>
             </div>
+
             <div className="space-y-1.5 md:col-span-2">
-              <Label className="text-sm font-medium">Collector Name<span className="text-red-500">*</span></Label>
-              <Input placeholder="Select or type farmer/collector name" value={form.collectorName} onChange={(e) => set('collectorName', e.target.value)} required />
+              <Label className="text-sm font-medium">
+                {form.collectorType} Name<span className="text-red-500">*</span>
+              </Label>
+
+              {collectorsLoading ? (
+                <div className="flex items-center gap-2 h-9 px-3 rounded-md border border-input bg-muted/30 text-sm text-muted-foreground">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  Loading approved {form.collectorType.toLowerCase()}s…
+                </div>
+              ) : collectorsError ? (
+                <div className="flex items-center gap-2 h-9 px-3 rounded-md border border-destructive/40 bg-destructive/5 text-sm text-destructive">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">Couldn&apos;t load list: {collectorsError}</span>
+                </div>
+              ) : collectors.length === 0 ? (
+                <div className="flex items-start gap-2 px-3 py-2 rounded-md border border-amber-500/40 bg-amber-500/5 text-sm">
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                  <span className="text-muted-foreground">
+                    No approved {form.collectorType.toLowerCase()}s available. They must be approved
+                    in the Government portal before a batch can be recorded against them.
+                  </span>
+                </div>
+              ) : (
+                <select
+                  className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  value={form.collectorId}
+                  onChange={(e) => handleCollectorChange(e.target.value)}
+                  required
+                >
+                  <option value="">Select {form.collectorType.toLowerCase()} name</option>
+                  {collectors.map((m) => (
+                    <option key={m.id} value={m.ayurvedicId}>
+                      {m.name} — {m.ayurvedicId}
+                      {m.region ? ` (${m.region})` : ''}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
+
+            {/* Confirmation of who the batch will be attributed to */}
+            {selectedCollector && (
+              <div className="md:col-span-3 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg border border-primary/25 bg-primary/5 px-3 py-2.5">
+                <span className="flex items-center gap-1.5 text-sm font-medium text-primary">
+                  <UserCheck className="w-4 h-4" />
+                  {selectedCollector.name}
+                </span>
+                <span className="text-xs text-muted-foreground font-mono">{selectedCollector.ayurvedicId}</span>
+                {selectedCollector.phone && (
+                  <span className="text-xs text-muted-foreground">{selectedCollector.phone}</span>
+                )}
+                {selectedCollector.region && (
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />{selectedCollector.region}
+                  </span>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
+
+        {/* Gate: the remaining sections stay disabled until a collector is chosen. */}
+        {!collectorChosen && (
+          <div className="flex items-center gap-2 rounded-lg border border-dashed border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+            <Lock className="w-4 h-4 shrink-0" />
+            Select a {form.collectorType.toLowerCase()} above to continue filling in the batch details.
+          </div>
+        )}
+
+        <fieldset
+          disabled={!collectorChosen}
+          className={!collectorChosen ? 'opacity-50 pointer-events-none select-none space-y-6' : 'space-y-6'}
+        >
 
         {/* Herb Details */}
         <Card>
@@ -347,8 +455,9 @@ export default function CreateBatch() {
         </Card>
 
         <Button type="submit" disabled={!aiSummary} className="w-full h-11 bg-primary hover:bg-primary text-white font-semibold text-base">
-          Submit Batch & Forward to Processing Unit
+          Submit Batch &amp; Forward to Processing Unit
         </Button>
+        </fieldset>
       </form>
     </div>
   );

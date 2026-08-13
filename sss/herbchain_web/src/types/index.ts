@@ -112,6 +112,39 @@ export interface Member {
   drugLicense?: string;
   gmpCertificate?: string;
   manufacturingLicense?: string;
+  // Registration payloads captured per role at sign-up (jsonb columns).
+  farmerDetails?: FarmerDetails;
+  wildCollectorDetails?: WildCollectorDetails;
+}
+
+/** Extra fields collected by the Farmer registration form. */
+export interface FarmerDetails {
+  name?: string;
+  aadhar?: string;
+  land?: string;
+  soil?: string;
+  irrigation?: string;
+  herbs?: string;
+  cert?: string;
+  address?: string;
+  bank?: string;
+  phone?: string;
+  email?: string;
+}
+
+/** Extra fields collected by the Wild Collector registration form. */
+export interface WildCollectorDetails {
+  name?: string;
+  aadhar?: string;
+  zone?: string;
+  permit?: string;
+  tribe?: string;
+  herbs?: string;
+  exp?: string;
+  address?: string;
+  bank?: string;
+  phone?: string;
+  email?: string;
 }
 
 export interface Complaint {
