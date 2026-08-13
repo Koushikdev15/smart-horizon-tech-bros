@@ -3,13 +3,13 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Colors, Type, Spacing, BorderRadius, Shadow } from '@/theme';
 import Icon from '@/components/Icon';
@@ -51,6 +51,23 @@ import type { TriState } from '@/types';
 
 type Errors = Record<string, string | undefined>;
 
+/**
+ * iOS has no OS-level keyboard resize, so it needs KeyboardAvoidingView.
+ * Android already resizes via windowSoftInputMode="adjustResize" (Expo
+ * default) — layering KeyboardAvoidingView's own listener-driven resize on
+ * top of that fights the OS for every keyboard height change (e.g. Gboard's
+ * predictive-text strip growing/shrinking per keystroke), which is what was
+ * causing focus to flicker between fields while typing on Android.
+ */
+const KeyboardWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
+  Platform.OS === 'ios' ? (
+    <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
+      {children}
+    </KeyboardAvoidingView>
+  ) : (
+    <View style={{ flex: 1 }}>{children}</View>
+  );
+
 const emptyDraft: RegistrationDraft = {
   fullName: '',
   email: '',
@@ -84,6 +101,8 @@ const emptyDraft: RegistrationDraft = {
 export default function RegisterScreen() {
   const router = useRouter();
   const login = useAuthStore((s) => s.login);
+
+  console.log('[DIAG] RegisterScreen render', Date.now());
 
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<RegistrationDraft>(emptyDraft);
@@ -209,6 +228,7 @@ export default function RegisterScreen() {
         return (
           <>
             <FormField
+              key="field-fullName"
               label="Full Name"
               icon="person-outline"
               value={draft.fullName}
@@ -218,6 +238,7 @@ export default function RegisterScreen() {
               error={errors.fullName}
             />
             <FormField
+              key="field-phone"
               label="Mobile Number"
               icon="call-outline"
               value={draft.phone}
@@ -228,6 +249,7 @@ export default function RegisterScreen() {
               error={errors.phone}
             />
             <FormField
+              key="field-email"
               label="Email Address"
               icon="mail-outline"
               value={draft.email}
@@ -238,6 +260,7 @@ export default function RegisterScreen() {
               error={errors.email}
             />
             <FormField
+              key="field-password"
               label="Password"
               icon="lock-closed-outline"
               value={draft.password}
@@ -248,7 +271,7 @@ export default function RegisterScreen() {
               error={errors.password}
             />
             {draft.password ? (
-              <View style={styles.strengthWrap}>
+              <View key="field-strength" style={styles.strengthWrap}>
                 <View style={styles.strengthTrack}>
                   <View
                     style={[
@@ -266,6 +289,7 @@ export default function RegisterScreen() {
               </View>
             ) : null}
             <FormField
+              key="field-confirmPassword"
               label="Confirm Password"
               icon="shield-checkmark-outline"
               value={confirmPassword}
@@ -544,10 +568,7 @@ export default function RegisterScreen() {
     <SafeAreaView style={styles.container}>
       <BotanicalBackdrop />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1 }}
-      >
+      <KeyboardWrapper>
         <View style={styles.topBar}>
           <TouchableOpacity style={styles.backBtn} onPress={goBack} accessibilityLabel="Go back">
             <Icon name="arrow-back" size={20} color={Colors.primary} />
@@ -595,7 +616,7 @@ export default function RegisterScreen() {
             )}
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardWrapper>
     </SafeAreaView>
   );
 }

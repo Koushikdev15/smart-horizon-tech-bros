@@ -3,13 +3,13 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TextInput,
   TouchableOpacity,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Colors, Fonts, Spacing, BorderRadius, Shadow } from '@/theme';
 import { PrimaryButton, SecondaryButton } from '@/components/Buttons';
@@ -37,7 +37,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}

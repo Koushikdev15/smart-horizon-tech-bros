@@ -3,11 +3,11 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   Switch,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Colors, Type, Spacing, BorderRadius, Shadow } from '@/theme';
 import { AppHeader } from '@/components/Header';
@@ -60,7 +60,7 @@ export default function ProfileScreen() {
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <AppHeader title="Customer Profile" />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>

@@ -3,9 +3,9 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Colors, Type, Spacing, BorderRadius } from '@/theme';
 import Icon from '@/components/Icon';
@@ -20,7 +20,7 @@ export default function ScanScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* Top Header */}
       <View style={styles.headerRow}>
         <Text style={styles.brandMark}>AYUTRACE+</Text>

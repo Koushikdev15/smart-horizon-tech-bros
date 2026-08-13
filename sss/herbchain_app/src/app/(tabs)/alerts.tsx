@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, FlatList } from 'react-native';
+import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Colors, Type, Spacing } from '@/theme';
 import { AppHeader } from '@/components/Header';
@@ -27,7 +28,7 @@ export default function AlertsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <AppHeader title="Alerts & Notifications" />
 
       <View style={styles.content}>

@@ -63,7 +63,7 @@ export default function RootLayout() {
         <Stack.Screen name="index" options={{ animation: 'fade' }} />
         <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />
         <Stack.Screen name="login" options={{ animation: 'fade' }} />
-        <Stack.Screen name="register" />
+        <Stack.Screen name="register" options={{ animation: 'fade' }} />
         <Stack.Screen name="registration-complete" options={{ animation: 'fade', gestureEnabled: false }} />
         <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
         <Stack.Screen name="verify/[batchId]" options={{ animation: 'slide_from_bottom' }} />

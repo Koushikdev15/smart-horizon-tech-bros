@@ -3,10 +3,10 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TextInput,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Colors, Fonts, Spacing, BorderRadius, Shadow } from '@/theme';
 import { AppHeader } from '@/components/Header';

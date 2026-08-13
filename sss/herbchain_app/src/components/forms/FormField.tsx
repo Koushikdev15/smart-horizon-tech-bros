@@ -84,8 +84,12 @@ export const FormField: React.FC<FormFieldProps> = ({
           maxLength={maxLength}
           multiline={multiline}
           secureTextEntry={masked && hidden}
-          onFocus={() => setFocused(true)}
+          onFocus={() => {
+            console.log('[DIAG] focus', label, Date.now());
+            setFocused(true);
+          }}
           onBlur={() => {
+            console.log('[DIAG] blur', label, Date.now());
             setFocused(false);
             onBlur?.();
           }}
@@ -141,14 +145,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceContainerLowest,
   },
   inputWrapMultiline: { minHeight: 110, alignItems: 'flex-start', paddingVertical: Spacing.md },
-  // Focus resolves to Deep Forest with a soft gold glow, per the design system.
+  // Focus resolves to Deep Forest border per the design system.
   inputWrapFocused: {
     borderColor: Colors.primaryContainer,
-    shadowColor: Colors.onTertiaryContainer,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 2,
   },
   inputWrapError: { borderColor: Colors.error },
   icon: { marginRight: Spacing.md },

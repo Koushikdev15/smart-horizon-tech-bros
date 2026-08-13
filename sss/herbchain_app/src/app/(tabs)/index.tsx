@@ -3,11 +3,11 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   FlatList,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Colors, Fonts, Type, Spacing, BorderRadius, Shadow } from '@/theme';
 import { AppHeader, SectionHeader } from '@/components/Header';
@@ -31,7 +31,7 @@ export default function HomeScreen() {
     .filter((p): p is NonNullable<typeof p> => Boolean(p));
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <AppHeader
         unreadCount={unreadAlertCount()}
         onNotificationPress={() => router.push('/(tabs)/alerts')}

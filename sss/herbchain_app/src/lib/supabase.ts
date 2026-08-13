@@ -36,12 +36,16 @@ const memoryStorage = {
   removeItem: async () => {},
 };
 
-export const supabase = createClient(supabaseUrl ?? '', supabaseAnonKey ?? '', {
-  auth: {
-    storage: isBrowserOrNative ? AsyncStorage : memoryStorage,
-    autoRefreshToken: isBrowserOrNative,
-    persistSession: isBrowserOrNative,
-    // No URL bar to parse a session out of in React Native.
-    detectSessionInUrl: false,
-  },
-});
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder-key',
+  {
+    auth: {
+      storage: isBrowserOrNative ? AsyncStorage : memoryStorage,
+      autoRefreshToken: isBrowserOrNative,
+      persistSession: isBrowserOrNative,
+      // No URL bar to parse a session out of in React Native.
+      detectSessionInUrl: false,
+    },
+  }
+);
