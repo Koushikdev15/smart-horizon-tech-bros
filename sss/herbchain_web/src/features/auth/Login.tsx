@@ -6,20 +6,45 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Logo, { LogoMark } from '@/components/Logo';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import type { User } from '../../types';
 import { toast } from 'sonner';
-import { Shield, Eye, EyeOff, Moon, Sun, Smartphone, Hash, Lock, ChevronRight, FlaskConical, Factory, Truck, Leaf, KeyRound } from 'lucide-react';
+import { Shield, Eye, EyeOff, Moon, Sun, Mail, Hash, Lock, ChevronRight, FlaskConical, Factory, Truck, Leaf, Tractor, TreePine } from 'lucide-react';
+import type { UserRole } from '../../types';
 import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import BotanicalBackground from '../../components/BotanicalBackground';
+import { authService } from '../../services/authService';
 
+/**
+ * Demo shortcuts for roles that have no real registration flow yet.
+ *
+ * Collection Center is deliberately absent: those accounts are created through
+ * Member Registration in the Government portal, so they must sign in with the
+ * real Ayurvedic ID / email / password issued there.
+ */
 const DEMO_CREDENTIALS = [
-  { label: 'Government Admin', ayurvedicId: 'GOV-ADMIN-001', mobile: '9000000001', password: 'admin123', role: 'Government' as const, icon: Shield },
-  { label: 'Collection Center', ayurvedicId: 'AYU-CC-001', mobile: '9876543210', password: 'cc123', role: 'Collection Center' as const, icon: Leaf },
-  { label: 'Processing & Lab', ayurvedicId: 'AYU-PL-001', mobile: '9988776655', password: 'lab123', role: 'Processing & Laboratory' as const, icon: FlaskConical },
-  { label: 'Manufacturer', ayurvedicId: 'AYU-MF-001', mobile: '9871234567', password: 'mfr123', role: 'Manufacturer' as const, icon: Factory },
-  { label: 'Supply Chain', ayurvedicId: 'AYU-SC-001', mobile: '9765432109', password: 'sc123', role: 'Supply Chain' as const, icon: Truck },
+  { label: 'Government Admin', ayurvedicId: 'GOV-ADMIN-001', email: 'arjun.menon@ayush.gov.in', password: 'admin123', role: 'Government' as const, icon: Shield },
+  { label: 'Processing & Lab', ayurvedicId: 'AYU-PL-001', email: 'priya@kerapl.com', password: 'lab123', role: 'Processing & Laboratory' as const, icon: FlaskConical },
+  { label: 'Manufacturer', ayurvedicId: 'AYU-MF-001', email: 'deepak@ayurnature.com', password: 'mfr123', role: 'Manufacturer' as const, icon: Factory },
+  { label: 'Supply Chain', ayurvedicId: 'AYU-SC-001', email: 'suresh@indiaship.com', password: 'sc123', role: 'Supply Chain' as const, icon: Truck },
 ];
+
+/** Every role the platform issues an account for. */
+const ROLES: { role: UserRole; icon: React.ElementType }[] = [
+  { role: 'Government', icon: Shield },
+  { role: 'Collection Center', icon: Leaf },
+  { role: 'Farmer', icon: Tractor },
+  { role: 'Wild Collector', icon: TreePine },
+  { role: 'Processing & Laboratory', icon: FlaskConical },
+  { role: 'Manufacturer', icon: Factory },
+  { role: 'Supply Chain', icon: Truck },
+];
+
+/**
+ * Roles with no dashboard in this portal — they are served by the AyurTrace+
+ * mobile app. Signing them in here would land them on /unauthorized, so the
+ * login screen explains that instead.
+ */
+const MOBILE_ONLY_ROLES: UserRole[] = ['Farmer', 'Wild Collector'];
 
 const ROLE_USER_MAP: Record<string, Omit<User, 'role'>> = {
   'GOV-ADMIN-001': { id: 'gov1', name: 'Arjun Menon IAS', email: 'arjun.menon@ayush.gov.in', ayurvedicId: 'GOV-ADMIN-001', mobile: '9000000001', organizationName: 'Ministry of AYUSH' },
@@ -82,14 +107,13 @@ export default function Login() {
     mouseY.set(0.5);
   };
 
+  const [role, setRole] = useState<UserRole>('Government');
   const [ayurvedicId, setAyurvedicId] = useState('');
-  const [mobile, setMobile] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [forgotOpen, setForgotOpen] = useState(false);
-  const [resetRequested, setResetRequested] = useState(false);
 
   const setAuth = useAuthStore((s) => s.setAuth);
   const { darkMode, toggleDarkMode } = useAppStore();
@@ -108,42 +132,63 @@ export default function Login() {
     setLoading(true);
     setError('');
 
-    await new Promise((r) => setTimeout(r, 700));
+    // Real credentials issued through Member Registration take priority. The
+    // selected role is verified against the member record server-side.
+    const result = await authService.signInWithAyurvedicId(ayurvedicId, email, password, role);
 
-    const match = DEMO_CREDENTIALS.find(
-      (c) => c.ayurvedicId === ayurvedicId && c.mobile === mobile && c.password === password
+    if (result.ok) {
+      if (MOBILE_ONLY_ROLES.includes(result.user.role)) {
+        await authService.signOut();
+        setError(
+          `${result.user.role} accounts don't have a dashboard in this portal. ` +
+            'Please sign in through the AyurTrace+ mobile app instead.',
+        );
+        setLoading(false);
+        return;
+      }
+      setAuth(result.user, result.token);
+      toast.success(`Welcome back, ${result.user.name}!`);
+      navigate('/');
+      setLoading(false);
+      return;
+    }
+
+    // Fall back to the built-in demo accounts for roles that have no real
+    // registration yet. Collection Center is not among them by design.
+    const demo = DEMO_CREDENTIALS.find(
+      (c) =>
+        c.role === role &&
+        c.ayurvedicId.toUpperCase() === ayurvedicId.trim().toUpperCase() &&
+        c.email.toLowerCase() === email.trim().toLowerCase() &&
+        c.password === password,
     );
 
-    if (match) {
-      const baseUser = ROLE_USER_MAP[ayurvedicId];
+    if (demo) {
+      const baseUser = ROLE_USER_MAP[demo.ayurvedicId];
       if (baseUser) {
-        const user: User = { ...baseUser, role: match.role };
-        setAuth(user, `mock_jwt_${Date.now()}`);
+        const user: User = { ...baseUser, role: demo.role };
+        setAuth(user, `demo_session_${Date.now()}`);
         toast.success(`Welcome back, ${baseUser.name}!`);
         navigate('/');
+        setLoading(false);
+        return;
       }
-    } else {
-      setError('Invalid Ayurvedic ID, Mobile Number, or Password.');
     }
+
+    // Surface the real reason (pending approval, ID mismatch, suspended…) rather
+    // than a generic failure.
+    setError(`${result.error.title}: ${result.error.message}`);
     setLoading(false);
   };
 
   const fillDemo = (cred: typeof DEMO_CREDENTIALS[0]) => {
+    setRole(cred.role);
     setAyurvedicId(cred.ayurvedicId);
-    setMobile(cred.mobile);
+    setEmail(cred.email);
     setPassword(cred.password);
     setError('');
   };
 
-  const handleForgotOpenChange = (open: boolean) => {
-    setForgotOpen(open);
-    if (!open) setResetRequested(false);
-  };
-
-  const handleRequestReset = () => {
-    setResetRequested(true);
-    toast.success('Reset request sent to your Government Administrator.');
-  };
 
   return (
     <div className="min-h-screen login-bg flex items-center justify-center p-4 sm:p-6 relative">
@@ -237,6 +282,45 @@ export default function Login() {
               </div>
             )}
 
+            {/* Role selection — verified against the member record on submit */}
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Sign in as</Label>
+              <div className="grid grid-cols-2 gap-1.5" role="radiogroup" aria-label="Select your role">
+                {ROLES.map(({ role: r, icon: RoleIcon }) => {
+                  const active = role === r;
+                  const mobileOnly = MOBILE_ONLY_ROLES.includes(r);
+                  return (
+                    <button
+                      key={r}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      onClick={() => { setRole(r); setError(''); }}
+                      className={`flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs border transition-all text-left ${
+                        active
+                          ? 'border-primary bg-primary/8 text-primary font-semibold'
+                          : 'border-border text-muted-foreground hover:border-primary/40 hover:bg-primary/[0.04]'
+                      }`}
+                    >
+                      <RoleIcon className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">{r}</span>
+                      {mobileOnly && (
+                        <span className="ml-auto text-[9px] uppercase tracking-wide opacity-70 shrink-0">
+                          app
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              {MOBILE_ONLY_ROLES.includes(role) && (
+                <p className="text-[11px] text-muted-foreground leading-relaxed pt-0.5">
+                  {role}s are managed through their Collection Centre and sign in via the
+                  AyurTrace+ mobile app — this portal has no dashboard for them.
+                </p>
+              )}
+            </div>
+
             <div className="space-y-1.5">
               <Label htmlFor="ayurvedicId" className="text-sm font-medium">Ayurvedic ID</Label>
               <div className="relative">
@@ -253,32 +337,24 @@ export default function Login() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="mobile" className="text-sm font-medium">Mobile Number</Label>
+              <Label htmlFor="email" className="text-sm font-medium">Registered Email</Label>
               <div className="relative">
-                <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="mobile"
-                  placeholder="10-digit mobile number"
-                  value={mobile}
-                  onChange={(e) => setMobile(e.target.value)}
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="Email used during registration"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="pl-9 h-11 rounded-xl"
-                  maxLength={10}
                   required
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
-                <button
-                  type="button"
-                  onClick={() => setForgotOpen(true)}
-                  className="text-xs font-semibold text-[#14B8A6] dark:text-[#2DD4BF] hover:text-[#0F766E] dark:hover:text-[#14B8A6] hover:underline"
-                >
-                  Forgot password?
-                </button>
-              </div>
+              <Label htmlFor="password" className="text-sm font-medium">Password</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -340,55 +416,18 @@ export default function Login() {
                 </button>
               ))}
             </div>
+
+            <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground text-center">
+              Collection Centres sign in with the Ayurvedic ID, email and password issued during
+              Member Registration — no demo account is provided.
+            </p>
           </div>
 
           <p className="mt-6 text-xs text-center text-muted-foreground">
-            Password reset requires Admin approval.{' '}
-            <button type="button" onClick={() => setForgotOpen(true)} className="text-[#14B8A6] dark:text-[#2DD4BF] hover:text-[#0F766E] dark:hover:text-[#14B8A6] hover:underline font-semibold">
-              Contact Administrator
-            </button>
+            Trouble signing in? Contact your Government Administrator.
           </p>
         </div>
       </div>
-
-      <Dialog open={forgotOpen} onOpenChange={handleForgotOpenChange}>
-        <DialogContent className="max-w-sm rounded-2xl">
-          <DialogHeader>
-            <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-1">
-              <KeyRound className="w-5 h-5 text-primary" />
-            </div>
-            <DialogTitle>Forgot your password?</DialogTitle>
-            <DialogDescription>
-              For security, password resets on this Government-issued account can only be approved by
-              your registered Administrator — they will verify your identity before issuing new credentials.
-            </DialogDescription>
-          </DialogHeader>
-
-          {resetRequested ? (
-            <div className="rounded-lg border border-success/25 bg-success/8 px-4 py-3 text-sm text-success">
-              Your request has been logged. An Administrator will contact you on your registered mobile number shortly.
-            </div>
-          ) : (
-            <div className="space-y-1.5">
-              <Label htmlFor="reset-ayurvedic-id" className="text-sm font-medium">Ayurvedic ID</Label>
-              <Input
-                id="reset-ayurvedic-id"
-                placeholder="e.g. AYU-CC-001"
-                defaultValue={ayurvedicId}
-                className="h-10 font-mono text-sm rounded-xl"
-              />
-            </div>
-          )}
-
-          <DialogFooter>
-            {resetRequested ? (
-              <Button type="button" onClick={() => setForgotOpen(false)} className="rounded-xl">Done</Button>
-            ) : (
-              <Button type="button" onClick={handleRequestReset} className="rounded-xl">Request Reset</Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

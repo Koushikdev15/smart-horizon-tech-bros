@@ -198,13 +198,13 @@ const generateAyurvedicId = (roleCode: string) => {
 const submitToSupabase = async (collectionName: string, data: any) => {
   try {
     const { error } = await supabase.from(collectionName).insert(data);
-    
+
     if (error) {
       console.error(`Error inserting into ${collectionName}:`, error);
       toast.error(`Database Error: ${error.message}`);
       return false;
     }
-    
+
     console.log(`Successfully submitted to ${collectionName}`);
     return true;
   } catch (err) {
@@ -212,6 +212,50 @@ const submitToSupabase = async (collectionName: string, data: any) => {
     toast.error('An unexpected error occurred. Please try again.');
     return false;
   }
+}
+
+/**
+ * Completes a registration: sets the applicant's password, writes the member
+ * row, then drops the applicant session.
+ *
+ * The password is set on the Supabase Auth user created during OTP verification
+ * — it is never written to the `members` table. Storing a password (even hashed)
+ * in a Data-API-readable table would expose it far more widely than Auth does.
+ *
+ * `verifyOtp` already signed this applicant in on the isolated OTP client, so
+ * `updateUser` applies to their account, not the admin's.
+ */
+const finalizeRegistration = async (payload: any, password: string): Promise<boolean> => {
+  const { data: sessionData } = await supabaseOtpClient.auth.getSession();
+
+  if (!sessionData.session) {
+    // Reachable via the `123456` demo bypass, which never creates a real session.
+    // The member row is still written so the admin flow works, but the account
+    // will have no password until one is set through a reset.
+    const ok = await submitToSupabase('members', payload);
+    if (ok) {
+      toast.warning(
+        'Registered, but no password could be set (email was not verified against Supabase). ' +
+          'This member must use "Forgot Password" before their first sign-in.',
+        { duration: 8000 },
+      );
+    }
+    return ok;
+  }
+
+  const { error: passwordError } = await supabaseOtpClient.auth.updateUser({ password });
+  if (passwordError) {
+    toast.error(`Could not set the account password: ${passwordError.message}`);
+    return false;
+  }
+
+  const ok = await submitToSupabase('members', payload);
+
+  // The applicant is Pending until an admin approves them — never leave their
+  // session active in the admin's browser.
+  await supabaseOtpClient.auth.signOut();
+
+  return ok;
 }
 
 
@@ -231,7 +275,7 @@ function CollectionCenterEntityForm() {
     setIsSubmitting(true);
     toast.loading('Submitting registration...', { id: 'reg' });
     const ayurvedicId = generateAyurvedicId('CC');
-    const success = await submitToSupabase('members', {
+    const success = await finalizeRegistration({
       name: formData.owner,
       organizationName: formData.name,
       role: 'Collection Center',
@@ -246,7 +290,7 @@ function CollectionCenterEntityForm() {
       ayurvedicId,
       status: 'Pending',
       registeredDate: new Date().toISOString(),
-    });
+    }, formData.password);
 
     toast.dismiss('reg');
     setIsSubmitting(false);
@@ -323,7 +367,7 @@ function FarmerForm() {
     toast.loading('Submitting registration...', { id: 'reg' });
     const ayurvedicId = generateAyurvedicId('FRM');
     const { password: _password, confirmPassword: _confirmPassword, ...farmerDetails } = formData;
-    const success = await submitToSupabase('members', {
+    const success = await finalizeRegistration({
       name: formData.name,
       organizationName: `Farm of ${formData.name}`,
       role: 'Farmer',
@@ -335,7 +379,7 @@ function FarmerForm() {
       status: 'Pending',
       registeredDate: new Date().toISOString(),
       farmerDetails,
-    });
+    }, formData.password);
 
     toast.dismiss('reg');
     setIsSubmitting(false);
@@ -411,7 +455,7 @@ function WildCollectorForm() {
     toast.loading('Submitting registration...', { id: 'reg' });
     const ayurvedicId = generateAyurvedicId('WC');
     const { password: _password, confirmPassword: _confirmPassword, ...wildCollectorDetails } = formData;
-    const success = await submitToSupabase('members', {
+    const success = await finalizeRegistration({
       name: formData.name,
       organizationName: `Wild Collector - ${formData.zone}`,
       role: 'Wild Collector',
@@ -423,7 +467,7 @@ function WildCollectorForm() {
       status: 'Pending',
       registeredDate: new Date().toISOString(),
       wildCollectorDetails,
-    });
+    }, formData.password);
 
     toast.dismiss('reg');
     setIsSubmitting(false);
@@ -496,7 +540,7 @@ function ProcessingLabForm() {
     setIsSubmitting(true);
     toast.loading('Submitting registration...', { id: 'reg' });
     const ayurvedicId = generateAyurvedicId('PL');
-    const success = await submitToSupabase('members', {
+    const success = await finalizeRegistration({
       name: formData.name, // Usually an org has a point of contact, keeping it simple
       organizationName: formData.name,
       role: 'Processing & Laboratory',
@@ -510,7 +554,7 @@ function ProcessingLabForm() {
       ayurvedicId,
       status: 'Pending',
       registeredDate: new Date().toISOString(),
-    });
+    }, formData.password);
 
     toast.dismiss('reg');
     setIsSubmitting(false);
@@ -570,7 +614,7 @@ function ManufacturerForm() {
     setIsSubmitting(true);
     toast.loading('Submitting registration...', { id: 'reg' });
     const ayurvedicId = generateAyurvedicId('MF');
-    const success = await submitToSupabase('members', {
+    const success = await finalizeRegistration({
       name: formData.name,
       organizationName: formData.name,
       role: 'Manufacturer',
@@ -585,7 +629,7 @@ function ManufacturerForm() {
       ayurvedicId,
       status: 'Pending',
       registeredDate: new Date().toISOString(),
-    });
+    }, formData.password);
 
     toast.dismiss('reg');
     setIsSubmitting(false);
@@ -642,7 +686,7 @@ function SupplyChainForm() {
     setIsSubmitting(true);
     toast.loading('Submitting registration...', { id: 'reg' });
     const ayurvedicId = generateAyurvedicId('SC');
-    const success = await submitToSupabase('members', {
+    const success = await finalizeRegistration({
       name: formData.name,
       organizationName: formData.name,
       role: 'Supply Chain',
@@ -656,7 +700,7 @@ function SupplyChainForm() {
       ayurvedicId,
       status: 'Pending',
       registeredDate: new Date().toISOString(),
-    });
+    }, formData.password);
 
     toast.dismiss('reg');
     setIsSubmitting(false);
