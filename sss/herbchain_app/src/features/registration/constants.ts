@@ -68,3 +68,29 @@ export const CONDITION_TRI_STATE = [
   { value: 'yes' as const, label: 'Yes' },
   { value: 'undisclosed' as const, label: 'Prefer not to say' },
 ];
+
+// ─────────────────────────── Health Profile (post-registration) ───────────────────────────
+
+export const PREGNANCY_STATUS_OPTIONS = [
+  { value: 'not_applicable' as const, label: 'Not applicable' },
+  { value: 'pregnant' as const, label: 'Pregnant' },
+  { value: 'breastfeeding' as const, label: 'Breastfeeding' },
+  { value: 'planning' as const, label: 'Planning pregnancy' },
+  { value: 'undisclosed' as const, label: 'Prefer not to say' },
+];
+
+export const DIETARY_PREFERENCE_OPTIONS = [
+  'Vegetarian', 'Vegan', 'Non-vegetarian', 'Jain', 'Gluten-free', 'Low-sugar', 'Low-sodium',
+];
+
+export const AYURVEDIC_PREFERENCE_OPTIONS = [
+  'Prefer Ayurvedic products first', 'Open to Ayurvedic + conventional', 'New to Ayurveda', 'Following a Vaidya-prescribed regimen',
+];
+
+// Common Ayurvedic ingredients, used for structured ingredient-level allergy
+// matching against Product.ingredients (distinct from the general allergy
+// categories above, which are broad tags like "Herbal" or "Food").
+export const COMMON_AYURVEDIC_INGREDIENTS = [
+  'Amla', 'Haritaki', 'Bibhitaki', 'Ashwagandha', 'Neem', 'Turmeric', 'Guggul',
+  'Shatavari', 'Brahmi', 'Licorice', 'Tulsi', 'Triphala', 'Giloy', 'Sandalwood',
+];

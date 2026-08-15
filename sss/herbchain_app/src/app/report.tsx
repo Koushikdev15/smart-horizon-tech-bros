@@ -6,6 +6,7 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -13,31 +14,50 @@ import { Colors, Fonts, Spacing, BorderRadius, Shadow } from '@/theme';
 import { AppHeader } from '@/components/Header';
 import { PrimaryButton } from '@/components/Buttons';
 import Icon from '@/components/Icon';
+import { ApiError } from '@/lib/api';
+import { complaintService, COMPLAINT_ISSUE_TYPES } from '@/services/complaintService';
+import { useAuthStore } from '@/store/authStore';
 
-const ISSUE_TYPES = [
-  'QR not working',
-  'Product details mismatch',
-  'Suspicious packaging',
-  'Suspicious seller',
-  'Damaged product',
-  'Incorrect information',
-  'Other',
-];
+const ISSUE_TYPES = COMPLAINT_ISSUE_TYPES;
+const ATTACHED_BATCH_ID = 'AYUR-ASH-2026-000458';
 
 export default function ReportIssueScreen() {
   const router = useRouter();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isGuest = useAuthStore((s) => s.isGuest);
 
-  const [selectedIssue, setSelectedIssue] = useState(ISSUE_TYPES[0]);
+  const [selectedIssue, setSelectedIssue] = useState<(typeof ISSUE_TYPES)[number]>(ISSUE_TYPES[0]);
   const [description, setDescription] = useState('');
   const [photoAttached, setPhotoAttached] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [complaintId, setComplaintId] = useState<string | null>(null);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (!isAuthenticated || isGuest) {
+      setSubmitError('Sign in to submit a report.');
+      return;
+    }
     if (!description.trim()) {
       alert('Please provide a brief description of the issue.');
       return;
     }
-    setSubmitted(true);
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const result = await complaintService.submit({
+        issueType: selectedIssue,
+        description: description.trim(),
+        batchId: ATTACHED_BATCH_ID,
+      });
+      setComplaintId(result._id);
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(err instanceof ApiError ? err.message : 'Could not submit your report. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -50,7 +70,8 @@ export default function ReportIssueScreen() {
           </View>
           <Text style={styles.successTitle}>Report Submitted Successfully</Text>
           <Text style={styles.successDesc}>
-            Thank you for helping keep the Ayurvedic supply chain safe. Our verification team has logged your report (#REP-2026-8942) and attached your scanned batch details.
+            Thank you for helping keep the Ayurvedic supply chain safe. Our verification team has logged your report
+            {complaintId ? ` (#${complaintId.slice(-8).toUpperCase()})` : ''} and attached your scanned batch details.
           </Text>
 
           <PrimaryButton
@@ -73,9 +94,23 @@ export default function ReportIssueScreen() {
         <View style={styles.attachedBox}>
           <Icon name="attach-outline" size={18} color={Colors.primary} style={{ marginRight: 6 }} />
           <Text style={styles.attachedText}>
-            Auto-attached Batch: <Text style={{ fontFamily: Fonts.family.bold }}>AYUR-ASH-2026-000458</Text>
+            Auto-attached Batch: <Text style={{ fontFamily: Fonts.family.bold }}>{ATTACHED_BATCH_ID}</Text>
           </Text>
         </View>
+
+        {submitError ? (
+          <>
+            <View style={styles.errorBox}>
+              <Icon name="alert-circle" size={16} color={Colors.error} />
+              <Text style={styles.errorBoxText}>{submitError}</Text>
+            </View>
+            {(!isAuthenticated || isGuest) && (
+              <TouchableOpacity onPress={() => router.push('/login')} style={{ marginBottom: Spacing.md }}>
+                <Text style={[styles.attachedText, { fontFamily: Fonts.family.bold }]}>Sign In →</Text>
+              </TouchableOpacity>
+            )}
+          </>
+        ) : null}
 
         {/* Issue Type Selector */}
         <View style={[styles.card, Shadow.sm]}>
@@ -127,8 +162,9 @@ export default function ReportIssueScreen() {
         </View>
 
         <PrimaryButton
-          title="Submit Report"
+          title={submitting ? 'Submitting…' : 'Submit Report'}
           onPress={handleSubmit}
+          loading={submitting}
           icon="paper-plane-outline"
           size="lg"
         />
@@ -158,6 +194,21 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.family.regular,
     fontSize: Fonts.size.xs + 1,
     color: Colors.primary,
+  },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    backgroundColor: Colors.errorContainer,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  errorBoxText: {
+    flex: 1,
+    fontFamily: Fonts.family.regular,
+    fontSize: Fonts.size.xs + 1,
+    color: Colors.onErrorContainer,
   },
   card: {
     backgroundColor: Colors.surfaceContainerLowest,

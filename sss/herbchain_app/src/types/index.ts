@@ -133,6 +133,7 @@ export interface Alert {
 }
 
 export type TriState = 'no' | 'yes' | 'undisclosed';
+export type PregnancyStatus = 'not_applicable' | 'pregnant' | 'breastfeeding' | 'planning' | 'undisclosed';
 
 /**
  * Wellness data is health information and is treated as separately-consented,
@@ -148,6 +149,24 @@ export interface WellnessProfile {
   conditions: string[];
   medicalHistory?: string;
   currentMedications?: string;
+}
+
+/**
+ * The full Health Profile, managed post-registration from Settings. A superset
+ * of WellnessProfile — adds fields the AI chatbot and doctor-guidance modules
+ * need for suitability/allergy checking that the original registration
+ * wellness step didn't collect.
+ */
+export interface HealthProfile extends WellnessProfile {
+  /** Structured ingredient/allergen names, matched against product ingredients. */
+  ingredientAllergies: string[];
+  previousAdverseReactions?: string;
+  pregnancyStatus: PregnancyStatus;
+  dietaryPreferences: string[];
+  ayurvedicPreferences: string[];
+  consentStoreHealthData: boolean;
+  consentPersonalizedAlerts: boolean;
+  updatedAt?: string;
 }
 
 export interface ConsentRecord {

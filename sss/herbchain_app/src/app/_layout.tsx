@@ -17,6 +17,7 @@ import {
 } from '@expo-google-fonts/hanken-grotesk';
 import { Colors } from '@/theme';
 import { useProductStore } from '@/store/productStore';
+import { useAuthStore } from '@/store/authStore';
 
 SplashScreen.preventAutoHideAsync().catch(() => {
   /* no-op: splash may already be hidden on fast refresh */
@@ -24,6 +25,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {
 
 export default function RootLayout() {
   const loadDemoData = useProductStore((s) => s.loadDemoData);
+  const hydrateAuth = useAuthStore((s) => s.hydrate);
 
   const [fontsLoaded, fontError] = useFonts({
     EBGaramond_500Medium,
@@ -37,6 +39,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     loadDemoData();
+    hydrateAuth();
   }, []);
 
   // Hold the splash until the typefaces resolve so text never flashes in a

@@ -238,7 +238,7 @@ export default function VerificationResultScreen() {
         />
 
         <SecondaryButton
-          title="Ask Copilot About This Product"
+          title="Ask AyurTrace+ About This Product"
           onPress={() => router.push('/copilot')}
           icon="sparkles-outline"
           size="lg"

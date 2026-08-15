@@ -1,6 +1,7 @@
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { apiRequest, ApiError, setAuthToken } from '@/lib/api';
 import { last4 } from '@/lib/validation';
-import type { ConsentRecord, TriState, WellnessProfile } from '@/types';
+import { mapBackendUser, friendlyAuthError, type AuthTokens, type BackendUser } from './authService';
+import type { ConsentRecord, User, WellnessProfile } from '@/types';
 
 export interface RegistrationDraft {
   // Step 1 — Account
@@ -33,12 +34,15 @@ export interface RegistrationDraft {
 export interface RegistrationResult {
   ok: boolean;
   userId?: string;
-  /** True when Supabase requires email confirmation before a session exists. */
+  user?: User;
+  tokens?: AuthTokens;
+  /** Always false against the Express backend — kept so callers that still
+   *  check it (there is no email-confirmation step here) stay harmless. */
   needsEmailConfirmation?: boolean;
   error?: string;
 }
 
-/** DD/MM/YYYY → YYYY-MM-DD for a Postgres `date` column. */
+/** DD/MM/YYYY → YYYY-MM-DD for the backend's ISO date field. */
 function toIsoDate(ddmmyyyy: string): string | null {
   const m = ddmmyyyy.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (!m) return null;
@@ -63,25 +67,11 @@ export function computeProfileCompletion(draft: RegistrationDraft): number {
   return Math.round((done / sections.length) * 100);
 }
 
-function friendlyAuthError(message: string): string {
-  const m = message.toLowerCase();
-  if (m.includes('already registered') || m.includes('already been registered')) {
-    return 'An account with this email already exists. Try signing in instead.';
-  }
-  if (m.includes('password')) return 'That password was rejected. Use at least 8 characters.';
-  if (m.includes('rate limit') || m.includes('too many')) {
-    return 'Too many attempts. Please wait a minute and try again.';
-  }
-  if (m.includes('network') || m.includes('fetch')) {
-    return "Couldn't reach the server. Check your connection and try again.";
-  }
-  return message;
-}
-
 export const registrationService = {
   /**
-   * Creates the auth user, then writes the profile and (only with consent) the
-   * wellness record.
+   * Creates the account on the Express backend, then writes the health
+   * profile (only with consent) using the token the register call just
+   * issued.
    *
    * Sensitive-data policy: the full Aadhaar and PAN entered during registration
    * never leave the device — only the last four characters of each are sent, and
@@ -89,112 +79,78 @@ export const registrationService = {
    * logs the draft.
    */
   async register(draft: RegistrationDraft): Promise<RegistrationResult> {
-    if (!isSupabaseConfigured) {
-      return { ok: false, error: 'Supabase is not configured. Add your keys to .env and restart.' };
-    }
-
     const phone = normalisePhone(draft.phone);
     const dob = toIsoDate(draft.dateOfBirth);
 
-    // 1 — Auth account.
-    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-      email: draft.email.trim().toLowerCase(),
-      password: draft.password,
-      options: {
-        data: {
-          // Display-only metadata. This is user-editable and must never be used
-          // for authorization decisions.
-          full_name: draft.fullName.trim(),
+    let payload: { user: BackendUser; token: string; refreshToken: string };
+    try {
+      payload = await apiRequest('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: draft.fullName.trim(),
+          email: draft.email.trim().toLowerCase(),
+          mobile: phone,
+          password: draft.password,
+          role: 'Customer',
           language: draft.language,
-        },
-      },
-    });
-
-    if (signUpError) return { ok: false, error: friendlyAuthError(signUpError.message) };
-
-    const userId = signUpData.user?.id;
-    if (!userId) return { ok: false, error: 'Account created but no user was returned.' };
-
-    // If email confirmation is on, there is no session yet — and without a
-    // session the RLS policies (correctly) reject the profile insert.
-    if (!signUpData.session) {
-      return { ok: true, userId, needsEmailConfirmation: true };
+          dateOfBirth: dob || undefined,
+          aadhaarLast4: draft.aadhaar ? last4(draft.aadhaar) : undefined,
+          panLast4: draft.pan ? draft.pan.trim().toUpperCase().slice(-4) : undefined,
+          occupation: draft.occupation || undefined,
+          religion: draft.religion || undefined,
+          region: draft.region || undefined,
+          address: draft.address || undefined,
+          coordinates: draft.coordinates,
+          profileCompletion: computeProfileCompletion(draft),
+        }),
+      });
+    } catch (err) {
+      return { ok: false, error: friendlyAuthError(err) };
     }
 
-    // 2 — Profile row. `id` must equal auth.uid() or RLS rejects the write.
-    const { error: profileError } = await supabase.from('customer_profiles').insert({
-      id: userId,
-      full_name: draft.fullName.trim(),
-      email: draft.email.trim().toLowerCase(),
-      phone,
-      language: draft.language,
-      date_of_birth: dob,
-      aadhaar_last4: draft.aadhaar ? last4(draft.aadhaar) : null,
-      pan_last4: draft.pan ? draft.pan.trim().toUpperCase().slice(-4) : null,
-      occupation: draft.occupation || null,
-      religion: draft.religion || null,
-      region: draft.region || null,
-      address: draft.address || null,
-      latitude: draft.coordinates?.latitude ?? null,
-      longitude: draft.coordinates?.longitude ?? null,
-      consent_terms: draft.consent.terms,
-      consent_privacy: draft.consent.privacy,
-      consent_store_health_data: draft.consent.storeHealthData,
-      consent_personalized_alerts: draft.consent.personalizedAlerts,
-      consent_accepted_at: new Date().toISOString(),
-      profile_completion: computeProfileCompletion(draft),
-    });
+    // The account exists — everything below is best-effort on top of it, so a
+    // failure here must not be reported as registration failure.
+    setAuthToken(payload.token);
 
-    if (profileError) {
-      return {
-        ok: false,
-        userId,
-        error:
-          profileError.code === '23505'
-            ? 'That mobile number is already registered.'
-            : `Could not save your profile: ${profileError.message}`,
-      };
-    }
-
-    // 3 — Wellness row, written only when the user both supplied data and
-    // explicitly consented to it being stored.
+    let warning: string | undefined;
     if (draft.wellnessProvided && draft.consent.storeHealthData) {
       const w = draft.wellness;
-      const { error: wellnessError } = await supabase.from('customer_wellness').insert({
-        user_id: userId,
-        has_allergies: w.hasAllergies as TriState,
-        allergies: w.allergies,
-        allergy_notes: w.allergyNotes || null,
-        has_current_issues: w.hasCurrentHealthIssues as TriState,
-        current_health_issues: w.currentHealthIssues || null,
-        has_existing_conditions: w.hasExistingConditions as TriState,
-        conditions: w.conditions,
-        medical_history: w.medicalHistory || null,
-        current_medications: w.currentMedications || null,
-      });
-
-      // The account and profile already exist, so a wellness failure is not
-      // fatal — surface it without discarding a successful registration.
-      if (wellnessError) {
-        return {
-          ok: true,
-          userId,
-          error: `Your account was created, but the wellness profile could not be saved: ${wellnessError.message}`,
-        };
+      try {
+        await apiRequest('/health-profile', {
+          method: 'PUT',
+          body: JSON.stringify({
+            hasAllergies: w.hasAllergies,
+            allergies: w.allergies,
+            allergyNotes: w.allergyNotes || undefined,
+            hasCurrentHealthIssues: w.hasCurrentHealthIssues,
+            currentHealthIssues: w.currentHealthIssues || undefined,
+            hasExistingConditions: w.hasExistingConditions,
+            conditions: w.conditions,
+            medicalHistory: w.medicalHistory || undefined,
+            currentMedications: w.currentMedications || undefined,
+            consentStoreHealthData: true,
+            consentPersonalizedAlerts: draft.consent.personalizedAlerts,
+          } satisfies Record<string, unknown>),
+        });
+      } catch (err) {
+        warning = `Your account was created, but the wellness profile could not be saved: ${
+          err instanceof ApiError ? err.message : 'unknown error'
+        }`;
       }
     }
 
-    return { ok: true, userId };
+    return {
+      ok: true,
+      userId: payload.user.id,
+      user: mapBackendUser(payload.user),
+      tokens: { token: payload.token, refreshToken: payload.refreshToken },
+      error: warning,
+    };
   },
 
-  /** Loads the signed-in user's profile (RLS scopes this to their own row). */
-  async fetchProfile(userId: string) {
-    const { data, error } = await supabase
-      .from('customer_profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle();
-    if (error) throw error;
-    return data;
+  /** Re-fetches the signed-in user's profile using the currently-set token. */
+  async fetchProfile(): Promise<User> {
+    const profile = await apiRequest<BackendUser>('/auth/profile');
+    return mapBackendUser(profile);
   },
 };

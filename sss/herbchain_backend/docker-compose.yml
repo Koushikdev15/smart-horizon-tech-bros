@@ -21,6 +21,8 @@ services:
       - MONGO_URI=mongodb://mongodb:27017/herbchain
       - JWT_SECRET=super_secret_herbchain_key_2026
       - JWT_EXPIRES_IN=1h
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.0-flash}
     depends_on:
       - mongodb
     networks:

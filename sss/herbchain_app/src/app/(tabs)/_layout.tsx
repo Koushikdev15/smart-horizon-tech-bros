@@ -48,8 +48,8 @@ export default function TabsLayout() {
             iconName = focused ? 'home' : 'home-outline';
           } else if (route.name === 'history') {
             iconName = focused ? 'time' : 'time-outline';
-          } else if (route.name === 'alerts') {
-            iconName = focused ? 'notifications' : 'notifications-outline';
+          } else if (route.name === 'ebuy') {
+            iconName = focused ? 'cart' : 'cart-outline';
           } else if (route.name === 'profile') {
             iconName = focused ? 'person' : 'person-outline';
           }
@@ -66,8 +66,10 @@ export default function TabsLayout() {
       <Tabs.Screen name="index" options={{ title: 'Home' }} />
       <Tabs.Screen name="history" options={{ title: 'History' }} />
       <Tabs.Screen name="scan" options={{ title: 'Scan' }} />
-      <Tabs.Screen name="alerts" options={{ title: 'Alerts' }} />
+      <Tabs.Screen name="ebuy" options={{ title: 'E-Buy' }} />
       <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
+      {/* Still reachable via the header bell icon — just no longer a duplicate bottom-tab entry. */}
+      <Tabs.Screen name="alerts" options={{ href: null }} />
     </Tabs>
   );
 }

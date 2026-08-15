@@ -94,7 +94,7 @@ export default function HomeScreen() {
             <View style={[styles.toolIcon, { backgroundColor: Colors.secondaryContainer }]}>
               <Icon name="sparkles" size={22} color={Colors.onSecondaryContainer} />
             </View>
-            <Text style={styles.toolTitle}>AI Copilot</Text>
+            <Text style={styles.toolTitle}>Ask AyurTrace+</Text>
             <Text style={styles.toolSub}>Ask AyurTrace</Text>
           </TouchableOpacity>
 

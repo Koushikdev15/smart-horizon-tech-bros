@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Colors, Fonts, Spacing, BorderRadius, Shadow } from '@/theme';
+import * as Location from 'expo-location';
+import { Colors, Fonts, Type, Spacing, BorderRadius, Shadow } from '@/theme';
 import { AppHeader } from '@/components/Header';
 import { StatusBadge, TrustScore } from '@/components/Badges';
 import { PrimaryButton, SecondaryButton } from '@/components/Buttons';
@@ -18,14 +20,87 @@ import { BlockchainCard, RecallBanner } from '@/components/CardsAndInputs';
 import Icon from '@/components/Icon';
 import { getProductById, PRODUCTS } from '@/data/mockProducts';
 import { useProductStore } from '@/store/productStore';
+import { ApiError } from '@/lib/api';
+import { productService, type SuitabilityResult } from '@/services/productService';
+import { storeService, type NearbyStore } from '@/services/storeService';
+import { useAuthStore } from '@/store/authStore';
+
+const VERDICT_STYLE: Record<SuitabilityResult['verdict'], { bg: string; fg: string; icon: 'checkmark-circle' | 'alert-circle' | 'warning' | 'help-circle-outline' }> = {
+  NO_KNOWN_CONFLICT: { bg: Colors.secondaryContainer, fg: Colors.onSecondaryContainer, icon: 'checkmark-circle' },
+  POTENTIAL_CONCERN: { bg: Colors.tertiaryFixed, fg: Colors.onTertiaryFixedVariant, icon: 'alert-circle' },
+  HIGH_RISK_MATCH: { bg: Colors.errorContainer, fg: Colors.onErrorContainer, icon: 'warning' },
+  INSUFFICIENT_INFORMATION: { bg: Colors.surfaceContainerHigh, fg: Colors.onSurfaceVariant, icon: 'help-circle-outline' },
+};
 
 export default function ProductDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { isSaved, toggleSaved } = useProductStore();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isGuest = useAuthStore((s) => s.isGuest);
 
   const product = getProductById(id || '') || PRODUCTS[0];
   const bookmarked = isSaved(product.id);
+
+  const [suitability, setSuitability] = useState<SuitabilityResult | null>(null);
+  const [suitabilityError, setSuitabilityError] = useState<string | null>(null);
+  const [checkingSuitability, setCheckingSuitability] = useState(false);
+
+  async function handleCheckSuitability() {
+    if (!isAuthenticated || isGuest) {
+      setSuitabilityError('Sign in to check this product against your health profile.');
+      return;
+    }
+    setCheckingSuitability(true);
+    setSuitabilityError(null);
+    setSuitability(null);
+    try {
+      // Bridges this screen's demo product catalog to the real backend by
+      // name — a genuine lookup, not a fake one, but it only finds a match
+      // once a real Product with a matching name exists in the database.
+      const result = await productService.checkSuitability({ productName: product.name });
+      setSuitability(result);
+    } catch (err) {
+      setSuitabilityError(
+        err instanceof ApiError && err.status === 404
+          ? "This demo product isn't linked to a live AyurTrace+ product record yet."
+          : err instanceof ApiError
+            ? err.message
+            : 'Could not run the suitability check. Please try again.'
+      );
+    } finally {
+      setCheckingSuitability(false);
+    }
+  }
+
+  const [stores, setStores] = useState<NearbyStore[] | null>(null);
+  const [storesError, setStoresError] = useState<string | null>(null);
+  const [findingStores, setFindingStores] = useState(false);
+
+  async function handleFindNearbyStores() {
+    if (!suitability) return;
+    setFindingStores(true);
+    setStoresError(null);
+    setStores(null);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setStoresError('Location permission is needed to find nearby stores.');
+        return;
+      }
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const results = await storeService.findNearby({
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude,
+        productId: suitability.product._id,
+      });
+      setStores(results);
+    } catch (err) {
+      setStoresError(err instanceof ApiError ? err.message : "Couldn't find nearby stores. Please try again.");
+    } finally {
+      setFindingStores(false);
+    }
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -221,16 +296,145 @@ export default function ProductDetailScreen() {
           <Icon name="chevron-forward" size={20} color={Colors.textMuted} />
         </TouchableOpacity>
 
+        {/* Check Product Suitability */}
+        <View style={[styles.suitabilityCard, Shadow.sm]}>
+          <View style={styles.suitabilityHeaderRow}>
+            <Icon name="shield-checkmark-outline" size={20} color={Colors.primary} />
+            <Text style={styles.sectionTitle}>Check Product Suitability</Text>
+          </View>
+          <Text style={styles.suitabilityDesc}>
+            Compare this product&apos;s ingredients against your Health Profile for allergy conflicts and documented
+            precautions.
+          </Text>
+
+          {!suitability && !suitabilityError && (
+            <PrimaryButton
+              title={checkingSuitability ? 'Checking…' : 'Check Product Suitability'}
+              onPress={handleCheckSuitability}
+              loading={checkingSuitability}
+              icon="shield-checkmark-outline"
+              style={{ marginTop: Spacing.md }}
+            />
+          )}
+
+          {suitabilityError && (
+            <>
+              <View style={styles.suitabilityErrorBox}>
+                <Icon name="information-circle-outline" size={16} color={Colors.textSecondary} />
+                <Text style={styles.suitabilityErrorText}>{suitabilityError}</Text>
+              </View>
+              {!isAuthenticated || isGuest ? (
+                <SecondaryButton title="Sign In" onPress={() => router.push('/login')} style={{ marginTop: Spacing.md }} />
+              ) : (
+                <SecondaryButton title="Try Again" onPress={handleCheckSuitability} style={{ marginTop: Spacing.md }} />
+              )}
+            </>
+          )}
+
+          {suitability && (
+            <View style={{ marginTop: Spacing.md }}>
+              <View style={[styles.verdictBadge, { backgroundColor: VERDICT_STYLE[suitability.verdict].bg }]}>
+                <Icon name={VERDICT_STYLE[suitability.verdict].icon} size={16} color={VERDICT_STYLE[suitability.verdict].fg} />
+                <Text style={[styles.verdictBadgeText, { color: VERDICT_STYLE[suitability.verdict].fg }]}>
+                  {suitability.verdictLabel}
+                </Text>
+              </View>
+              <Text style={styles.suitabilityExplanation}>{suitability.explanation}</Text>
+
+              {!suitability.hasHealthProfile && (
+                <TouchableOpacity onPress={() => router.push('/settings/health-profile' as any)}>
+                  <Text style={styles.suitabilityHint}>
+                    Add your Health Profile for a personalized allergy check →
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+              {suitability.doctorGuidance.length > 0 && (
+                <View style={styles.guidanceList}>
+                  {suitability.doctorGuidance.map((g) => (
+                    <View key={g.guidanceId} style={styles.guidanceRow}>
+                      <Icon name="ribbon-outline" size={14} color={Colors.gold} />
+                      <Text style={styles.guidanceText}>
+                        &quot;{g.title}&quot; — reviewed by Dr. {g.doctorName}, verified by AyurTrace+
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              <SecondaryButton title="Check Again" onPress={handleCheckSuitability} style={{ marginTop: Spacing.md }} />
+            </View>
+          )}
+        </View>
+
+        {/* Find Nearby Stores — only once suitability has resolved a real product */}
+        {suitability && (
+          <View style={[styles.suitabilityCard, Shadow.sm]}>
+            <View style={styles.suitabilityHeaderRow}>
+              <Icon name="storefront-outline" size={20} color={Colors.primary} />
+              <Text style={styles.sectionTitle}>Find Nearby Stores</Text>
+            </View>
+            <Text style={styles.suitabilityDesc}>
+              See which nearby stores currently have {suitability.product.productName} in stock.
+            </Text>
+
+            <PrimaryButton
+              title={findingStores ? 'Finding stores…' : 'Find Nearby Stores'}
+              onPress={handleFindNearbyStores}
+              loading={findingStores}
+              icon="navigate-outline"
+              style={{ marginTop: Spacing.md }}
+            />
+
+            {storesError && (
+              <View style={styles.suitabilityErrorBox}>
+                <Icon name="information-circle-outline" size={16} color={Colors.textSecondary} />
+                <Text style={styles.suitabilityErrorText}>{storesError}</Text>
+              </View>
+            )}
+
+            {stores && stores.length === 0 && (
+              <Text style={[styles.suitabilityDesc, { marginTop: Spacing.md }]}>
+                No nearby stores currently have this product in stock.
+              </Text>
+            )}
+
+            {stores && stores.length > 0 && (
+              <View style={styles.guidanceList}>
+                {stores.map((s) => (
+                  <View key={s._id} style={styles.storeRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.storeName}>{s.name}</Text>
+                      <Text style={styles.storeAddress}>{s.address}</Text>
+                      {s.inventory?.price != null && (
+                        <Text style={styles.storePrice}>₹{s.inventory.price}</Text>
+                      )}
+                    </View>
+                    <View style={{ alignItems: 'flex-end' }}>
+                      <Text style={styles.storeDistance}>{s.distanceKm} km</Text>
+                      {s.isOpenNow !== null && (
+                        <Text style={[styles.storeOpenStatus, { color: s.isOpenNow ? Colors.secondary : Colors.error }]}>
+                          {s.isOpenNow ? 'Open now' : 'Closed'}
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
+
         {/* AI Copilot CTA */}
         <View style={styles.copilotCtaBox}>
           <Icon name="sparkles" size={28} color={Colors.gold} />
           <Text style={styles.copilotCtaTitle}>Have questions about this product?</Text>
           <Text style={styles.copilotCtaSub}>
-            Ask AyurTrace Copilot to explain lab reports, botanical ingredients, or the traceability timeline.
+            Ask AyurTrace+ to explain lab reports, botanical ingredients, product suitability, or the traceability timeline.
           </Text>
 
           <PrimaryButton
-            title="Ask AyurTrace Copilot"
+            title="Ask AyurTrace+"
             onPress={() => router.push('/copilot')}
             icon="sparkles"
             style={{ marginTop: Spacing.md }}
@@ -376,6 +580,108 @@ const styles = StyleSheet.create({
     fontSize: Fonts.size.xs,
     color: Colors.textMuted,
     marginTop: 2,
+  },
+  suitabilityCard: {
+    backgroundColor: Colors.surfaceContainerLowest,
+    borderRadius: BorderRadius['2xl'],
+    padding: Spacing.lg,
+    marginBottom: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.outlineVariant,
+  },
+  suitabilityHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.sm,
+  },
+  suitabilityDesc: {
+    ...Type.bodySm,
+    color: Colors.textSecondary,
+  },
+  suitabilityErrorBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+    backgroundColor: Colors.lightGreen + '80',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginTop: Spacing.md,
+  },
+  suitabilityErrorText: {
+    ...Type.bodySm,
+    color: Colors.primary,
+    flex: 1,
+  },
+  verdictBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.full,
+    marginBottom: Spacing.sm,
+  },
+  verdictBadgeText: {
+    ...Type.labelMd,
+    fontSize: 12,
+  },
+  suitabilityExplanation: {
+    ...Type.bodySm,
+    color: Colors.text,
+    lineHeight: 20,
+  },
+  suitabilityHint: {
+    ...Type.bodySm,
+    color: Colors.primary,
+    fontFamily: Fonts.family.semiBold,
+    marginTop: Spacing.md,
+  },
+  guidanceList: {
+    marginTop: Spacing.md,
+    gap: Spacing.sm,
+  },
+  guidanceRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+  },
+  guidanceText: {
+    ...Type.bodySm,
+    color: Colors.textSecondary,
+    flex: 1,
+  },
+  storeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingVertical: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: Colors.outlineVariant,
+  },
+  storeName: {
+    ...Type.labelMd,
+    color: Colors.onSurface,
+  },
+  storeAddress: {
+    ...Type.bodySm,
+    color: Colors.textMuted,
+    marginTop: 1,
+  },
+  storePrice: {
+    ...Type.labelMd,
+    color: Colors.primary,
+    marginTop: 2,
+  },
+  storeDistance: {
+    ...Type.labelMd,
+    color: Colors.onSurface,
+  },
+  storeOpenStatus: {
+    ...Type.bodySm,
+    fontSize: 11,
+    marginTop: 1,
   },
   copilotCtaBox: {
     backgroundColor: Colors.darkGreen,

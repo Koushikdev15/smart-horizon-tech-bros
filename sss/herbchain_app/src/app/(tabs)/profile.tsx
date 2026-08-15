@@ -36,6 +36,7 @@ export default function ProfileScreen() {
     {
       title: 'Account & Saved Data',
       items: [
+        { id: 'health-profile', title: 'Health Profile', icon: 'medkit-outline', route: '/settings/health-profile' },
         { id: 'saved', title: 'Saved Products', icon: 'bookmark-outline', route: '/saved' },
         { id: 'history', title: 'Scan History', icon: 'time-outline', route: '/(tabs)/history' },
         { id: 'report', title: 'Report Product Issue', icon: 'flag-outline', route: '/report' },

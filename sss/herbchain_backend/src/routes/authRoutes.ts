@@ -7,10 +7,7 @@ const authController = new AuthController();
 
 router.post('/register', authController.register);
 router.post('/login', authController.login);
-
-// Placeholder for protected route test
-router.get('/profile', authenticateJWT, (req: any, res) => {
-  res.json({ success: true, data: req.user });
-});
+router.post('/refresh', authController.refresh);
+router.get('/profile', authenticateJWT, authController.profile);
 
 export default router;

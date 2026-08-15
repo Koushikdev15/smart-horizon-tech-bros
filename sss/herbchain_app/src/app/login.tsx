@@ -14,20 +14,42 @@ import { useRouter } from 'expo-router';
 import { Colors, Fonts, Spacing, BorderRadius, Shadow } from '@/theme';
 import { PrimaryButton, SecondaryButton } from '@/components/Buttons';
 import Icon from '@/components/Icon';
-import { useAuthStore, demoLogin } from '@/store/authStore';
+import { useAuthStore } from '@/store/authStore';
+import { authService } from '@/services/authService';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const login = useAuthStore((s) => s.login);
   const loginAsGuest = useAuthStore((s) => s.loginAsGuest);
 
-  const [emailOrPhone, setEmailOrPhone] = useState('koushik@example.com');
-  const [password, setPassword] = useState('password123');
+  const [emailOrPhone, setEmailOrPhone] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [otpMode, setOtpMode] = useState(false);
   const [otp, setOtp] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSignIn = () => {
-    demoLogin();
+  const handleSignIn = async () => {
+    if (otpMode) return; // OTP login isn't wired to a backend yet — see note below.
+    if (!emailOrPhone.trim() || !password) {
+      setError('Enter your email or phone and password.');
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+
+    const result = await authService.login(emailOrPhone, password);
+
+    setSubmitting(false);
+
+    if (!result.ok) {
+      setError(result.error ?? 'Sign in failed. Please try again.');
+      return;
+    }
+
+    await login(result.user!, result.tokens!);
     router.replace('/(tabs)');
   };
 
@@ -77,7 +99,7 @@ export default function LoginScreen() {
               <View style={styles.inputGroup}>
                 <View style={styles.labelRow}>
                   <Text style={styles.label}>Password</Text>
-                  <TouchableOpacity onPress={() => alert('Demo password is password123')}>
+                  <TouchableOpacity onPress={() => alert('Password reset is not available yet. Please contact support.')}>
                     <Text style={styles.forgotText}>Forgot Password?</Text>
                   </TouchableOpacity>
                 </View>
@@ -107,14 +129,27 @@ export default function LoginScreen() {
                     onChangeText={setOtp}
                     keyboardType="number-pad"
                     maxLength={6}
+                    editable={false}
                   />
                 </View>
+                <Text style={styles.otpUnavailableText}>
+                  OTP sign-in isn&apos;t available yet — please sign in with your password.
+                </Text>
               </View>
             )}
+
+            {error ? (
+              <View style={styles.errorBox}>
+                <Icon name="alert-circle" size={16} color={Colors.error} />
+                <Text style={styles.errorBoxText}>{error}</Text>
+              </View>
+            ) : null}
 
             <PrimaryButton
               title={otpMode ? 'Verify OTP & Sign In' : 'Sign In'}
               onPress={handleSignIn}
+              loading={submitting}
+              disabled={otpMode}
               size="lg"
               style={{ marginTop: Spacing.md }}
             />
@@ -254,6 +289,27 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.family.regular,
     fontSize: Fonts.size.sm + 1,
     color: Colors.text,
+  },
+  otpUnavailableText: {
+    fontFamily: Fonts.family.regular,
+    fontSize: Fonts.size.xs,
+    color: Colors.textMuted,
+    marginTop: Spacing.sm,
+  },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    backgroundColor: Colors.errorContainer,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  errorBoxText: {
+    flex: 1,
+    fontFamily: Fonts.family.regular,
+    fontSize: Fonts.size.xs + 1,
+    color: Colors.onErrorContainer,
   },
   otpToggleBtn: {
     alignItems: 'center',

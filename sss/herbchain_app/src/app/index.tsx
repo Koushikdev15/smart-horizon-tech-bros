@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors, Fonts, Spacing, BorderRadius } from '@/theme';
@@ -9,9 +9,12 @@ export default function SplashScreen() {
   const router = useRouter();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const hasSeenOnboarding = useAuthStore((s) => s.hasSeenOnboarding);
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
 
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
+  const [minTimeElapsed, setMinTimeElapsed] = useState(false);
+  const [hydrationTimedOut, setHydrationTimedOut] = useState(false);
 
   useEffect(() => {
     Animated.parallel([
@@ -27,18 +30,31 @@ export default function SplashScreen() {
       }),
     ]).start();
 
-    const timer = setTimeout(() => {
-      if (isAuthenticated) {
-        router.replace('/(tabs)');
-      } else if (hasSeenOnboarding) {
-        router.replace('/login');
-      } else {
-        router.replace('/onboarding');
-      }
-    }, 2400);
+    const minTimer = setTimeout(() => setMinTimeElapsed(true), 2400);
+    // Session hydration is an API call — don't let a slow/unreachable server
+    // strand the user on the splash screen forever.
+    const fallbackTimer = setTimeout(() => setHydrationTimedOut(true), 6000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(minTimer);
+      clearTimeout(fallbackTimer);
+    };
   }, []);
+
+  // Waits for both the minimum splash duration and session hydration (or its
+  // timeout) so the redirect below always reads the up-to-date auth state,
+  // not whatever it was at the moment this effect first ran.
+  useEffect(() => {
+    if (!minTimeElapsed || (!hasHydrated && !hydrationTimedOut)) return;
+
+    if (isAuthenticated) {
+      router.replace('/(tabs)');
+    } else if (hasSeenOnboarding) {
+      router.replace('/login');
+    } else {
+      router.replace('/onboarding');
+    }
+  }, [minTimeElapsed, hasHydrated, hydrationTimedOut, isAuthenticated, hasSeenOnboarding]);
 
   return (
     <View style={styles.container}>

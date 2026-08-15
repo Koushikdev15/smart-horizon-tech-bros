@@ -40,7 +40,7 @@ export default function LaboratoryScreen() {
         {/* Action Buttons */}
         <View style={{ marginTop: Spacing.md, gap: Spacing.sm }}>
           <PrimaryButton
-            title="Explain This Report with AI Copilot"
+            title="Explain This Report with AyurTrace+"
             onPress={() => router.push('/copilot')}
             icon="sparkles"
           />

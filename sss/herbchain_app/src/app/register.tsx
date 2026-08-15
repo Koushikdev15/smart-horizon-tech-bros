@@ -199,14 +199,7 @@ export default function RegisterScreen() {
     }
 
     // Non-fatal warning (e.g. wellness row failed) still lands on success.
-    login({
-      id: result.userId!,
-      name: draft.fullName.trim(),
-      email: draft.email.trim().toLowerCase(),
-      phone: draft.phone,
-      language: draft.language,
-      isGuest: false,
-    });
+    await login(result.user!, result.tokens!);
 
     router.replace({
       pathname: '/registration-complete',

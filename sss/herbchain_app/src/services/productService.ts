@@ -1,0 +1,28 @@
+import { apiRequest } from '@/lib/api';
+
+export type SuitabilityVerdict = 'NO_KNOWN_CONFLICT' | 'POTENTIAL_CONCERN' | 'HIGH_RISK_MATCH' | 'INSUFFICIENT_INFORMATION';
+
+export interface SuitabilityResult {
+  product: {
+    _id: string;
+    productName: string;
+    ingredients: { name: string; scientificName?: string }[];
+    healthTopics: string[];
+    contraindications?: string;
+  };
+  verdict: SuitabilityVerdict;
+  verdictLabel: string;
+  explanation: string;
+  allergyConflicts: { productIngredient: string; matchedAllergy: string }[];
+  hasHealthProfile: boolean;
+  doctorGuidance: { guidanceId: string; title: string; doctorName: string }[];
+}
+
+export const productService = {
+  async checkSuitability(identifier: { productId?: string; productName?: string }): Promise<SuitabilityResult> {
+    return apiRequest('/products/suitability', {
+      method: 'POST',
+      body: JSON.stringify(identifier),
+    });
+  },
+};
