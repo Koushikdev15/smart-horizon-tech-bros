@@ -99,13 +99,18 @@ export const authService = {
       };
     }
 
-    // Look the member up by email — the authenticated identity — then confirm the
-    // supplied Ayurvedic ID belongs to it.
-    const { data: member, error: memberError } = await supabase
+    // Look the member up by email — the authenticated identity. This returns a
+    // list rather than .maybeSingle() because one address can legitimately be
+    // shared by more than one registration; maybeSingle() throws on 2+ rows and
+    // would lock those members out entirely.
+    // ilike, not eq: addresses were stored as typed at registration, so some
+    // carry capitals ("Keshiy26@gmail.com"). Supabase Auth treats email
+    // case-insensitively, and an eq match on the lowercased value silently
+    // returns nothing for those members — locking them out.
+    const { data: matches, error: memberError } = await supabase
       .from('members')
       .select('*')
-      .eq('email', normalisedEmail)
-      .maybeSingle();
+      .ilike('email', normalisedEmail);
 
     if (memberError) {
       await supabase.auth.signOut();
@@ -115,7 +120,7 @@ export const authService = {
       };
     }
 
-    if (!member) {
+    if (!matches || matches.length === 0) {
       await supabase.auth.signOut();
       return {
         ok: false,
@@ -126,7 +131,13 @@ export const authService = {
       };
     }
 
-    if ((member.ayurvedicId ?? '').toUpperCase() !== normalisedId) {
+    // The Ayurvedic ID disambiguates which registration is signing in — the
+    // (email, ayurvedicId) pair is unique even when the email alone is not.
+    const member = matches.find(
+      (m) => (m.ayurvedicId ?? '').toUpperCase() === normalisedId,
+    );
+
+    if (!member) {
       await supabase.auth.signOut();
       return {
         ok: false,
