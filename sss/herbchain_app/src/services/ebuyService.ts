@@ -11,7 +11,10 @@ export interface PurchaseProduct {
   productName: string;
   healthTopics: string[];
   description?: string;
-  ingredients: { name: string }[];
+  usageInstructions?: string;
+  precautions?: string;
+  contraindications?: string;
+  ingredients: { name: string; scientificName?: string }[];
   regionAvailability: RegionAvailability | null;
 }
 

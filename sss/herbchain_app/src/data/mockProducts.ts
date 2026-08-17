@@ -3,7 +3,7 @@ import type { Product } from '@/types';
 export const PRODUCTS: Product[] = [
   {
     id: 'prod-001',
-    name: 'Ashwagandha Capsules',
+    name: 'Ashwagandha Tablets',
     type: 'Capsule',
     manufacturer: 'AyurTrace Demo Herbal Labs',
     batchId: 'AYUR-ASH-2026-000458',
@@ -112,7 +112,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'prod-002',
-    name: 'Tulsi Herbal Extract',
+    name: 'Tulsi Drops',
     type: 'Liquid Extract',
     manufacturer: 'Kerala Ayurveda Labs',
     batchId: 'AYUR-TUL-2026-000271',
@@ -187,7 +187,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'prod-003',
-    name: 'Amla Herbal Powder',
+    name: 'Amla Juice',
     type: 'Powder',
     manufacturer: 'Vaidya Naturals',
     batchId: 'AYUR-AML-2026-000198',
@@ -255,7 +255,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'prod-004',
-    name: 'Triphala Tablets',
+    name: 'Triphala Churna',
     type: 'Tablet',
     manufacturer: 'Recalled Pharma Co.',
     batchId: 'AYUR-TRI-2026-000099',

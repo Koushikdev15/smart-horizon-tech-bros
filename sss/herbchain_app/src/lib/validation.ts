@@ -60,6 +60,19 @@ export const passwordStrength = (v: string): PasswordStrength => {
 };
 
 /** DOB as DD/MM/YYYY. Registration is 18+. */
+/**
+ * Auto-inserts the `/` separators as the user types digits — the numeric
+ * keypad (keyboardType="number-pad") has no slash key, so typing DD/MM/YYYY
+ * manually is otherwise impossible. Recomputed from digits-only each call so
+ * backspace/paste both behave correctly regardless of prior formatting.
+ */
+export const formatDobInput = (value: string): string => {
+  const digits = value.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+};
+
 export const validateDob = (v: string): string | undefined => {
   if (!v.trim()) return 'Date of birth is required';
   const m = v.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);

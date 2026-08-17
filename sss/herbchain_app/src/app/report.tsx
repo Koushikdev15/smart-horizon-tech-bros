@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: Spacing.base,
-    paddingBottom: Spacing['2xl'],
+    paddingBottom: 320,
   },
   attachedBox: {
     flexDirection: 'row',

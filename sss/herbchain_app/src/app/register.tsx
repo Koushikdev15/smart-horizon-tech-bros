@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -26,6 +26,8 @@ import {
   STATES,
   ALLERGY_OPTIONS,
   CONDITION_OPTIONS,
+  MEDICAL_HISTORY_OPTIONS,
+  CURRENT_MEDICATION_OPTIONS,
   TRI_STATE_OPTIONS,
   ALLERGY_TRI_STATE,
   CONDITION_TRI_STATE,
@@ -37,6 +39,7 @@ import {
   validatePassword,
   validateConfirmPassword,
   validateDob,
+  formatDobInput,
   validateAadhaar,
   validatePan,
   passwordStrength,
@@ -88,6 +91,8 @@ const emptyDraft: RegistrationDraft = {
     hasCurrentHealthIssues: 'undisclosed',
     hasExistingConditions: 'undisclosed',
     conditions: [],
+    medicalHistoryTags: [],
+    currentMedicationTags: [],
   },
   wellnessProvided: false,
   consent: {
@@ -102,14 +107,13 @@ export default function RegisterScreen() {
   const router = useRouter();
   const login = useAuthStore((s) => s.login);
 
-  console.log('[DIAG] RegisterScreen render', Date.now());
-
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<RegistrationDraft>(emptyDraft);
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const scrollRef = useRef<ScrollView>(null);
 
   const set = <K extends keyof RegistrationDraft>(key: K, value: RegistrationDraft[K]) =>
     setDraft((d) => ({ ...d, [key]: value }));
@@ -221,6 +225,7 @@ export default function RegisterScreen() {
         return (
           <>
             <FormField
+              scrollViewRef={scrollRef}
               key="field-fullName"
               label="Full Name"
               icon="person-outline"
@@ -231,6 +236,7 @@ export default function RegisterScreen() {
               error={errors.fullName}
             />
             <FormField
+              scrollViewRef={scrollRef}
               key="field-phone"
               label="Mobile Number"
               icon="call-outline"
@@ -242,6 +248,7 @@ export default function RegisterScreen() {
               error={errors.phone}
             />
             <FormField
+              scrollViewRef={scrollRef}
               key="field-email"
               label="Email Address"
               icon="mail-outline"
@@ -253,6 +260,7 @@ export default function RegisterScreen() {
               error={errors.email}
             />
             <FormField
+              scrollViewRef={scrollRef}
               key="field-password"
               label="Password"
               icon="lock-closed-outline"
@@ -282,6 +290,7 @@ export default function RegisterScreen() {
               </View>
             ) : null}
             <FormField
+              scrollViewRef={scrollRef}
               key="field-confirmPassword"
               label="Confirm Password"
               icon="shield-checkmark-outline"
@@ -299,10 +308,11 @@ export default function RegisterScreen() {
         return (
           <>
             <FormField
+              scrollViewRef={scrollRef}
               label="Date of Birth"
               icon="calendar-outline"
               value={draft.dateOfBirth}
-              onChangeText={(v) => set('dateOfBirth', v)}
+              onChangeText={(v) => set('dateOfBirth', formatDobInput(v))}
               placeholder="DD/MM/YYYY"
               keyboardType="number-pad"
               maxLength={10}
@@ -310,6 +320,7 @@ export default function RegisterScreen() {
               error={errors.dateOfBirth}
             />
             <FormField
+              scrollViewRef={scrollRef}
               label="Aadhaar Number"
               icon="card-outline"
               value={draft.aadhaar}
@@ -322,6 +333,7 @@ export default function RegisterScreen() {
               error={errors.aadhaar}
             />
             <FormField
+              scrollViewRef={scrollRef}
               label="PAN Number"
               icon="document-text-outline"
               value={draft.pan}
@@ -364,6 +376,7 @@ export default function RegisterScreen() {
               error={errors.region}
             />
             <FormField
+              scrollViewRef={scrollRef}
               label="Full Address"
               icon="home-outline"
               value={draft.address}
@@ -412,6 +425,7 @@ export default function RegisterScreen() {
                   }
                 />
                 <FormField
+              scrollViewRef={scrollRef}
                   label="Allergy details"
                   value={draft.wellness.allergyNotes ?? ''}
                   onChangeText={(v) => setWellness('allergyNotes', v)}
@@ -430,6 +444,7 @@ export default function RegisterScreen() {
             />
             {draft.wellness.hasCurrentHealthIssues === 'yes' && (
               <FormField
+              scrollViewRef={scrollRef}
                 label="Describe your health issue"
                 value={draft.wellness.currentHealthIssues ?? ''}
                 onChangeText={(v) => setWellness('currentHealthIssues', v)}
@@ -461,19 +476,48 @@ export default function RegisterScreen() {
               />
             )}
 
-            <FormField
+            <ChipMultiSelect
               label="Medical History"
+              options={MEDICAL_HISTORY_OPTIONS}
+              selected={draft.wellness.medicalHistoryTags}
+              onToggle={(v) =>
+                setWellness(
+                  'medicalHistoryTags',
+                  draft.wellness.medicalHistoryTags.includes(v)
+                    ? draft.wellness.medicalHistoryTags.filter((t) => t !== v)
+                    : [...draft.wellness.medicalHistoryTags, v],
+                )
+              }
+            />
+            <FormField
+              scrollViewRef={scrollRef}
+              label="Further details"
               value={draft.wellness.medicalHistory ?? ''}
               onChangeText={(v) => setWellness('medicalHistory', v)}
-              placeholder="Tell us about any relevant medical history"
+              placeholder="Add any specifics not covered above"
               multiline
               optional
             />
-            <FormField
+
+            <ChipMultiSelect
               label="Current Medications"
+              options={CURRENT_MEDICATION_OPTIONS}
+              selected={draft.wellness.currentMedicationTags}
+              onToggle={(v) =>
+                setWellness(
+                  'currentMedicationTags',
+                  draft.wellness.currentMedicationTags.includes(v)
+                    ? draft.wellness.currentMedicationTags.filter((t) => t !== v)
+                    : [...draft.wellness.currentMedicationTags, v],
+                )
+              }
+            />
+            <FormField
+              scrollViewRef={scrollRef}
+              label="Further details"
               value={draft.wellness.currentMedications ?? ''}
               onChangeText={(v) => setWellness('currentMedications', v)}
-              placeholder="List any medicines or supplements you currently use"
+              placeholder="Specific medicine names, dosage, or supplements"
               multiline
               optional
             />
@@ -569,6 +613,7 @@ export default function RegisterScreen() {
         </View>
 
         <ScrollView
+          ref={scrollRef}
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
@@ -625,7 +670,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  scroll: { paddingHorizontal: Spacing.gutter, paddingTop: Spacing.base, paddingBottom: Spacing['3xl'] },
+  // Generous bottom padding so the last field/button in a long step can
+  // always be scrolled well above the keyboard rather than staying pinned
+  // right at its edge — plain padding, not a native keyboard-avoiding lib,
+  // to stay compatible with Expo Go.
+  scroll: { paddingHorizontal: Spacing.gutter, paddingTop: Spacing.base, paddingBottom: 320 },
   title: { ...Type.headlineLgMobile, color: Colors.primary },
   subtitle: { ...Type.bodyMd, color: Colors.onSurfaceVariant, marginTop: Spacing.sm, marginBottom: Spacing.xl },
   card: {

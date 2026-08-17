@@ -17,8 +17,10 @@ const startServer = async () => {
   // here — after dotenv.config() has already populated process.env.
   const { default: app } = await import('./app');
   const { connectDatabase } = await import('./config/database');
+  const { seedIfEmpty } = await import('./seed/seedProducts');
 
   await connectDatabase();
+  await seedIfEmpty().catch((err) => logger.error(`Product seeding failed: ${(err as Error).message}`));
 
   const server = http.createServer(app);
   

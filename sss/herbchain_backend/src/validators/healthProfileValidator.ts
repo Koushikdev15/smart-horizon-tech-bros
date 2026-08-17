@@ -14,7 +14,9 @@ export const upsertHealthProfileSchema = Joi.object({
   hasExistingConditions: triState,
   conditions: Joi.array().items(Joi.string()),
 
+  medicalHistoryTags: Joi.array().items(Joi.string()),
   medicalHistory: Joi.string().allow(''),
+  currentMedicationTags: Joi.array().items(Joi.string()),
   currentMedications: Joi.string().allow(''),
   previousAdverseReactions: Joi.string().allow(''),
 

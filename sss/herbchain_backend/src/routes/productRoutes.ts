@@ -13,6 +13,7 @@ router.post('/', authenticateJWT, requireRole(['Manufacturer']), controller.crea
 // Static paths before the generic '/:id' GET below.
 router.get('/by-qr/:qrCode', controller.getByQrCode);
 router.post('/suitability', authenticateJWT, controller.checkSuitability);
+router.post('/sustainability', controller.getSustainability);
 router.get('/purchase', controller.browseForPurchase);
 
 router.get('/:id/offers', controller.getOffers);

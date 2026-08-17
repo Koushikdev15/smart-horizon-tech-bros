@@ -1,10 +1,13 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Colors, Fonts, BorderRadius } from '@/theme';
 import Icon, { IconName } from '@/components/Icon';
 import { View, StyleSheet } from 'react-native';
 
 export default function TabsLayout() {
+  const { t } = useTranslation();
+
   return (
     <Tabs
       screenOptions={({ route }) => ({
@@ -46,8 +49,8 @@ export default function TabsLayout() {
           let iconName: IconName = 'home';
           if (route.name === 'index') {
             iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'history') {
-            iconName = focused ? 'time' : 'time-outline';
+          } else if (route.name === 'products') {
+            iconName = focused ? 'leaf' : 'leaf-outline';
           } else if (route.name === 'ebuy') {
             iconName = focused ? 'cart' : 'cart-outline';
           } else if (route.name === 'profile') {
@@ -63,13 +66,15 @@ export default function TabsLayout() {
         },
       })}
     >
-      <Tabs.Screen name="index" options={{ title: 'Home' }} />
-      <Tabs.Screen name="history" options={{ title: 'History' }} />
-      <Tabs.Screen name="scan" options={{ title: 'Scan' }} />
-      <Tabs.Screen name="ebuy" options={{ title: 'E-Buy' }} />
-      <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
+      <Tabs.Screen name="index" options={{ title: t('nav.home') }} />
+      <Tabs.Screen name="products" options={{ title: t('nav.products') }} />
+      <Tabs.Screen name="scan" options={{ title: t('nav.scan') }} />
+      <Tabs.Screen name="ebuy" options={{ title: t('nav.ebuy') }} />
+      <Tabs.Screen name="profile" options={{ title: t('nav.profile') }} />
       {/* Still reachable via the header bell icon — just no longer a duplicate bottom-tab entry. */}
       <Tabs.Screen name="alerts" options={{ href: null }} />
+      {/* Still reachable via Profile → Scan History — just no longer a duplicate bottom-tab entry. */}
+      <Tabs.Screen name="history" options={{ href: null }} />
     </Tabs>
   );
 }

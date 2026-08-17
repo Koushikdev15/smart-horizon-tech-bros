@@ -34,7 +34,9 @@
   "nav": {
     "home": "Home",
     "history": "History",
+    "products": "Products",
     "scan": "Scan",
+    "ebuy": "E-Buy",
     "alerts": "Alerts",
     "profile": "Profile"
   },
@@ -69,17 +71,26 @@
     "logout": "Logout"
   },
   "home": {
-    "greeting": "Hello, {{name}}",
+    "greeting": "Good Morning, {{name}}",
+    "greetingSub": "Discover the story behind your Ayurveda.",
     "verifyTitle": "Verify Your Product",
-    "verifyDesc": "Scan the AyurTrace+ QR code to verify authenticity, origin, laboratory information and the complete product journey.",
+    "verifyDesc": "Scan the AyurTrace+ QR code to verify authenticity, track provenance, and explore the botanical journey.",
     "scanProduct": "Scan Product",
     "enterBatchId": "Enter Batch ID",
+    "verifiedBatches": "Verified Batches",
+    "blockchainTrackedStat": "Blockchain Tracked",
+    "askAyurTrace": "Ask AyurTrace+",
+    "search": "Search",
+    "searchSub": "Products & Batch",
+    "compare": "Compare",
+    "compareSub": "Up to 3 products",
     "recentScans": "Recent Scans",
     "savedProducts": "Saved Products",
     "verifiedSources": "Verified Sources",
     "labVerified": "Lab Verified",
     "blockchainTracked": "Blockchain Tracked",
-    "viewAll": "View All"
+    "viewAll": "View All",
+    "trustPillars": "Blockchain Trust Pillars"
   },
   "scanner": {
     "title": "Scan AyurTrace+ QR",
@@ -277,17 +288,27 @@
     "security": "Security"
   },
   "profileScreen": {
-    "title": "Profile",
+    "title": "Customer Profile",
     "personalInfo": "Personal Information",
+    "healthProfile": "Health Profile",
     "savedProducts": "Saved Products",
     "scanHistory": "Scan History",
+    "reportIssue": "Report Product Issue",
     "notificationPrefs": "Notification Preferences",
     "language": "Language",
     "privacySecurity": "Privacy & Security",
     "helpSupport": "Help & Support",
     "aboutApp": "About AyurTrace+",
     "terms": "Terms & Conditions",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "sectionAccount": "Account & Saved Data",
+    "sectionPreferences": "Preferences & Security",
+    "sectionSupport": "Information & Support",
+    "signOut": "Sign Out",
+    "exitGuest": "Exit Guest Mode",
+    "guestAccess": "Guest Access",
+    "verifiedMember": "Verified Member",
+    "login": "Login"
   },
   "notifications": {
     "title": "Notification Settings",

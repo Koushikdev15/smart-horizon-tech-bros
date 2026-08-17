@@ -18,7 +18,10 @@ export interface IHealthProfile extends Document {
   hasExistingConditions: TriState;
   conditions: string[];
 
+  /** Quick-select category tags — "points" in the UI; the string fields below hold the free-text paragraph. */
+  medicalHistoryTags: string[];
   medicalHistory?: string;
+  currentMedicationTags: string[];
   currentMedications?: string;
   previousAdverseReactions?: string;
 
@@ -50,7 +53,9 @@ const HealthProfileSchema: Schema = new Schema(
     hasExistingConditions: { type: String, enum: TRI_STATE_VALUES, default: 'undisclosed' },
     conditions: { type: [String], default: [] },
 
+    medicalHistoryTags: { type: [String], default: [] },
     medicalHistory: { type: String },
+    currentMedicationTags: { type: [String], default: [] },
     currentMedications: { type: String },
     previousAdverseReactions: { type: String },
 

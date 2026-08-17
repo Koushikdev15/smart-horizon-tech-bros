@@ -1,0 +1,132 @@
+shop_name,city,state,latitude,longitude,address,phone_number,rating,rating_count
+Ruchika Ayurvedic Store,Delhi,Delhi,28.6084148,77.0569414,"G, 17A, Som Bazar Rd, Vishwas Park Extn, Raja Puri, Uttam Nagar, New Delhi, Delhi, 110059",+91 99993 47170,4.7,202
+Nisha Ayurvedic Centre,Delhi,Delhi,28.637827,77.0385662,"Near Tyagi Market Mohan Garden, Balaji Chowk Rd, Uttam Nagar, New Delhi, Delhi, 110059",+91 94675 41819,4.9,76
+Matsyaveda Herbals,Delhi,Delhi,28.5656881,77.1881083,"34, Mohammadpur Main Rd, Bhikaji Cama Place, RK Puram, New Delhi, Delhi 110066",+91 99994 04323,4.7,47
+Ahuja Ayurvedic Store,Delhi,Delhi,28.6373756,77.0970028,"33, Shivaji Marg, Double Storey, Block 3, Tilak Nagar, New Delhi, Delhi, 110018",+91 90134 34557,4.6,185
+Dhanvantari Arogya,Delhi,Delhi,28.6930443,77.1350949,"Plot No 5, Block B, Lok Vihar, Pitampura, New Delhi, Delhi, 110034",+91 11 4595 5555,4.8,24
+Ayushleaf Lifecare,Delhi,Delhi,28.6209636,77.0600776,"WZ G-18, 1st Floor, Arya Samaj Rd, Block G, Uttam Nagar, New Delhi, Delhi, 110059",+91 99539 71822,4.5,182
+Shankar Ayurved Agency,Delhi,Delhi,28.609214,77.1003209,"Shop No. 6-7, Main Pankha Road, Near Sagarpur Bus Stand, Sagar Pur, Delhi, 110058",+91 98701 87871,4.5,24
+Shree Radhe Krishna Traders - Ayurvedic Wholesale,Delhi,Delhi,28.6939895,77.0587429,"I-118, Near 70 Feet Road, Block I, Prem Nagar II, Kirari Suleman Nagar, Delhi, 110086",,4.9,78
+Naved Unani & Ayurvedic Store,Mumbai,Maharashtra,19.0427139,72.8477707,"Shop No. 85, Jasmine Mill Rd, Mahim East, Dharavi, Mumbai, Maharashtra 400017",+91 99675 29787,4.6,20
+Saksham Ayurvedic Medical Store,Mumbai,Maharashtra,19.1251411,72.85669,"Shop No 2, Jijamata Rd, Malpa Dongri, Andheri East, Mumbai, Maharashtra 400093",+91 90828 03459,4.9,251
+Naaz Gandhi,Mumbai,Maharashtra,18.9680312,72.8286131,"Shop No.2, Ripon House 249, Maulana Azad Rd, Nagpada, Mumbai, Maharashtra 400008",+91 91723 12373,4.9,113
+Shuddh Ayurveda Aushadhi Bhandar,Mumbai,Maharashtra,18.9544565,72.8319066,"408, Ghoghari Mohalla St, Pydhonie, Bhuleshwar, Mumbai, Maharashtra 400003",+91 76669 28029,5.0,460
+Ashtang Herbals - Official Store,Mumbai,Maharashtra,19.2053577,72.84376,"Shop no-3, Laabh Sarita Bldg, Kandivali West, Mumbai, Maharashtra 400067",+91 99206 56865,4.9,423
+Krishna Ayurvedic Bhandar,Mumbai,Maharashtra,19.1264825,72.8595431,"Shop No 5/3, Pump House, Jijamata Rd, Andheri East, Mumbai, Maharashtra 400093",+91 89763 97260,4.9,60
+Jay Jalaram Ayurved Bhandar,Mumbai,Maharashtra,19.2294389,72.8587126,"Yashwant Shopping Centre, 68, Kasturba Cross Rd No 7, Borivali East, Mumbai, Maharashtra 400066",+91 98707 13260,3.2,52
+Namaha Dhanvantri,Mumbai,Maharashtra,19.2232421,72.853242,"Shop No.18, Anjana Bldg.3, Shimpoli Rd, Borivali West, Mumbai, Maharashtra 400092",+91 99209 20942,4.9,104
+Sanjeevani Ayurvedic Bhavan,Bangalore,Karnataka,12.9230331,77.5828266,"715/328, 36th A Cross Rd, 4th Block, Jayanagar, Bengaluru, Karnataka 560041",+91 98441 81238,4.9,248
+SD Ayurveda Mane - Holistic Wellness Centre,Bangalore,Karnataka,12.8507463,77.651938,"No-25, Vinayaka Layout, Electronic City Phase I, Bengaluru, Karnataka 560100",+91 85928 58304,4.8,1203
+Ayurvedic Medicine Shop,Bangalore,Karnataka,12.9607916,77.52792,"XG6H+857, Basaveshawara HBCS Layout 2nd Stage, Chandra Layout, Bengaluru, Karnataka 560040",,4.6,5
+Vijayanagaram Ayurved Bhandar,Bangalore,Karnataka,12.9717089,77.5389303,"1235, 9th Main Road, Metro Station Vijaynagar, Bengaluru, Karnataka 560040",+91 97414 61087,4.4,108
+Sajjan Ayur Zone - Ayurveda Medicine Distributor,Bangalore,Karnataka,13.0301381,77.6654681,"No.5, Sneha Enclave, Venkateshwara Layout Main Road, Horamavu, Bengaluru, Karnataka 560113",+91 98441 88738,4.8,71
+AYURCENTRAL,Bangalore,Karnataka,13.0318076,77.6359309,"No 161/110/1, Hennur Main Rd, HBR Layout 4th Block, Bengaluru, Karnataka 560043",+91 77955 05101,4.8,50
+Mahalakshmi Ayurvedic Centre,Bangalore,Karnataka,13.0079721,77.5464723,"No. 166/13, 12th Main, Mahalakshmi Layout, Bengaluru, Karnataka 560086",+91 95902 00068,4.9,18
+Chennai Ayurveda Pharmacy,Chennai,Tamil Nadu,13.0385681,80.225663,"Station Rd, West Mambalam, Chennai, Tamil Nadu 600033",+91 97907 59342,4.7,16
+Raj Ayurvedic Stores,Chennai,Tamil Nadu,13.0389404,80.2288367,"Shop No. 13, Rameswaram St, Postal Colony, T. Nagar, Chennai, Tamil Nadu 600017",+91 94442 64116,4.5,26
+Perambur Pharmacy,Chennai,Tamil Nadu,13.1095089,80.244616,"No: 168/1, Patel Rd, Near Railway Station, Perambur, Chennai, Tamil Nadu 600011",+91 44 4556 1212,4.8,33
+City Ayurvedic Stores,Chennai,Tamil Nadu,13.0387046,80.2262346,"Lake View Road, 19, Hanuman Koil St, West Mambalam, Chennai, Tamil Nadu 600033",+91 44 2371 6751,4.4,29
+Maleshwar IMC Herbal Store Chennai,Chennai,Tamil Nadu,13.0888365,80.2509813,"52, Brick Kiln Rd, Salama Nagar, Purasaiwakkam, Chennai, Tamil Nadu 600007",+91 74128 68746,3.8,5
+Himalaya - Sri Periyandavar Ayurvedic,Chennai,Tamil Nadu,13.0322992,80.2694353,"29, Sri Kapaleaswarar, S Mada St, Mylapore, Chennai, Tamil Nadu 600004",+91 80562 44866,4.9,14
+Roopam Ayurveda,Chennai,Tamil Nadu,13.092754,80.2795213,"111, Audiappa Naicken St, George Town, Chennai, Tamil Nadu 600001",+91 93420 84496,5.0,49
+K. Somu Chetty & Co,Chennai,Tamil Nadu,13.0860283,80.2797718,"Old # 173, New # 157, Rasappa Chetty St, Park Town, Chennai, Tamil Nadu 600003",+91 94442 79664,4.9,121
+Deep Jyoti Medical Stores,Kolkata,West Bengal,22.5767997,88.3737082,"296 A.P.C. Road, Rajabazar Crossing, Kolkata, West Bengal 700009",+91 90074 49644,5.0,375
+Parashar Ayurved Bhawan,Kolkata,West Bengal,22.5793703,88.3962455,"Ekta Residency, 9F, Jogodyan Ln, Phoolbagan, Kolkata, West Bengal 700054",+91 90380 67000,5.0,265
+Baidyanath Ayurved (Bhartiya Medicine Centre),Kolkata,West Bengal,22.5799742,88.3570042,"161/1, Mahatma Gandhi Rd, Barabazar Market, Kolkata, West Bengal 700007",+91 96744 86593,4.8,55
+Kolkata Ayurveda,Kolkata,West Bengal,22.5024846,88.3815066,"6/21, Near Axis Bank, Dhakuria, Kolkata, West Bengal 700078",+91 33 2418 0010,4.9,28
+Shifa Dawakhana,Kolkata,West Bengal,22.5583273,88.3570577,"117, Collin St, Janbazar, Park Street area, Kolkata, West Bengal 700016",+91 98744 06307,5.0,57
+Radha Raman Ayurved Bhawan,Kolkata,West Bengal,22.5047237,88.3449079,"28, Deshpran Sasmal Rd, Tollygunge, Kolkata, West Bengal 700033",+91 98311 94997,4.9,48
+Monarch Enterprises Ayurvedic Medicine,Kolkata,West Bengal,22.5348813,88.3874642,"61/1Z/48, 3rd Floor, Topsia Rd, Kolkata, West Bengal 700039",,5.0,4
+Baidyanath Ayurveda Shop,Kolkata,West Bengal,22.5389621,88.3200511,"114A, Karl Marx Sarani Rd, Khidderpore, Kolkata, West Bengal 700023",+91 98318 69549,3.9,92
+Sree Ramsha Ayurvedic Stores,Hyderabad,Telangana,17.4039533,78.4950869,"1-1-230/11, Union Bank Lane, Chikkadpally, Hyderabad, Telangana 500020",+91 40 2766 0989,4.7,92
+Maharshi Ayurvedic Store,Hyderabad,Telangana,17.4307342,78.4281905,"8-3-231/A/39, Sri Krishna Nagar, Yousufguda, Hyderabad, Telangana 500045",+91 90102 88581,4.8,23
+Nizam Dawasaz & Unani Store,Hyderabad,Telangana,17.3622978,78.4717122,"21-2-372/1, Laad Bazar, Charminar, Hyderabad, Telangana 500002",+91 88013 26865,4.8,162
+Mahboobia Dawasaaz (Unani & Ayurvedic) Store,Hyderabad,Telangana,17.3723159,78.4996811,"Opp Sohail Hotel, Malakpet, Hyderabad, Telangana 500036",+91 80193 82088,4.7,151
+Balu Herbals Ayurvedic Medicine Clinic - JNTU Shop,Hyderabad,Telangana,17.4857874,78.3908625,"Flat No.16, Phase-III, JNTU Rd, Kukatpally, Hyderabad, Telangana 500072",+91 81218 20001,4.5,164
+Balu Herbals Ayurvedic - Jagadgiri Gutta Shop,Hyderabad,Telangana,17.5023955,78.4194729,"A-458, Pipeline Rd, Jagathgiri Gutta, Hyderabad, Telangana 500072",+91 81218 20009,4.8,67
+Balu Herbals Ayurvedic Medical Store - Shaikpet Shop,Hyderabad,Telangana,17.4085181,78.3940505,"C95V+9JP, OU Colony, Shaikpet, Hyderabad, Telangana 500104",+91 91009 99590,4.4,48
+SK Ayurveda,Pune,Maharashtra,18.6017943,73.8140741,"Lane No-4, Maharashtra Colony, Pimple Saudagar, Pune, Maharashtra 411061",+91 82759 43157,4.9,50
+Omguru Traders @ayurvedic,Pune,Maharashtra,18.5613802,73.9310199,"Sai Nagari, Chandan Nagar, Wadgaon Sheri, Pune, Maharashtra 411014",+91 90117 01390,4.9,34
+Aastha Herbals,Pune,Maharashtra,18.5129334,73.8537456,"Shanipar Chowk, 1087, Bajirao Rd, Sadashiv Peth, Pune, Maharashtra 411030",+91 81808 10399,4.7,73
+Poona Ayurved & Herbals,Pune,Maharashtra,18.4775589,73.8897287,"Shop No 11, C1, Bramha Estate Road, Kondhwa, Pune, Maharashtra 411048",+91 76663 73510,4.9,30
+Gurukul Ayurvedh Bhawan,Pune,Maharashtra,18.4932632,73.9323617,"Shop No.13, Pratibha Residency, Hadapsar, Pune, Maharashtra 411028",+91 96075 48684,4.9,109
+Atharva Ayurveda,Pune,Maharashtra,18.4766598,73.8209156,"Samarth Park, Shop No. C-4, Sinhgad Rd, Pune, Maharashtra 411051",+91 95112 62160,5.0,51
+Scienuvo Biopharma LLP Herbal Ayurvedic Unani,Pune,Maharashtra,18.4649249,73.8904838,"Raviraj Astria, B-102, Parge Nagar Road, Kondhwa, Pune, Maharashtra 411048",+91 86001 06637,5.0,31
+Shobha Ayurvedic,Ahmedabad,Gujarat,23.0521055,72.534002,"Subhash Chowk, Maruti Complex, Gurukul Rd, Memnagar, Ahmedabad, Gujarat 380052",+91 99989 32271,4.9,149
+Sri Sri Tattva Ayurvedic Store (Gurukul Road),Ahmedabad,Gujarat,23.0543355,72.5340931,"Vrindavan Complex, E/27, Gurukul Rd, Memnagar, Ahmedabad, Gujarat 380052",+91 99789 99439,4.9,63
+Alhind Ayurvedic & Unani Store,Ahmedabad,Gujarat,22.9919546,72.581531,"Highway Commercial Center, Gate No 2, Danilimda, Ahmedabad, Gujarat 380028",+91 91737 99765,5.0,46
+Vashishth Ayurveda & Panchkarma,Ahmedabad,Gujarat,23.1026854,72.5950884,"Ground Floor, 4D Square Mall, 80, Motera, Ahmedabad, Gujarat 380005",+91 84015 25759,4.8,79
+Shree Balaji Ayurvedic Store,Ahmedabad,Gujarat,23.0238851,72.5705761,"Devnandan Mega Mall, Ashram Rd, Ellisbridge, Ahmedabad, Gujarat 380009",+91 94277 44014,4.7,106
+Unnat Ayurvedic Store,Ahmedabad,Gujarat,23.0713761,72.5613539,"Shop No.2-3, VN Residency, Nava Vadaj, Ahmedabad, Gujarat 380013",+91 81609 27058,4.3,6
+Shri Baba Ayurved Store,Jaipur,Rajasthan,26.9044097,75.7530566,"Shop no 2a, Queens Rd, Vaishali Nagar, Jaipur, Rajasthan 302021",+91 88248 21008,4.9,543
+Mahaveer Medical & Ayurvedic Store,Jaipur,Rajasthan,26.8748249,75.7907468,"871, JP Phatak Rd, Barkat Nagar, Jaipur, Rajasthan 302015",+91 98286 79444,4.4,38
+Shubham Ayurvedic Store,Jaipur,Rajasthan,26.9043192,75.7529936,"Shop No.6, Queens Rd, Vaishali Nagar, Jaipur, Rajasthan 302021",+91 97821 53851,4.8,183
+Jaipur Ayurvedic Store,Jaipur,Rajasthan,26.9205107,75.8171691,"76, Kishanpole Bazar Rd, Jalupura, Jaipur, Rajasthan 302001",,5.0,1
+Shivam Ayurvedic Store,Jaipur,Rajasthan,26.9110899,75.7346653,"Shop No.195-A, Ganga Sagar-B, Vaishali Nagar, Jaipur, Rajasthan 302021",+91 82093 28480,5.0,12
+Kerala Ayurveda Kendra,Jaipur,Rajasthan,26.9367125,75.786504,"32, Opposite Banipark, Indra Colony, Jaipur, Rajasthan 302016",+91 87400 00855,4.9,4282
+Shekhawati Ayurvedic,Jaipur,Rajasthan,26.8616132,75.7626813,"Sector 6, Near Apollo Pharmacy, Mansarovar, Jaipur, Rajasthan 302020",+91 98874 96152,4.3,23
+Maharshi Charak Ayurveda,Jaipur,Rajasthan,26.9258767,75.7910173,"AD 4C-A, Devi Marg, Bani Park, Jaipur, Rajasthan 302016",+91 98291 07138,4.9,1918
+Gayatri Jadi Booti,Lucknow,Uttar Pradesh,26.8738925,80.96945,"Pandey's, Villa 252 A, Ayodhya Road, Indira Nagar, Lucknow, Uttar Pradesh 226016",+91 94500 28115,4.9,172
+Mishra Ayurvedic Aushadhi Bikri Kendra & Clinic,Lucknow,Uttar Pradesh,26.8135117,80.9024836,"Shop No.36, Metro Station, Alambagh, Lucknow, Uttar Pradesh 226005",+91 63068 28924,4.8,223
+Arogya Medicals,Lucknow,Uttar Pradesh,26.908633,80.9564279,"LGF-3, Kursi Rd, Jankipuram, Lucknow, Uttar Pradesh 226021",+91 94535 55538,5.0,324
+Swadeshi Ayurvedic Agency,Lucknow,Uttar Pradesh,26.8857719,80.9955233,"Shop No.6, Sector 16, Indira Nagar, Lucknow, Uttar Pradesh 226016",+91 87954 06124,4.9,53
+Jeevanshree Enterprises Sales Ayurvedic Medicine,Lucknow,Uttar Pradesh,26.8621926,81.0008848,"Palak Tower, 3/76, Vibhuti Khand, Gomti Nagar, Lucknow, Uttar Pradesh 226010",,5.0,6
+Shri Sai Ayurvedic Stores,Lucknow,Uttar Pradesh,26.7899796,80.9099824,"D3/437 Sector H LDA Colony, Ashiyana, Lucknow, Uttar Pradesh 226012",+91 95404 17839,3.8,19
+Kamit Ayurvedic Store,Lucknow,Uttar Pradesh,26.8575628,81.0012004,"2/470, Neelkanth Road, Vivek Khand 2, Gomti Nagar, Lucknow, Uttar Pradesh 226010",+91 63882 48528,5.0,12
+Atul Homeopathic & Ayurvedic Store,Lucknow,Uttar Pradesh,26.8483786,80.9490611,"39/54, Ramtirth Marg, Narhi Bazaar, Hazratganj, Lucknow, Uttar Pradesh 226001",+91 93353 27751,4.4,73
+Ayurvedicmall,Kochi,Kerala,9.9973339,76.3018552,"Infopark TBC, Kaloor JNI Stadium, Kaloor, Kochi, Kerala 682017",+91 94971 99884,4.5,17
+Saraswathy Stores - Ayurvedic Medicine & Herbal,Kochi,Kerala,9.96725,76.2994699,"Shop No.10, Old Market, Sahodaran Ayyappan Rd, Kadavanthra, Kochi, Kerala 682020",+91 98465 98466,4.6,16
+Ayurvedic Medicine Shop,Kochi,Kerala,9.9691598,76.3178893,"X899+M56, Vyttila, Kochi, Kerala 682019",,4.4,8
+Vijaya Ayurvedic Pharmacy,Kochi,Kerala,9.9655101,76.2930085,"Near Manorama Junction, Karshaka Rd, Panampilly Nagar, Kochi, Kerala 682016",+91 80894 59178,4.7,32
+Pathanjali Herbal Extracts,Kochi,Kerala,9.9633131,76.2972643,"KVG-185, KV Nagar, Panampilly Nagar, Kochi, Kerala 682036",+91 99954 24999,4.5,4
+Kottakkal Arya Vaidya Sala,Kochi,Kerala,9.9678697,76.3134811,"First Floor, Metro Pillar 841, Sahodaran Ayyappan Rd, Vyttila, Kochi, Kerala 682019",+91 94476 08219,4.5,15
+Dr. Arogya Ayurveda,Chandigarh,Punjab,30.7452514,76.7939067,"SCO 174-175, 9D, Sector 9, Chandigarh 160009",+91 91712 92712,4.9,9
+National Enterprises - Ayurvedic Medicines,Chandigarh,Chandigarh,30.7373507,76.7494589,"SCO 177, Sector 37 C, Chandigarh 160036",,4.4,135
+Ayurshakha,Chandigarh,Chandigarh,30.736252,76.7963551,"PQPW+GG5, Madhya Marg, Sector 8C, Chandigarh 160009",,4.8,44
+Patiala Ayurvedic Pharmacy,Chandigarh,Chandigarh,30.7252183,76.795993,"1, SCO 2, Sukhna Path, Sector 27D, Chandigarh 160019",+91 172 507 6448,4.5,238
+Amar Sales,Chandigarh,Chandigarh,30.7057637,76.7636312,"Shop No. 233, Sukhna Path, Burail, Sector 45-B, Chandigarh 160047",+91 98141 00360,4.5,213
+Ramgopal Ayurveda,Chandigarh,Chandigarh,30.7048697,76.7584324,"SCO-112-113, Burail, Ekta Market, Sector 45C, Chandigarh 160047",+91 97799 66966,4.4,51
+Dhanwantry Ayurvedic Shop,Chandigarh,Chandigarh,30.6996579,76.7673111,"Dhanwantry Ayurvedic College, Chandi Path, Sector 46, Chandigarh 160047",+91 79884 78380,4.5,20
+Shree Jee Ayurveda,Bhopal,Madhya Pradesh,23.2343901,77.4414749,"B-80, Gautam Nagar, Housing Board Colony, Bhopal, Madhya Pradesh 462011",+91 87707 41104,4.8,76
+Rigved Ayurvedam,Bhopal,Madhya Pradesh,23.2652503,77.4044344,"F-19, 1st Floor, Dawa Bazar, Ibrahimganj, Bhopal, Madhya Pradesh 462001",+91 98931 37303,5.0,60
+Kanishk Ayurvedic Store,Bhopal,Madhya Pradesh,23.2313878,77.4334134,"Plot No.1, Service Rd, Anna Nagar, Maharana Pratap Nagar, Bhopal, Madhya Pradesh 462011",+91 98270 10185,4.7,3
+Shri Laxmi Aushdhi Bhandar,Bhopal,Madhya Pradesh,23.2373227,77.4014985,"29, Malviya Nagar New Market, Roshanpura, Bhopal, Madhya Pradesh 462003",+91 755 255 1694,4.7,49
+Shri Kailash Ayurvedic Stores,Bhopal,Madhya Pradesh,23.2374683,77.4012878,"29, Roshanpura Square, New Market, Malviya Nagar, Bhopal, Madhya Pradesh 462003",+91 93031 31913,3.4,12
+Bhagwati Ayurved,Patna,Bihar,25.6178315,85.112648,"Shri Hari Radha Apartment, Sardar Patel Path, Boring Road, Anandpuri, Patna, Bihar 800013",+91 81021 55655,4.9,327
+Satayasha Ayurvedic Herbal IMC Store,Patna,Bihar,25.5880908,85.1439184,"H4QV+6HM, Renu Kunj, Ashok Nagar, Lohia Nagar, Patna, Bihar 800020",+91 87094 58193,5.0,2
+Jeevan Aayurved Bhawan,Patna,Bihar,25.5859349,85.1617765,"Saketpuri Mahavir Nagar, Kankarbagh, Hanuman Nagar, Patna, Bihar 800026",+91 78708 92120,4.3,3
+Ayurved Ayushadhalaya,Patna,Bihar,25.6109899,85.1508208,"Kadamkuan Rd, beside ICICI Bank, Dujra Diara, Patna, Bihar 800003",,5.0,18
+Ayurvedic Medicine Shops,Patna,Bihar,25.6091073,85.1803832,"Street Number 15, Kumhrar, Patna, Bihar 800006",,3.8,6
+Niramay Health Care - Ayurvedic Medicine,Patna,Bihar,25.6089067,85.1860957,"Sandalpur Rd, Khawaza Garib Nawaj Block, Patna, Bihar 800006",+91 79037 33208,4.9,16
+Lohia Ayurvedic Pharmacy,Guwahati,Assam,26.1787967,91.7426315,"68, SRCB Rd, Lakhtokia, Fancy Bazaar, Guwahati, Assam 781001",+91 88226 75749,4.9,351
+Dekas Ayurvedic,Guwahati,Assam,26.147073,91.7890228,"Shop No.8, Swaraj Nagar, Ganeshguri, Guwahati, Assam 781036",+91 87209 33826,4.8,33
+Vasudeo Ayurvedic Bhandar,Guwahati,Assam,26.150409,91.7842262,"G.S. Road, near Hotel Ambarish, Ganeshguri, Guwahati, Assam 781006",+91 86385 67937,4.6,104
+Assam Ayurvedic Bhandar,Guwahati,Assam,26.1786734,91.742778,"Assam Trunk Rd, opp. Vishwaratna Hotel, Tokobari Satra, Guwahati, Assam 781001",+91 98640 61800,4.4,84
+Assam Ayurvedic Products,Guwahati,Assam,26.1838709,91.7880655,"5QMQ+G6W, Maniram Dewan Rd, Bamunimaidan, Guwahati, Assam 781021",+91 88768 22848,4.5,17
+Ayushman Herbo-Care,Guwahati,Assam,26.1750052,91.7615846,"Ashram Rd, South Sarania, Ulubari, Guwahati, Assam 781007",+91 97747 60961,4.8,9
+Balram Ayurvedic,Nagpur,Maharashtra,21.1454102,79.0827505,"Temple Bazar Rd, beside HDFC, Sitabuldi, Nagpur, Maharashtra 440012",+91 94231 04351,4.9,1292
+ShivShankar Ayurvedic Santulan Ayurveda,Nagpur,Maharashtra,21.1454485,79.0824192,"Yog Complex, Temple Bazar Rd, Sitabuldi, Nagpur, Maharashtra 440012",+91 86052 45080,4.6,211
+Nirmay Ayurveda,Nagpur,Maharashtra,21.115806,79.0990625,"Plot No 122, Bajrang Nagar Rd, Manewada Rd, Rameshwari, Nagpur, Maharashtra 440027",+91 92205 07522,4.9,426
+Charak Ayurvedic Shop & Aushadhalay,Nagpur,Maharashtra,21.1274351,79.1130517,"Kamla Nehru Mahavidyalaya, Sakkardara, Raghuji Nagar, Nagpur, Maharashtra 440024",+91 91682 24950,5.0,66
+National Unani & Ayurvedic Stores,Nagpur,Maharashtra,21.1580019,79.0953166,"Gittikhadan, Bakramandi, Mominpura, Nagpur, Maharashtra 440018",+91 70203 66572,4.9,16
+Siddh Herbal Shoppee,Indore,Madhya Pradesh,22.7524512,75.8905468,"28 GF Scheme No 54, Vijay Nagar, Indore, Madhya Pradesh 452010",+91 731 420 6300,4.9,60
+Sparsh Ayurveda,Indore,Madhya Pradesh,22.7027123,75.8716854,"8, Capital Tower, Sapna Sangeeta Rd, Snehnagar, Indore, Madhya Pradesh 452001",+91 74006 06060,5.0,1132
+Aadish Sales & Marketing Ayurvedic Store,Indore,Madhya Pradesh,22.7163805,75.8567864,"95, Jawahar Marg, near Shani Temple, Rajwada, Indore, Madhya Pradesh 452007",+91 98932 29157,4.2,11
+Somveda Herbals,Indore,Madhya Pradesh,22.712664,75.8756938,"327, Dawa Bazaar, M.Y. Hospital, Jaora Compound, Indore, Madhya Pradesh 452001",+91 91114 09114,5.0,6
+The Ayur Store,Indore,Madhya Pradesh,22.7225945,75.8236437,"185, Airport Rd, Hujurganj, Kalani Nagar, Indore, Madhya Pradesh 452005",+91 81090 82216,4.8,5
+Baba Ayurvedic,Surat,Gujarat,21.1750418,72.8072804,"Shop No. U-1,2, Shakuntal Apartment, Ghod Dod Rd, Athwa, Surat, Gujarat 395001",+91 261 266 6530,4.8,176
+Aarvi Ayurvedic & Enterprise,Surat,Gujarat,21.229435,72.8193468,"96, Madhav Darshan Society, Dabholi Char Rasta, Katargam, Surat, Gujarat 395004",+91 88492 37469,4.6,9
+Paras Ayurvedic Agency,Surat,Gujarat,21.2088056,72.794167,"A-7, Shanti Sadan Apartment, Anand Mahal Rd, Adajan, Surat, Gujarat 395009",+91 97129 15885,4.8,36
+Shree Navnit Aushadh Kendra,Surat,Gujarat,21.198134,72.8281984,"Limdachowk, opp. Kabutar Khana, Bhagal, Surat, Gujarat 395003",+91 98259 54751,4.4,18
+Shree Dhanvantari Ayurvedic Store,Surat,Gujarat,21.1609735,72.8002331,"B-46, Chandramaani Society, Panaas, Athwa, Surat, Gujarat 395017",+91 98256 47796,4.9,81
+RNS Ayurveda,Kanpur,Uttar Pradesh,26.462071,80.3534925,"59/1, Birhana Rd, near PNG Jewellers, Kahoo Kothi, Kanpur, Uttar Pradesh 208001",+91 97953 02666,4.9,67
+Sharma Medical Store,Kanpur,Uttar Pradesh,26.4799186,80.3175741,"113/131 B, Motilal Swaroop Nagar, Khalasi Line, Kanpur, Uttar Pradesh 208002",+91 97959 39172,4.9,122
+Annapurna Ayurveda,Kanpur,Uttar Pradesh,26.478446,80.2949475,"117/114, N Block, Ambedkar Nagar, Kakadeo, Kanpur, Uttar Pradesh 208025",+91 98891 58769,5.0,662
+Jalees And Company Unani Hamdard and Ayurvedic Dawakhana,Kanpur,Uttar Pradesh,26.4675374,80.3467472,"45/40, Nai Sarak Rd, Mulganj, Kanpur, Uttar Pradesh 208001",+91 78381 67318,4.7,15
+Shiva Ayurvedic Store,Kanpur,Uttar Pradesh,26.43308,80.306415,"House No-1, near Allahabad Bank, Sector-4, Barra 2, Kanpur, Uttar Pradesh 208027",+91 63893 55310,5.0,10
+Cauvery Ayurveda Gramam,Coimbatore,Tamil Nadu,11.0000567,76.9966435,"50 Feet Rd, behind GEM Hospital, Ramanathapuram, Coimbatore, Tamil Nadu 641045",+91 63823 17958,4.9,1743
+Ganesh Medicals,Coimbatore,Tamil Nadu,10.992357,76.9599533,"Oppanakara St., Ukkadam, Coimbatore, Tamil Nadu 641001",+91 98422 14121,4.9,338
+Blue Moon Siddha Ayurveda Clinic,Coimbatore,Tamil Nadu,11.0181689,76.9675137,"191, 5th St, Cross Cut Road, Gandhipuram, Coimbatore, Tamil Nadu 641012",+91 422 451 2329,4.9,20
+AYUSH Ayurvedic Siddha Homeo Pharmacy,Coimbatore,Tamil Nadu,10.9996621,76.9527992,"393, Sukrawarpet St, Town Hall, Coimbatore, Tamil Nadu 641001",+91 93857 67240,4.9,47
+Guruji Herbals,Coimbatore,Tamil Nadu,11.0066794,76.9552456,"138-955, Ramachandra Road, R.S. Puram, Coimbatore, Tamil Nadu 641002",+91 94424 17044,4.9,49
+Ayursiddha Homeo Pharma,Coimbatore,Tamil Nadu,10.9938794,76.964488,"A Nanjappa Complex, 136, Big Bazaar St, Ukkadam, Coimbatore, Tamil Nadu 641001",,4.8,99

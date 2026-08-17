@@ -13,12 +13,13 @@ You are the AyurTrace+ AI assistant, embedded in an Ayurvedic botanical traceabi
 
 CORE RULES (never break these):
 1. You are NOT a doctor. Never diagnose a condition, never prescribe a specific dosage or treatment, never claim a product will "cure" or "treat" a disease, and never claim a product is "100% safe" or "guaranteed."
-2. Only use the facts given to you in the "RETRIEVED CONTEXT" section of the user's message. Never invent product names, ingredients, doctor names, credentials, studies, or citations. If the retrieved context doesn't answer the question, say so plainly: "I don't have enough verified information to answer that safely."
+2. Only use the facts given to you in the "RETRIEVED CONTEXT" section of the user's message. Never invent product names, ingredients, doctor names, credentials, studies, or citations. If the retrieved context doesn't answer the question, tell the user in your own words, varied naturally each time, that you don't have enough verified information to answer that safely — don't repeat a fixed template sentence.
 3. If the context notes that verified doctor guidance is available, mention that a verified doctor has published guidance on this topic and that the user can view it in the app — but do NOT reproduce, paraphrase, or invent its content yourself; the app displays the doctor's original text separately, unedited.
 4. Ask a short, relevant follow-up question when the user's request is broad (e.g. "what are you mainly experiencing — indigestion, bloating, or something else?") rather than immediately recommending a product. Don't ask more than one or two questions before proceeding to an answer.
 5. Always end product-related answers with a brief reminder that this information does not replace professional medical advice.
-6. Keep responses concise — a few short paragraphs at most, not an essay.
+6. Keep responses concise — a few short paragraphs at most, not an essay. Vary your sentence structure and opening naturally between turns; don't fall into a repetitive template.
 7. Respond in the user's preferred language if it is Tamil ('ta'); otherwise respond in English.
+8. Stay focused on Ayurveda, health, and this app's products — for off-topic requests (trivia, jokes, unrelated tasks), briefly and politely redirect the user back to what you can actually help with, in your own words.
 
 A pre-computed safety classification for this turn is included in the context and is authoritative — let it shape your tone (e.g. for POTENTIAL_ALLERGY_CONFLICT, lead with the warning before anything else; for INSUFFICIENT_INFORMATION, say so rather than guessing).
 `.trim();
@@ -41,7 +42,8 @@ function summarizeHealthProfile(hp: IHealthProfile | null): string {
   if (hp.ingredientAllergies.length) parts.push(`known ingredient allergies: ${hp.ingredientAllergies.join(', ')}`);
   parts.push(`existing conditions: ${hp.hasExistingConditions}${hp.conditions.length ? ` (${hp.conditions.join(', ')})` : ''}`);
   if (hp.pregnancyStatus && hp.pregnancyStatus !== 'undisclosed') parts.push(`pregnancy status: ${hp.pregnancyStatus}`);
-  if (hp.currentMedications) parts.push('currently taking medication (details withheld from AI context for privacy)');
+  if (hp.currentMedicationTags.length) parts.push(`current medication categories: ${hp.currentMedicationTags.join(', ')}`);
+  if (hp.currentMedications) parts.push('additional medication details on file (withheld from AI context for privacy)');
   return parts.join('; ');
 }
 
@@ -157,7 +159,9 @@ export class ChatbotService {
 
     const allergyConflicts = products.flatMap((p) => findAllergyConflicts(p, healthProfile));
     const hasContraindicationNote = products.some((p) => Boolean(p.contraindications));
-    const hasMedicationNote = Boolean(healthProfile?.currentMedications) && products.length > 0;
+    const hasMedicationNote =
+      (Boolean(healthProfile?.currentMedications) || (healthProfile?.currentMedicationTags.length ?? 0) > 0) &&
+      products.length > 0;
     const foundAnyContext = products.length > 0 || guidanceHits.length > 0;
 
     const category = classify({

@@ -6,6 +6,7 @@ import { Colors, Fonts, Spacing, BorderRadius, Shadow } from '@/theme';
 import { AppHeader } from '@/components/Header';
 import Icon from '@/components/Icon';
 import { useAuthStore } from '@/store/authStore';
+import { setAppLanguage } from '@/i18n';
 
 export default function LanguageSettingsScreen() {
   const router = useRouter();
@@ -13,9 +14,9 @@ export default function LanguageSettingsScreen() {
 
   const selectedLang = user?.language || 'en';
 
-  const selectLanguage = (lang: 'en' | 'ta') => {
+  const selectLanguage = async (lang: 'en' | 'ta') => {
     updateUser({ language: lang });
-    alert(lang === 'ta' ? 'மொழி தமிழ் என மாற்றப்பட்டது' : 'Language set to English');
+    await setAppLanguage(lang);
   };
 
   return (

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ScrollView,
   KeyboardAvoidingView,
+  Keyboard,
   Platform,
   ActivityIndicator,
 } from 'react-native';
@@ -157,6 +158,17 @@ export default function CopilotScreen() {
   useEffect(() => {
     scrollRef.current?.scrollToEnd({ animated: true });
   }, [messages, sending]);
+
+  // The keyboard opening shrinks the visible viewport without changing
+  // messages/sending, so the effect above won't re-fire on its own — without
+  // this, the latest message can end up sitting right at (or under) the
+  // keyboard's top edge with no nudge to scroll it back into view.
+  useEffect(() => {
+    const sub = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', () => {
+      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
+    });
+    return () => sub.remove();
+  }, []);
 
   const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locationState, setLocationState] = useState<'idle' | 'requesting' | 'denied'>('idle');
@@ -392,7 +404,10 @@ const styles = StyleSheet.create({
   },
   chatScroll: {
     paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.md,
+    paddingTop: Spacing.md,
+    // Generous bottom padding so the latest message can always be scrolled
+    // clear of the keyboard rather than staying pinned at its edge.
+    paddingBottom: 280,
   },
   loadingRow: { paddingVertical: Spacing.lg, alignItems: 'center' },
   disclaimerBox: {

@@ -18,6 +18,8 @@ import {
 import { Colors } from '@/theme';
 import { useProductStore } from '@/store/productStore';
 import { useAuthStore } from '@/store/authStore';
+import '@/i18n';
+import { loadPersistedLanguage } from '@/i18n';
 
 SplashScreen.preventAutoHideAsync().catch(() => {
   /* no-op: splash may already be hidden on fast refresh */
@@ -40,6 +42,7 @@ export default function RootLayout() {
   useEffect(() => {
     loadDemoData();
     hydrateAuth();
+    loadPersistedLanguage();
   }, []);
 
   // Hold the splash until the typefaces resolve so text never flashes in a

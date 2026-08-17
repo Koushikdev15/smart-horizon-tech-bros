@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -18,6 +18,8 @@ import {
   DIETARY_PREFERENCE_OPTIONS,
   AYURVEDIC_PREFERENCE_OPTIONS,
   COMMON_AYURVEDIC_INGREDIENTS,
+  MEDICAL_HISTORY_OPTIONS,
+  CURRENT_MEDICATION_OPTIONS,
 } from '@/features/registration/constants';
 import { apiRequest, ApiError } from '@/lib/api';
 import type { HealthProfile, TriState, PregnancyStatus } from '@/types';
@@ -33,7 +35,9 @@ const emptyProfile: HealthProfile = {
   currentHealthIssues: '',
   hasExistingConditions: 'undisclosed',
   conditions: [],
+  medicalHistoryTags: [],
   medicalHistory: '',
+  currentMedicationTags: [],
   currentMedications: '',
   previousAdverseReactions: '',
   pregnancyStatus: 'undisclosed',
@@ -55,6 +59,7 @@ export default function HealthProfileScreen() {
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedNotice, setSavedNotice] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
 
   const set = <K extends keyof HealthProfile>(key: K, value: HealthProfile[K]) =>
     setProfile((p) => ({ ...p, [key]: value }));
@@ -135,7 +140,7 @@ export default function HealthProfileScreen() {
       <AppHeader showBack onBackPress={() => router.back()} title="Health Profile" />
 
       <GuestGate message="Sign in to add and manage your health profile.">
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+      <ScrollView ref={scrollRef} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <View style={styles.noticeCard}>
           <Icon name="shield-checkmark" size={18} color={Colors.onSecondaryContainer} />
           <Text style={styles.noticeText}>
@@ -162,6 +167,7 @@ export default function HealthProfileScreen() {
               }
             />
             <FormField
+              scrollViewRef={scrollRef}
               label="Allergy details"
               value={profile.allergyNotes ?? ''}
               onChangeText={(v) => set('allergyNotes', v)}
@@ -222,19 +228,46 @@ export default function HealthProfileScreen() {
           />
         )}
 
-        <FormField
+        <ChipMultiSelect
           label="Medical History"
+          options={MEDICAL_HISTORY_OPTIONS}
+          selected={profile.medicalHistoryTags}
+          onToggle={(v) =>
+            set(
+              'medicalHistoryTags',
+              profile.medicalHistoryTags.includes(v)
+                ? profile.medicalHistoryTags.filter((t) => t !== v)
+                : [...profile.medicalHistoryTags, v]
+            )
+          }
+        />
+        <FormField
+          label="Further details"
           value={profile.medicalHistory ?? ''}
           onChangeText={(v) => set('medicalHistory', v)}
-          placeholder="Tell us about any relevant medical history"
+          placeholder="Add any specifics not covered above"
           multiline
           optional
         />
-        <FormField
+
+        <ChipMultiSelect
           label="Current Medications"
+          options={CURRENT_MEDICATION_OPTIONS}
+          selected={profile.currentMedicationTags}
+          onToggle={(v) =>
+            set(
+              'currentMedicationTags',
+              profile.currentMedicationTags.includes(v)
+                ? profile.currentMedicationTags.filter((t) => t !== v)
+                : [...profile.currentMedicationTags, v]
+            )
+          }
+        />
+        <FormField
+          label="Further details"
           value={profile.currentMedications ?? ''}
           onChangeText={(v) => set('currentMedications', v)}
-          placeholder="List any medicines or supplements you currently use"
+          placeholder="Specific medicine names, dosage, or supplements"
           multiline
           optional
         />
@@ -336,7 +369,7 @@ export default function HealthProfileScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.surface },
   loadingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  scrollContent: { paddingHorizontal: Spacing.gutter, paddingTop: Spacing.base, paddingBottom: Spacing['3xl'] },
+  scrollContent: { paddingHorizontal: Spacing.gutter, paddingTop: Spacing.base, paddingBottom: 320 },
   sectionLabel: {
     ...Type.headlineSm,
     color: Colors.primary,

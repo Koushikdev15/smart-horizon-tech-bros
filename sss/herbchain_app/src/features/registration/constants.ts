@@ -51,6 +51,28 @@ export const CONDITION_OPTIONS = [
   'Other',
 ];
 
+export const MEDICAL_HISTORY_OPTIONS = [
+  'Past surgery',
+  'Hospitalization',
+  'Chronic illness',
+  'Family history of disease',
+  'Known drug allergy',
+  'None significant',
+  'Other',
+];
+
+export const CURRENT_MEDICATION_OPTIONS = [
+  'Blood pressure medication',
+  'Diabetes medication',
+  'Thyroid medication',
+  'Blood thinners',
+  'Painkillers',
+  'Antidepressants / Anti-anxiety',
+  'Vitamins / Supplements',
+  'None',
+  'Other',
+];
+
 export const TRI_STATE_OPTIONS = [
   { value: 'no' as const, label: 'No' },
   { value: 'yes' as const, label: 'Yes' },

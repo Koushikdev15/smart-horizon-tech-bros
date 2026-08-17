@@ -201,13 +201,54 @@ export default function EBuyScreen() {
         </ScrollView>
       </GuestGate>
 
-      {/* Offers modal */}
+      {/* Product details + offers modal */}
       <Modal visible={Boolean(offersProduct)} transparent animationType="fade" onRequestClose={() => setOffersProduct(null)}>
         <Pressable style={styles.backdrop} onPress={() => setOffersProduct(null)}>
-          <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
+          <Pressable style={[styles.sheet, { maxHeight: '85%' }]} onPress={(e) => e.stopPropagation()}>
             <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>{offersProduct?.productName}</Text>
-            <ScrollView style={{ maxHeight: 360 }}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text style={styles.sheetTitle}>{offersProduct?.productName}</Text>
+
+              {offersProduct?.healthTopics && offersProduct.healthTopics.length > 0 && (
+                <View style={styles.topicsRow}>
+                  {offersProduct.healthTopics.map((topic) => (
+                    <View key={topic} style={styles.topicChip}>
+                      <Text style={styles.topicChipText}>{topic}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {offersProduct?.description ? <Text style={styles.detailText}>{offersProduct.description}</Text> : null}
+
+              {offersProduct?.ingredients && offersProduct.ingredients.length > 0 && (
+                <Text style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Ingredients: </Text>
+                  {offersProduct.ingredients
+                    .map((i) => (i.scientificName ? `${i.name} (${i.scientificName})` : i.name))
+                    .join(', ')}
+                </Text>
+              )}
+              {offersProduct?.usageInstructions ? (
+                <Text style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Usage: </Text>
+                  {offersProduct.usageInstructions}
+                </Text>
+              ) : null}
+              {offersProduct?.precautions ? (
+                <Text style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Precautions: </Text>
+                  {offersProduct.precautions}
+                </Text>
+              ) : null}
+              {offersProduct?.contraindications ? (
+                <Text style={[styles.detailRow, { color: Colors.error }]}>
+                  <Text style={styles.detailLabel}>Contraindications: </Text>
+                  {offersProduct.contraindications}
+                </Text>
+              ) : null}
+
+              <Text style={[styles.sheetTitle, { fontSize: 16, marginTop: Spacing.lg }]}>Available From</Text>
               {offersLoading ? (
                 <ActivityIndicator color={Colors.primary} style={{ marginVertical: Spacing.lg }} />
               ) : !offers || offers.length === 0 ? (
@@ -457,6 +498,17 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.base,
   },
   sheetTitle: { ...Type.headlineSm, color: Colors.primary, marginBottom: Spacing.md },
+  topicsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: Spacing.sm },
+  topicChip: {
+    backgroundColor: Colors.secondaryContainer,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.full,
+  },
+  topicChipText: { ...Type.labelMd, fontSize: 11, color: Colors.onSecondaryContainer },
+  detailText: { ...Type.bodySm, color: Colors.textSecondary, marginBottom: Spacing.sm, lineHeight: 19 },
+  detailRow: { ...Type.bodySm, color: Colors.textSecondary, marginBottom: Spacing.sm, lineHeight: 18 },
+  detailLabel: { fontFamily: Fonts.family.semiBold, color: Colors.onSurface },
   offerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

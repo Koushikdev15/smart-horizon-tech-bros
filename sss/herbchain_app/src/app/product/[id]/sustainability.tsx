@@ -1,75 +1,117 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Colors, Fonts, Spacing, BorderRadius, Shadow } from '@/theme';
 import { AppHeader } from '@/components/Header';
 import Icon from '@/components/Icon';
 import { getProductById, PRODUCTS } from '@/data/mockProducts';
+import { productService, type SustainabilityResult } from '@/services/productService';
+import { ApiError } from '@/lib/api';
+
+const METRICS: { key: keyof SustainabilityResult['breakdown']; label: string }[] = [
+  { key: 'ingredientTraceability', label: 'Ingredient Traceability' },
+  { key: 'documentationCompleteness', label: 'Documentation Completeness' },
+  { key: 'storeCoverage', label: 'Store Network Coverage' },
+  { key: 'qrTraceability', label: 'QR Batch Traceability' },
+];
 
 export default function SustainabilityScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const mockProduct = getProductById(id || '') || PRODUCTS[0];
 
-  const product = getProductById(id || '') || PRODUCTS[0];
-  const { sustainability } = product;
+  const [result, setResult] = useState<SustainabilityResult | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // Bridges this screen's demo product catalog to the real backend by
+        // name, same as the suitability check on the product detail page —
+        // only resolves once a real Product with a matching name exists.
+        const data = await productService.getSustainability({ productName: mockProduct.name });
+        if (!cancelled) setResult(data);
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof ApiError && err.status === 404
+              ? "This demo product isn't linked to a live AyurTrace+ product record yet, so a real score can't be computed."
+              : err instanceof ApiError
+                ? err.message
+                : 'Could not load the sustainability score. Please try again.'
+          );
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [mockProduct.name]);
 
   return (
     <SafeAreaView style={styles.container}>
       <AppHeader showBack onBackPress={() => router.back()} title="Sustainability Rating" />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Score Header */}
-        <View style={[styles.headerCard, Shadow.md]}>
-          <View style={styles.iconCircle}>
-            <Icon name="globe-outline" size={32} color={Colors.success} />
+        {loading && (
+          <View style={styles.loadingWrap}>
+            <ActivityIndicator color={Colors.primary} size="large" />
           </View>
-          <Text style={styles.scoreText}>{sustainability.score} / 100</Text>
-          <Text style={styles.scoreLabel}>Responsible Sourcing & Ecological Rating</Text>
-        </View>
+        )}
 
-        {/* Breakdown Card */}
-        <View style={[styles.card, Shadow.sm]}>
-          <Text style={styles.cardTitle}>Pillar Breakdown</Text>
-
-          <View style={styles.metricRow}>
-            <Text style={styles.metricName}>Responsible Sourcing</Text>
-            <Text style={styles.metricVal}>{sustainability.responsibleSourcing}%</Text>
+        {!loading && error && (
+          <View style={[styles.card, Shadow.sm]}>
+            <Icon name="information-circle-outline" size={20} color={Colors.textSecondary} />
+            <Text style={styles.errorText}>{error}</Text>
           </View>
-          <View style={styles.barBg}><View style={[styles.barFill, { width: `${sustainability.responsibleSourcing}%` }]} /></View>
+        )}
 
-          <View style={styles.metricRow}>
-            <Text style={styles.metricName}>Collection Compliance</Text>
-            <Text style={styles.metricVal}>{sustainability.collectionCompliance}%</Text>
-          </View>
-          <View style={styles.barBg}><View style={[styles.barFill, { width: `${sustainability.collectionCompliance}%` }]} /></View>
+        {!loading && result && (
+          <>
+            <View style={[styles.headerCard, Shadow.md]}>
+              <View style={styles.iconCircle}>
+                <Icon name="globe-outline" size={32} color={Colors.success} />
+              </View>
+              <Text style={styles.scoreText}>{result.score} / 100</Text>
+              <Text style={styles.scoreLabel}>Data & Traceability Completeness</Text>
+            </View>
 
-          <View style={styles.metricRow}>
-            <Text style={styles.metricName}>Ecological Risk Index</Text>
-            <Text style={styles.metricVal}>{sustainability.ecologicalRisk}%</Text>
-          </View>
-          <View style={styles.barBg}><View style={[styles.barFill, { width: `${sustainability.ecologicalRisk}%` }]} /></View>
+            <View style={[styles.card, Shadow.sm]}>
+              <Text style={styles.cardTitle}>Pillar Breakdown</Text>
 
-          <View style={styles.metricRow}>
-            <Text style={styles.metricName}>Low-Emission Transport</Text>
-            <Text style={styles.metricVal}>{sustainability.transport}%</Text>
-          </View>
-          <View style={styles.barBg}><View style={[styles.barFill, { width: `${sustainability.transport}%` }]} /></View>
+              {METRICS.map((m) => (
+                <View key={m.key}>
+                  <View style={styles.metricRow}>
+                    <Text style={styles.metricName}>{m.label}</Text>
+                    <Text style={styles.metricVal}>{result.breakdown[m.key]}%</Text>
+                  </View>
+                  <View style={styles.barBg}>
+                    <View style={[styles.barFill, { width: `${result.breakdown[m.key]}%` }]} />
+                  </View>
+                </View>
+              ))}
+            </View>
 
-          <View style={styles.metricRow}>
-            <Text style={styles.metricName}>Documentation Completeness</Text>
-            <Text style={styles.metricVal}>{sustainability.documentation}%</Text>
-          </View>
-          <View style={styles.barBg}><View style={[styles.barFill, { width: `${sustainability.documentation}%` }]} /></View>
-        </View>
-
-        {/* Note */}
-        <View style={[styles.card, Shadow.sm]}>
-          <Text style={styles.cardTitle}>Supported Sustainability Claims</Text>
-          <Text style={styles.noteText}>
-            Only sustainability metrics backed by actual harvest permits, collection receipts, and transport logs are calculated into the score.
-          </Text>
-        </View>
+            <View style={[styles.card, Shadow.sm]}>
+              <Text style={styles.cardTitle}>What This Score Measures</Text>
+              <Text style={styles.noteText}>
+                This is computed directly from this product&apos;s verified record: {result.tracedIngredients} of{' '}
+                {result.totalIngredients} ingredients have a documented botanical/scientific name, all four safety
+                and usage fields are checked for completeness, and it is currently stocked by {result.storeCount}{' '}
+                {result.storeCount === 1 ? 'store' : 'stores'} in the AyurTrace+ network. It does not represent
+                harvest permits, ecological impact, or transport data, since that supply-chain information isn&apos;t
+                linked to this product yet.
+              </Text>
+            </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -84,6 +126,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.base,
     paddingBottom: Spacing['2xl'],
   },
+  loadingWrap: { paddingVertical: Spacing['2xl'], alignItems: 'center' },
   headerCard: {
     backgroundColor: Colors.lightGreen,
     borderRadius: BorderRadius['2xl'],
@@ -160,5 +203,12 @@ const styles = StyleSheet.create({
     fontSize: Fonts.size.xs + 1,
     color: Colors.textSecondary,
     lineHeight: 18,
+  },
+  errorText: {
+    fontFamily: Fonts.family.regular,
+    fontSize: Fonts.size.sm,
+    color: Colors.textSecondary,
+    lineHeight: 19,
+    marginTop: Spacing.sm,
   },
 });

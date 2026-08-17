@@ -94,4 +94,46 @@ export class ProductService {
     }
     throw { status: 404, message: 'Product not found', isOperational: true };
   }
+
+  /**
+   * A genuinely computed data/traceability completeness score — NOT a fake
+   * "harvest permits / ecological risk" rating, since none of that
+   * supply-chain data exists for these products (they have no linked
+   * Batch/Collection/Processing records). Every input here is a real,
+   * inspectable field on the Product/ProductInventory documents.
+   */
+  async getSustainability(identifier: { productId?: string; productName?: string }) {
+    const product = await this.resolve(identifier);
+
+    const storeCount = await ProductInventory.countDocuments({ productId: product._id, available: true });
+
+    const totalIngredients = product.ingredients.length;
+    const tracedIngredients = product.ingredients.filter((i) => i.scientificName).length;
+    const ingredientTraceability = totalIngredients > 0 ? Math.round((tracedIngredients / totalIngredients) * 100) : 0;
+
+    const docFields = [product.description, product.usageInstructions, product.precautions, product.contraindications];
+    const documentationCompleteness = Math.round((docFields.filter(Boolean).length / docFields.length) * 100);
+
+    // Normalized against a "well-distributed" reference of 20 carrying
+    // stores — not a claim about total market coverage, just a 0-100 scale.
+    const storeCoverage = Math.round(Math.min(storeCount / 20, 1) * 100);
+
+    const qrTraceability = product.qrCode ? 100 : 0;
+
+    const score = Math.round((ingredientTraceability + documentationCompleteness + storeCoverage + qrTraceability) / 4);
+
+    return {
+      product: { _id: product._id, productName: product.productName },
+      score,
+      breakdown: {
+        ingredientTraceability,
+        documentationCompleteness,
+        storeCoverage,
+        qrTraceability,
+      },
+      storeCount,
+      totalIngredients,
+      tracedIngredients,
+    };
+  }
 }

@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
   TextInput,
   StyleSheet,
   TouchableOpacity,
+  ScrollView,
+  findNodeHandle,
   type KeyboardTypeOptions,
 } from 'react-native';
 import { Colors, Fonts, Type, Spacing, BorderRadius } from '@/theme';
@@ -28,6 +30,15 @@ interface FormFieldProps {
   /** Government ID / sensitive value: masked by default, shows a secure indicator. */
   secure?: boolean;
   onBlur?: () => void;
+  /**
+   * Ref to the ancestor ScrollView this field lives inside. On focus, the
+   * field measures its own position within that ScrollView and scrolls
+   * itself above the keyboard — Android's windowSoftInputMode resize alone
+   * only shrinks the viewport, it doesn't bring an off-screen field into
+   * that shrunk viewport, which is what was leaving the cursor hidden under
+   * the keyboard on longer forms.
+   */
+  scrollViewRef?: React.RefObject<ScrollView | null>;
 }
 
 export const FormField: React.FC<FormFieldProps> = ({
@@ -46,10 +57,29 @@ export const FormField: React.FC<FormFieldProps> = ({
   password,
   secure,
   onBlur,
+  scrollViewRef,
 }) => {
   const masked = Boolean(password || secure);
   const [hidden, setHidden] = useState(masked);
   const [focused, setFocused] = useState(false);
+  const inputRef = useRef<TextInput>(null);
+
+  function scrollIntoView() {
+    if (!scrollViewRef?.current || !inputRef.current) return;
+    const scrollNode = findNodeHandle(scrollViewRef.current);
+    if (!scrollNode) return;
+    // Wait for the keyboard-open resize to finish before measuring, otherwise
+    // the offset is computed against the pre-resize layout.
+    setTimeout(() => {
+      inputRef.current?.measureLayout(
+        scrollNode,
+        (_x: number, y: number) => {
+          scrollViewRef.current?.scrollTo({ y: Math.max(y - 24, 0), animated: true });
+        },
+        () => {}
+      );
+    }, 150);
+  }
 
   return (
     <View style={styles.group}>
@@ -74,6 +104,7 @@ export const FormField: React.FC<FormFieldProps> = ({
       >
         {icon && <Icon name={icon} size={19} color={focused ? Colors.secondary : Colors.outline} style={styles.icon} />}
         <TextInput
+          ref={inputRef}
           style={[styles.input, multiline && styles.inputMultiline]}
           value={value}
           onChangeText={onChangeText}
@@ -85,11 +116,10 @@ export const FormField: React.FC<FormFieldProps> = ({
           multiline={multiline}
           secureTextEntry={masked && hidden}
           onFocus={() => {
-            console.log('[DIAG] focus', label, Date.now());
             setFocused(true);
+            scrollIntoView();
           }}
           onBlur={() => {
-            console.log('[DIAG] blur', label, Date.now());
             setFocused(false);
             onBlur?.();
           }}

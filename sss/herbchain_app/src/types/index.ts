@@ -147,7 +147,10 @@ export interface WellnessProfile {
   currentHealthIssues?: string;
   hasExistingConditions: TriState;
   conditions: string[];
+  /** Quick-select category tags — "points" in the UI; the string field below is the free-text paragraph. */
+  medicalHistoryTags: string[];
   medicalHistory?: string;
+  currentMedicationTags: string[];
   currentMedications?: string;
 }
 

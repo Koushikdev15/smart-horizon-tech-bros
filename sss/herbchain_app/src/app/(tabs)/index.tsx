@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Colors, Fonts, Type, Spacing, BorderRadius, Shadow } from '@/theme';
 import { AppHeader, SectionHeader } from '@/components/Header';
 import { PrimaryButton, SecondaryButton } from '@/components/Buttons';
@@ -21,6 +22,7 @@ import { PRODUCTS, getProductById } from '@/data/mockProducts';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const { scanHistory, savedProductIds, isSaved, toggleSaved, unreadAlertCount, isOffline } =
     useProductStore();
@@ -43,32 +45,36 @@ export default function HomeScreen() {
 
         {/* Greeting */}
         <View style={styles.greetingBlock}>
-          <Text style={styles.greetingTitle}>Good Morning, {user?.name || 'Guest'}</Text>
-          <Text style={styles.greetingSub}>Discover the story behind your Ayurveda.</Text>
+          <Text style={styles.greetingTitle}>{t('home.greeting', { name: user?.name || 'Guest' })}</Text>
+          <Text style={styles.greetingSub}>{t('home.greetingSub')}</Text>
         </View>
 
-        {/* Recalled Banner if active */}
-        {recalledProduct && recalledProduct.recall && (
-          <RecallBanner
-            recall={recalledProduct.recall}
-            onPressDetails={() => router.push(`/product/${recalledProduct.id}/recall` as any)}
-          />
-        )}
-
-        {/* Hero Card */}
+        {/* Hero Card — first-impression focal point, kept ahead of any alerts */}
         <View style={[styles.heroCard, Shadow.lg]}>
           {/* Inner gold hairline — the "seal of authenticity" accent */}
           <View style={styles.heroInnerStroke} pointerEvents="none" />
+          <View style={styles.heroLeafBadge}>
+            <Icon name="leaf" size={20} color={Colors.gold} />
+          </View>
 
-          <Text style={styles.heroTitle}>Verify Your Product</Text>
-          <Text style={styles.heroDesc}>
-            Scan the AyurTrace+ QR code to verify authenticity, track provenance, and explore the
-            botanical journey.
-          </Text>
+          <Text style={styles.heroTitle}>{t('home.verifyTitle')}</Text>
+          <Text style={styles.heroDesc}>{t('home.verifyDesc')}</Text>
+
+          <View style={styles.heroStatsRow}>
+            <View style={styles.heroStat}>
+              <Text style={styles.heroStatValue}>10,000+</Text>
+              <Text style={styles.heroStatLabel}>{t('home.verifiedBatches')}</Text>
+            </View>
+            <View style={styles.heroStatDivider} />
+            <View style={styles.heroStat}>
+              <Text style={styles.heroStatValue}>100%</Text>
+              <Text style={styles.heroStatLabel}>{t('home.blockchainTrackedStat')}</Text>
+            </View>
+          </View>
 
           <View style={styles.heroActions}>
             <PrimaryButton
-              title="Scan Product"
+              title={t('home.scanProduct')}
               onPress={() => router.push('/(tabs)/scan')}
               icon="qr-code-outline"
               style={styles.heroPrimaryBtn}
@@ -76,7 +82,7 @@ export default function HomeScreen() {
             />
 
             <SecondaryButton
-              title="Enter Batch ID"
+              title={t('home.enterBatchId')}
               onPress={() => router.push('/verify/manual')}
               icon="keypad-outline"
               style={styles.heroSecondaryBtn}
@@ -94,8 +100,7 @@ export default function HomeScreen() {
             <View style={[styles.toolIcon, { backgroundColor: Colors.secondaryContainer }]}>
               <Icon name="sparkles" size={22} color={Colors.onSecondaryContainer} />
             </View>
-            <Text style={styles.toolTitle}>Ask AyurTrace+</Text>
-            <Text style={styles.toolSub}>Ask AyurTrace</Text>
+            <Text style={styles.toolTitle}>{t('home.askAyurTrace')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -105,8 +110,8 @@ export default function HomeScreen() {
             <View style={[styles.toolIcon, { backgroundColor: Colors.surfaceContainerHigh }]}>
               <Icon name="search" size={22} color={Colors.primary} />
             </View>
-            <Text style={styles.toolTitle}>Search</Text>
-            <Text style={styles.toolSub}>Products & Batch</Text>
+            <Text style={styles.toolTitle}>{t('home.search')}</Text>
+            <Text style={styles.toolSub}>{t('home.searchSub')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -116,15 +121,24 @@ export default function HomeScreen() {
             <View style={[styles.toolIcon, { backgroundColor: Colors.tertiaryFixed }]}>
               <Icon name="git-compare" size={22} color={Colors.onTertiaryFixedVariant} />
             </View>
-            <Text style={styles.toolTitle}>Compare</Text>
-            <Text style={styles.toolSub}>Up to 3 products</Text>
+            <Text style={styles.toolTitle}>{t('home.compare')}</Text>
+            <Text style={styles.toolSub}>{t('home.compareSub')}</Text>
           </TouchableOpacity>
         </View>
 
+        {/* Recall notice — deliberately below the primary actions, not the
+            first thing a user sees on opening the app. */}
+        {recalledProduct && recalledProduct.recall && (
+          <RecallBanner
+            recall={recalledProduct.recall}
+            onPressDetails={() => router.push(`/product/${recalledProduct.id}/recall` as any)}
+          />
+        )}
+
         {/* Recent Scans */}
         <SectionHeader
-          title="Recent Scans"
-          actionText="View All"
+          title={t('home.recentScans')}
+          actionText={t('home.viewAll')}
           onActionPress={() => router.push('/(tabs)/history')}
         />
 
@@ -149,8 +163,8 @@ export default function HomeScreen() {
         {savedProducts.length > 0 && (
           <>
             <SectionHeader
-              title="Saved Products"
-              actionText="View All"
+              title={t('home.savedProducts')}
+              actionText={t('home.viewAll')}
               onActionPress={() => router.push('/saved')}
             />
 
@@ -167,24 +181,24 @@ export default function HomeScreen() {
         )}
 
         {/* Trust Summary Cards */}
-        <SectionHeader title="Blockchain Trust Pillars" />
+        <SectionHeader title={t('home.trustPillars')} />
 
         <View style={styles.pillarGrid}>
           <View style={[styles.pillarCard, Shadow.sm]}>
             <Icon name="location-outline" size={24} color={Colors.primary} />
-            <Text style={styles.pillarTitle}>Verified Sources</Text>
+            <Text style={styles.pillarTitle}>{t('home.verifiedSources')}</Text>
             <Text style={styles.pillarDesc}>100% Region-tracked Ayurvedic farms</Text>
           </View>
 
           <View style={[styles.pillarCard, Shadow.sm]}>
             <Icon name="flask-outline" size={24} color={Colors.primary} />
-            <Text style={styles.pillarTitle}>Lab Verified</Text>
+            <Text style={styles.pillarTitle}>{t('home.labVerified')}</Text>
             <Text style={styles.pillarDesc}>NABL accredited purity testing</Text>
           </View>
 
           <View style={[styles.pillarCard, Shadow.sm]}>
             <Icon name="cube-outline" size={24} color={Colors.primary} />
-            <Text style={styles.pillarTitle}>Blockchain Tracked</Text>
+            <Text style={styles.pillarTitle}>{t('home.blockchainTracked')}</Text>
             <Text style={styles.pillarDesc}>Immutable audit record</Text>
           </View>
         </View>
@@ -232,15 +246,49 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(194,148,40,0.3)',
   },
+  heroLeafBadge: {
+    position: 'absolute',
+    top: Spacing.lg,
+    right: Spacing.lg,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(194,148,40,0.16)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   heroTitle: {
     ...Type.headlineMd,
     color: Colors.onPrimary,
     marginBottom: Spacing.sm,
+    maxWidth: '80%',
   },
   heroDesc: {
     ...Type.bodyMd,
     color: Colors.onPrimaryContainer,
     marginBottom: Spacing.lg,
+  },
+  heroStatsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
+  },
+  heroStat: { flex: 1 },
+  heroStatValue: {
+    ...Type.headlineSm,
+    color: Colors.gold,
+  },
+  heroStatLabel: {
+    fontFamily: Fonts.family.regular,
+    fontSize: 11,
+    color: Colors.onPrimaryContainer,
+    marginTop: 1,
+  },
+  heroStatDivider: {
+    width: 1,
+    height: 28,
+    backgroundColor: 'rgba(194,148,40,0.3)',
+    marginHorizontal: Spacing.md,
   },
   heroActions: {
     gap: Spacing.md,

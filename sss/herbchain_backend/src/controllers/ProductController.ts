@@ -84,4 +84,17 @@ export class ProductController {
       next(err);
     }
   };
+
+  getSustainability = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { error, value } = suitabilitySchema.validate(req.body);
+      if (error) {
+        return sendResponse(res, 400, false, 'Validation Error', undefined, error.details);
+      }
+      const result = await this.productService.getSustainability(value);
+      return sendResponse(res, 200, true, 'Sustainability score computed', result);
+    } catch (err) {
+      next(err);
+    }
+  };
 }

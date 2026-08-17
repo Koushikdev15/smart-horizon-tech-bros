@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Colors, Type, Spacing, BorderRadius, Shadow } from '@/theme';
 import { AppHeader } from '@/components/Header';
 import Icon, { IconName } from '@/components/Icon';
@@ -25,6 +26,7 @@ interface ProfileMenuItem {
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user, isGuest, logout } = useAuthStore();
 
   const handleLogout = () => {
@@ -34,35 +36,35 @@ export default function ProfileScreen() {
 
   const sections: { title: string; items: ProfileMenuItem[] }[] = [
     {
-      title: 'Account & Saved Data',
+      title: t('profileScreen.sectionAccount'),
       items: [
-        { id: 'health-profile', title: 'Health Profile', icon: 'medkit-outline', route: '/settings/health-profile' },
-        { id: 'saved', title: 'Saved Products', icon: 'bookmark-outline', route: '/saved' },
-        { id: 'history', title: 'Scan History', icon: 'time-outline', route: '/(tabs)/history' },
-        { id: 'report', title: 'Report Product Issue', icon: 'flag-outline', route: '/report' },
+        { id: 'health-profile', title: t('profileScreen.healthProfile'), icon: 'medkit-outline', route: '/settings/health-profile' },
+        { id: 'saved', title: t('profileScreen.savedProducts'), icon: 'bookmark-outline', route: '/saved' },
+        { id: 'history', title: t('profileScreen.scanHistory'), icon: 'time-outline', route: '/(tabs)/history' },
+        { id: 'report', title: t('profileScreen.reportIssue'), icon: 'flag-outline', route: '/report' },
       ],
     },
     {
-      title: 'Preferences & Security',
+      title: t('profileScreen.sectionPreferences'),
       items: [
-        { id: 'notifications', title: 'Notification Preferences', icon: 'notifications-outline', route: '/settings/notifications' },
-        { id: 'language', title: 'Language (English / தமிழ்)', icon: 'language-outline', route: '/settings/language', badge: user?.language === 'ta' ? 'தமிழ்' : 'English' },
-        { id: 'privacy', title: 'Privacy & Security', icon: 'shield-outline', route: '/settings/privacy' },
+        { id: 'notifications', title: t('profileScreen.notificationPrefs'), icon: 'notifications-outline', route: '/settings/notifications' },
+        { id: 'language', title: `${t('profileScreen.language')} (English / தமிழ்)`, icon: 'language-outline', route: '/settings/language', badge: user?.language === 'ta' ? 'தமிழ்' : 'English' },
+        { id: 'privacy', title: t('profileScreen.privacySecurity'), icon: 'shield-outline', route: '/settings/privacy' },
       ],
     },
     {
-      title: 'Information & Support',
+      title: t('profileScreen.sectionSupport'),
       items: [
-        { id: 'about', title: 'About AyurTrace+', icon: 'information-circle-outline', route: '/settings/about' },
-        { id: 'help', title: 'Help & Support', icon: 'help-circle-outline', action: () => alert('Support email: support@ayurtrace.org') },
-        { id: 'terms', title: 'Terms & Conditions', icon: 'document-text-outline', action: () => alert('Terms of Service v1.0 — Government Certified Platform') },
+        { id: 'about', title: t('profileScreen.aboutApp'), icon: 'information-circle-outline', route: '/settings/about' },
+        { id: 'help', title: t('profileScreen.helpSupport'), icon: 'help-circle-outline', action: () => alert('Support email: support@ayurtrace.org') },
+        { id: 'terms', title: t('profileScreen.terms'), icon: 'document-text-outline', action: () => alert('Terms of Service v1.0 — Government Certified Platform') },
       ],
     },
   ];
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <AppHeader title="Customer Profile" />
+      <AppHeader title={t('profileScreen.title')} />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* User identity */}
@@ -77,7 +79,7 @@ export default function ProfileScreen() {
 
           <View style={styles.memberChip}>
             <Text style={styles.memberChipText}>
-              {isGuest ? 'Guest Access' : 'Verified Member'}
+              {isGuest ? t('profileScreen.guestAccess') : t('profileScreen.verifiedMember')}
             </Text>
           </View>
 
@@ -86,7 +88,7 @@ export default function ProfileScreen() {
 
           {isGuest && (
             <TouchableOpacity style={styles.loginChip} onPress={() => router.push('/login')}>
-              <Text style={styles.loginChipText}>Login</Text>
+              <Text style={styles.loginChipText}>{t('profileScreen.login')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -133,7 +135,7 @@ export default function ProfileScreen() {
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>
           <Icon name="log-out-outline" size={20} color={Colors.error} style={{ marginRight: 8 }} />
-          <Text style={styles.logoutText}>{isGuest ? 'Exit Guest Mode' : 'Sign Out'}</Text>
+          <Text style={styles.logoutText}>{isGuest ? t('profileScreen.exitGuest') : t('profileScreen.signOut')}</Text>
         </TouchableOpacity>
 
         <Text style={styles.versionText}>AyurTrace+ Mobile v1.0.0 • Build 2026.08</Text>

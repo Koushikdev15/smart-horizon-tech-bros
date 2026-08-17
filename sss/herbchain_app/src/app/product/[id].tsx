@@ -333,7 +333,38 @@ export default function ProductDetailScreen() {
 
           {suitability && (
             <View style={{ marginTop: Spacing.md }}>
-              <View style={[styles.verdictBadge, { backgroundColor: VERDICT_STYLE[suitability.verdict].bg }]}>
+              {suitability.product.healthTopics.length > 0 && (
+                <View style={styles.topicsRow}>
+                  {suitability.product.healthTopics.map((topic) => (
+                    <View key={topic} style={styles.topicChip}>
+                      <Text style={styles.topicChipText}>{topic}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+              {suitability.product.description ? (
+                <Text style={styles.infoText}>{suitability.product.description}</Text>
+              ) : null}
+              {suitability.product.usageInstructions ? (
+                <View style={styles.infoRow}>
+                  <Icon name="information-circle-outline" size={15} color={Colors.textSecondary} />
+                  <Text style={styles.infoLabelText}>
+                    <Text style={{ fontFamily: Fonts.family.semiBold }}>Usage: </Text>
+                    {suitability.product.usageInstructions}
+                  </Text>
+                </View>
+              ) : null}
+              {suitability.product.precautions ? (
+                <View style={styles.infoRow}>
+                  <Icon name="alert-circle-outline" size={15} color={Colors.textSecondary} />
+                  <Text style={styles.infoLabelText}>
+                    <Text style={{ fontFamily: Fonts.family.semiBold }}>Precautions: </Text>
+                    {suitability.product.precautions}
+                  </Text>
+                </View>
+              ) : null}
+
+              <View style={[styles.verdictBadge, { backgroundColor: VERDICT_STYLE[suitability.verdict].bg, marginTop: Spacing.md }]}>
                 <Icon name={VERDICT_STYLE[suitability.verdict].icon} size={16} color={VERDICT_STYLE[suitability.verdict].fg} />
                 <Text style={[styles.verdictBadgeText, { color: VERDICT_STYLE[suitability.verdict].fg }]}>
                   {suitability.verdictLabel}
@@ -613,6 +644,17 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     flex: 1,
   },
+  topicsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: Spacing.sm },
+  topicChip: {
+    backgroundColor: Colors.secondaryContainer,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.full,
+  },
+  topicChipText: { ...Type.labelMd, fontSize: 11, color: Colors.onSecondaryContainer },
+  infoText: { ...Type.bodySm, color: Colors.textSecondary, marginBottom: Spacing.sm, lineHeight: 19 },
+  infoRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginBottom: Spacing.sm },
+  infoLabelText: { ...Type.bodySm, color: Colors.textSecondary, flex: 1, lineHeight: 18 },
   verdictBadge: {
     flexDirection: 'row',
     alignItems: 'center',
