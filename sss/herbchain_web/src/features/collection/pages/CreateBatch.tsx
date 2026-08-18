@@ -8,6 +8,7 @@ import DocumentUpload from '../../../components/DocumentUpload';
 import { toast } from 'sonner';
 import { MapPin, Sparkles, CheckCircle, Package, Loader2, Lock, UserCheck, AlertCircle } from 'lucide-react';
 import { useBatchStore } from '../../../store/useBatchStore';
+import { useAuthStore } from '../../../store/authStore';
 import { useActiveMembers } from '../useActiveMembers';
 import type { Batch, UserRole } from '../../../types';
 
@@ -76,6 +77,9 @@ function generateBatchId() {
 
 export default function CreateBatch() {
   const addBatch = useBatchStore(state => state.addBatch);
+  // The signed-in centre becomes the batch's collectionCenter, which the
+  // Government tracking screens filter on.
+  const user = useAuthStore(state => state.user);
   const [batchId, setBatchId] = useState(generateBatchId());
   const [submitted, setSubmitted] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -135,33 +139,57 @@ export default function CreateBatch() {
     if (!aiSummary) { toast.error('Please generate the AI summary before submitting.'); return; }
     await new Promise((r) => setTimeout(r, 1000));
     
+    const centreName = user?.organizationName || 'Collection Centre';
+
     const newBatch: Batch = {
       id: `b-${Date.now()}`,
       batchNumber: batchId,
       species: form.species,
       botanicalName: form.botanicalName,
-      quantity: form.quantity,
+      // Numeric in the model — a string here reaches the database as "500".
+      quantity: Number(form.quantity),
       unit: form.unit,
-      collectorType: form.collectorType as any,
+      collectionCenter: centreName,
+      collectorName: selectedCollector.name,
+      collectorType: form.collectorType as Batch['collectorType'],
+      harvestDate: form.harvestDate,
       region: form.region,
-      date: form.harvestDate,
+      gpsLocation: form.gpsLocation || undefined,
       status: 'Processing',
-      aiSummary: aiSummary,
+      currentStage: 'Processing',
+      estimatedGrade: form.estimatedGrade || undefined,
+      moisture: form.moisture ? Number(form.moisture) : undefined,
+      aiSummary,
+      // Matches BatchTimelineEvent, which is what BlockchainTimeline renders.
+      // The later stages are seeded as Pending so the full chain is visible.
       timeline: [
         {
-          id: `evt-${Date.now()}`,
-          date: new Date().toISOString().split('T')[0],
-          time: new Date().toTimeString().split(' ')[0].slice(0, 5),
-          stage: 'Collection Center',
-          action: 'Batch Created',
+          stage: 'Collection',
+          timestamp: new Date().toISOString(),
+          organization: centreName,
           // Attribute to the verified member, not a free-typed name.
-          actor: `${selectedCollector.name} (${selectedCollector.ayurvedicId})`,
-          details: `Harvested ${form.quantity}${form.unit} of ${form.species} by ${form.collectorType} ${selectedCollector.name}. Forwarded to Processing.`
-        }
-      ]
+          user: `${selectedCollector.name} (${selectedCollector.ayurvedicId})`,
+          status: 'Completed',
+          remarks: `Harvested ${form.quantity}${form.unit} of ${form.species} by ${form.collectorType} ${selectedCollector.name}.${form.method ? ` Method: ${form.method}.` : ''} Forwarded to Processing.`,
+        },
+        { stage: 'Processing', timestamp: '', organization: '', user: '', status: 'Pending' },
+        { stage: 'Laboratory', timestamp: '', organization: '', user: '', status: 'Pending' },
+        { stage: 'Manufacturing', timestamp: '', organization: '', user: '', status: 'Pending' },
+        { stage: 'Supply Chain', timestamp: '', organization: '', user: '', status: 'Pending' },
+      ],
     };
     
-    addBatch(newBatch);
+    // Persisted to Supabase — surface a failure instead of showing a success
+    // screen for a batch that was never saved.
+    try {
+      await addBatch(newBatch);
+    } catch (err) {
+      toast.error(
+        `Batch could not be saved: ${err instanceof Error ? err.message : 'unknown error'}`,
+      );
+      return;
+    }
+
     setSubmitted(true);
     toast.success(`Batch ${batchId} created and forwarded to Processing & Laboratory!`);
   };
@@ -382,7 +410,7 @@ export default function CreateBatch() {
                           set('gpsLocation', `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`);
                           toast.success('Location detected!', { id: 'gps-toast' });
                         },
-                        (err) => toast.error('Failed to detect location. Please ensure location permissions are granted.', { id: 'gps-toast' })
+                        () => toast.error('Failed to detect location. Please ensure location permissions are granted.', { id: 'gps-toast' })
                       );
                     } else {
                       toast.error('Geolocation is not supported by your browser.');

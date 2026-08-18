@@ -7,17 +7,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import PageHeader from '../../../components/PageHeader';
 import BatchStatusBadge from '../../../components/BatchStatusBadge';
 import BlockchainTimeline from '../../../components/BlockchainTimeline';
-import { mockBatches } from '../../../lib/mockData';
+
 import { toast } from 'sonner';
 import { Factory, Leaf, QrCode, Award, Package } from 'lucide-react';
 import type { Batch } from '../../../types';
 import LabReportPdfModal from '../../../components/LabReportPdfModal';
-import { useBatchStore } from '../../../store/useBatchStore';
+import { useBatchStore, useBatchesLive } from '../../../store/useBatchStore';
 
 const CATEGORIES = ['Tablet','Capsule','Syrup','Powder','Oil','Cream','Churna','Kwatha','Asava','Arishta'];
 const PACKAGING = ['Blister Pack','Bottle','Sachet','Jar','Tube','Pouch'];
 
 export default function ManufacturerRequests() {
+  // Live batches from Supabase, shared across every role.
+  useBatchesLive();
   const storeBatches = useBatchStore(state => state.batches);
   const updateBatchStatus = useBatchStore(state => state.updateBatchStatus);
   const rejectBatch = useBatchStore(state => state.rejectBatch);
@@ -46,13 +48,12 @@ export default function ManufacturerRequests() {
     setProcessing(false);
     
     updateBatchStatus(selected.id, 'Completed', {
-      id: `evt-${Date.now()}`,
-      date: new Date().toISOString().split('T')[0],
-      time: new Date().toTimeString().split(' ')[0].slice(0, 5),
-      stage: 'Manufacturer',
-      action: 'Product Manufactured',
-      actor: 'Production Manager',
-      details: `Product: ${form.productName} (${form.productCategory}). Packaging: ${form.packagingType}. Expiry: ${form.expiryDate}.`
+      stage: 'Manufacturing',
+      timestamp: new Date().toISOString(),
+      organization: 'Manufacturer',
+      user: 'Production Manager',
+      status: 'Completed',
+      remarks: `Product: ${form.productName} (${form.productCategory}). Packaging: ${form.packagingType}. Expiry: ${form.expiryDate}.`,
     });
     
     setSubmitted(s => [...s, selected.id]);

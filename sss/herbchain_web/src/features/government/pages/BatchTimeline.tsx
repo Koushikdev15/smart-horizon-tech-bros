@@ -5,15 +5,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import PageHeader from '../../../components/PageHeader';
 import BatchStatusBadge from '../../../components/BatchStatusBadge';
 import BlockchainTimeline from '../../../components/BlockchainTimeline';
-import { mockBatches } from '../../../lib/mockData';
+import { useBatchStore, useBatchesLive } from '../../../store/useBatchStore';
 import { Search, Package } from 'lucide-react';
 import type { Batch } from '../../../types';
 
 export default function BatchTimeline() {
+  // Live batches from Supabase, so Collection Centre submissions appear here.
+  useBatchesLive();
+  const allBatches = useBatchStore((s) => s.batches);
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Batch | null>(null);
 
-  const filtered = mockBatches.filter((b) =>
+  const filtered = allBatches.filter((b) =>
     b.batchNumber.toLowerCase().includes(search.toLowerCase()) ||
     b.species.toLowerCase().includes(search.toLowerCase())
   );

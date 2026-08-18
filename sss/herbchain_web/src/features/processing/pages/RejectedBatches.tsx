@@ -6,12 +6,14 @@ import PageHeader from '../../../components/PageHeader';
 import BatchStatusBadge from '../../../components/BatchStatusBadge';
 import BlockchainTimeline from '../../../components/BlockchainTimeline';
 import StatsCard from '../../../components/StatsCard';
-import { mockBatches } from '../../../lib/mockData';
+
 import { XCircle, Leaf, MapPin, AlertTriangle } from 'lucide-react';
 import type { Batch } from '../../../types';
-import { useBatchStore } from '../../../store/useBatchStore';
+import { useBatchStore, useBatchesLive } from '../../../store/useBatchStore';
 
 export default function RejectedBatches() {
+  // Live batches from Supabase, shared across every role.
+  useBatchesLive();
   const storeBatches = useBatchStore(state => state.batches);
   const rejected = storeBatches.filter(b => b.status === 'Rejected' && b.currentStage === 'Processing & Laboratory');
   

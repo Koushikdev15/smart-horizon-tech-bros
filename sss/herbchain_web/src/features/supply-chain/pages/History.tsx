@@ -6,13 +6,15 @@ import PageHeader from '../../../components/PageHeader';
 import BatchStatusBadge from '../../../components/BatchStatusBadge';
 import BlockchainTimeline from '../../../components/BlockchainTimeline';
 import StatsCard from '../../../components/StatsCard';
-import { mockBatches } from '../../../lib/mockData';
+
 import { History as HistoryIcon, Leaf, MapPin, Truck, CheckCircle2, QrCode } from 'lucide-react';
 import type { Batch } from '../../../types';
 import { toast } from 'sonner';
-import { useBatchStore } from '../../../store/useBatchStore';
+import { useBatchStore, useBatchesLive } from '../../../store/useBatchStore';
 
 export default function History() {
+  // Live batches from Supabase, shared across every role.
+  useBatchesLive();
   const history = useBatchStore(state => state.batches);
   const [selected, setSelected] = useState<Batch | null>(null);
   const [viewingQr, setViewingQr] = useState<Batch | null>(null);

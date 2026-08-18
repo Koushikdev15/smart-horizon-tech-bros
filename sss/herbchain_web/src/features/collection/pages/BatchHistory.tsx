@@ -5,12 +5,13 @@ import { Input } from '@/components/ui/input';
 import PageHeader from '../../../components/PageHeader';
 import BatchStatusBadge from '../../../components/BatchStatusBadge';
 import BlockchainTimeline from '../../../components/BlockchainTimeline';
-import { mockBatches } from '../../../lib/mockData';
-import { Search, Package, Leaf, MapPin, CalendarDays, Star } from 'lucide-react';
+import { Search, Package, Leaf, MapPin, CalendarDays, Star, Loader2, AlertCircle } from 'lucide-react';
 import type { Batch } from '../../../types';
-import { useBatchStore } from '../../../store/useBatchStore';
+import { useBatchStore, useBatchesLive } from '../../../store/useBatchStore';
 
 export default function BatchHistory() {
+  // Pulls batches from Supabase and stays subscribed to changes.
+  const { loading, error } = useBatchesLive();
   const storeBatches = useBatchStore(state => state.batches);
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Batch | null>(null);
@@ -29,6 +30,23 @@ export default function BatchHistory() {
         <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input placeholder="Search batches..." className="pl-9 h-9" value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
+
+      {loading && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="w-4 h-4 animate-spin" /> Loading batches…
+        </div>
+      )}
+
+      {error && (
+        <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm">
+          <AlertCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+          <span className="text-muted-foreground">
+            Couldn&apos;t load saved batches: {error}. Showing demo data only — run
+            <code className="mx-1 font-mono text-xs">sql/create_batches_table.sql</code>
+            if the batches table is missing.
+          </span>
+        </div>
+      )}
 
       <div className="space-y-3">
         {filtered.map((batch) => (

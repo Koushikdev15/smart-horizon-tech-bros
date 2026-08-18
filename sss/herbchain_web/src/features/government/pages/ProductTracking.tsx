@@ -7,16 +7,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import PageHeader from '../../../components/PageHeader';
 import BatchStatusBadge from '../../../components/BatchStatusBadge';
 import BlockchainTimeline from '../../../components/BlockchainTimeline';
-import { mockBatches } from '../../../lib/mockData';
+import { useBatchStore, useBatchesLive } from '../../../store/useBatchStore';
 import { Search, QrCode, Package, MapPin, CalendarDays, Leaf } from 'lucide-react';
 import type { Batch } from '../../../types';
 import { toast } from 'sonner';
 
 export default function ProductTracking() {
+  // Live batches from Supabase, so Collection Centre submissions appear here.
+  useBatchesLive();
+  const allBatches = useBatchStore((s) => s.batches);
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Batch | null>(null);
 
-  const filtered = mockBatches.filter((b) =>
+  const filtered = allBatches.filter((b) =>
     b.batchNumber.toLowerCase().includes(search.toLowerCase()) ||
     b.species.toLowerCase().includes(search.toLowerCase()) ||
     b.collectionCenter.toLowerCase().includes(search.toLowerCase()) ||
@@ -39,7 +42,7 @@ export default function ProductTracking() {
           variant="outline"
           className="h-9 gap-1.5 text-sm"
           onClick={() => {
-            const completedWithQr = mockBatches.find(b => b.qrCode);
+            const completedWithQr = allBatches.find(b => b.qrCode);
             if (completedWithQr) {
               setSelected(completedWithQr);
               toast.success(`Scanned QR Code: ${completedWithQr.qrCode}. Showing traceability data.`);

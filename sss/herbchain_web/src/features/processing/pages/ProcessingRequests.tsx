@@ -7,16 +7,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import PageHeader from '../../../components/PageHeader';
 import BatchStatusBadge from '../../../components/BatchStatusBadge';
 import BlockchainTimeline from '../../../components/BlockchainTimeline';
-import { mockBatches } from '../../../lib/mockData';
+
 import { toast } from 'sonner';
 import { FlaskConical, Leaf, MapPin, Sparkles, FileCheck, Award } from 'lucide-react';
 import type { Batch } from '../../../types';
-import { useBatchStore } from '../../../store/useBatchStore';
+import { useBatchStore, useBatchesLive } from '../../../store/useBatchStore';
 
 const DRYING_METHODS = ['Sun Drying','Shade Drying','Oven Drying','Spray Drying','Freeze Drying'];
 const GRINDING_METHODS = ['Ball Mill','Hammer Mill','Pin Mill','Roller Mill','Hand Grinding'];
 
 export default function ProcessingRequests() {
+  // Live batches from Supabase, shared across every role.
+  useBatchesLive();
   const storeBatches = useBatchStore(state => state.batches);
   const updateBatchStatus = useBatchStore(state => state.updateBatchStatus);
   const rejectBatch = useBatchStore(state => state.rejectBatch);
@@ -43,13 +45,12 @@ export default function ProcessingRequests() {
     setProcessing(true);
     await new Promise(r => setTimeout(r, 1500));
     updateBatchStatus(selected.id, 'Manufacturing', {
-      id: `evt-${Date.now()}`,
-      date: new Date().toISOString().split('T')[0],
-      time: new Date().toTimeString().split(' ')[0].slice(0, 5),
-      stage: 'Processing & Laboratory',
-      action: 'Quality Testing Passed',
-      actor: 'Lab Technician',
-      details: 'All quality parameters passed successfully. Forwarded to Manufacturer.'
+      stage: 'Laboratory',
+      timestamp: new Date().toISOString(),
+      organization: 'Processing & Laboratory',
+      user: 'Lab Technician',
+      status: 'Completed',
+      remarks: 'All quality parameters passed successfully. Forwarded to Manufacturer.',
     });
     setProcessing(false);
     setShowForm(false);
