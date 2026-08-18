@@ -18,6 +18,7 @@ import {
 import { Colors } from '@/theme';
 import { useProductStore } from '@/store/productStore';
 import { useAuthStore } from '@/store/authStore';
+import { ToastHost } from '@/components/Toast';
 import '@/i18n';
 import { loadPersistedLanguage } from '@/i18n';
 
@@ -82,6 +83,7 @@ export default function RootLayout() {
         <Stack.Screen name="report" options={{ presentation: 'modal' }} />
         <Stack.Screen name="qr-not-found" options={{ presentation: 'modal' }} />
       </Stack>
+      <ToastHost />
     </SafeAreaProvider>
   );
 }

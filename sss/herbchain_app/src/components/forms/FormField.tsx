@@ -6,7 +6,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  findNodeHandle,
   type KeyboardTypeOptions,
 } from 'react-native';
 import { Colors, Fonts, Type, Spacing, BorderRadius } from '@/theme';
@@ -66,18 +65,27 @@ export const FormField: React.FC<FormFieldProps> = ({
 
   function scrollIntoView() {
     if (!scrollViewRef?.current || !inputRef.current) return;
-    const scrollNode = findNodeHandle(scrollViewRef.current);
-    if (!scrollNode) return;
     // Wait for the keyboard-open resize to finish before measuring, otherwise
     // the offset is computed against the pre-resize layout.
     setTimeout(() => {
-      inputRef.current?.measureLayout(
-        scrollNode,
-        (_x: number, y: number) => {
-          scrollViewRef.current?.scrollTo({ y: Math.max(y - 24, 0), animated: true });
-        },
-        () => {}
-      );
+      const scrollView = scrollViewRef.current;
+      const input = inputRef.current;
+      if (!scrollView || !input) return;
+      try {
+        // The relativeTo node must be the actual native component instance
+        // under the New Architecture — findNodeHandle() converts it into a
+        // legacy numeric tag that measureLayout rejects ("must be called on
+        // a native ref"), which is what was surfacing as an on-screen warning.
+        input.measureLayout(
+          scrollView as unknown as React.ComponentRef<typeof TextInput>,
+          (_x: number, y: number) => {
+            scrollView.scrollTo({ y: Math.max(y - 24, 0), animated: true });
+          },
+          () => {}
+        );
+      } catch {
+        // Best-effort nudge only — never let a measurement failure surface to the user.
+      }
     }, 150);
   }
 

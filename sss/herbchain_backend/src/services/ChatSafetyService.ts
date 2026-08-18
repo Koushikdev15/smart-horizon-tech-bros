@@ -74,7 +74,14 @@ export function classify(input: {
   if (input.hasEmergency) return 'URGENT_MEDICAL_ATTENTION';
   if (input.allergyConflicts.length > 0) return 'POTENTIAL_ALLERGY_CONFLICT';
   if (input.hasMedicationNote) return 'POTENTIAL_INTERACTION';
-  if (!input.foundAnyContext) return 'INSUFFICIENT_INFORMATION';
   if (input.hasContraindicationNote) return 'CAUTION';
+  // No matching product in our ~30-item catalog does NOT mean the model has
+  // nothing safe to say — with a narrow catalog this fires for most general
+  // Ayurveda questions (e.g. "what helps with headaches"), and forcing an
+  // "insufficient information" refusal for all of them made the assistant
+  // useless outside the exact product list. General educational answers are
+  // still safe; only the specific-product-grounding rule (never invent an
+  // in-app product/ingredient/doctor that isn't in RETRIEVED CONTEXT) needs
+  // foundAnyContext to matter, and that's enforced in the prompt, not here.
   return 'SAFE_INFORMATIONAL';
 }

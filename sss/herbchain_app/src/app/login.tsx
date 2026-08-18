@@ -16,6 +16,7 @@ import { PrimaryButton, SecondaryButton } from '@/components/Buttons';
 import Icon from '@/components/Icon';
 import { useAuthStore } from '@/store/authStore';
 import { authService } from '@/services/authService';
+import { useToastStore } from '@/store/toastStore';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -50,6 +51,7 @@ export default function LoginScreen() {
     }
 
     await login(result.user!, result.tokens!);
+    useToastStore.getState().show(`Welcome back, ${result.user!.name.split(' ')[0]}!`, 'success');
     router.replace('/(tabs)');
   };
 
