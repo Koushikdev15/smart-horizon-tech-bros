@@ -1,95 +1,118 @@
-import { apiRequest, ApiError } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 import type { User } from '@/types';
 
-export interface BackendUser {
+/** Row shape of public.app_login (see herbchain_app/supabase/migrations/0004_app_login_and_ayurvedic_id.sql). */
+export interface AppLoginRow {
   id: string;
-  name: string;
+  ayurvedic_id: string;
+  full_name: string;
   email: string;
-  mobile: string;
+  phone: string;
+  language: 'en' | 'ta';
   role: string;
-  language?: 'en' | 'ta';
-  dateOfBirth?: string;
-  aadhaarLast4?: string;
-  panLast4?: string;
-  occupation?: string;
-  religion?: string;
-  region?: string;
-  address?: string;
-  coordinates?: { latitude: number; longitude: number };
-  profilePhoto?: string;
-  profileCompletion?: number;
+  date_of_birth: string | null;
+  aadhaar_last4: string | null;
+  pan_last4: string | null;
+  occupation: string | null;
+  religion: string | null;
+  region: string | null;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  profile_completion: number;
 }
 
-export interface AuthTokens {
-  token: string;
-  refreshToken: string;
-}
-
-interface AuthPayload {
-  user: BackendUser;
-  token: string;
-  refreshToken: string;
-}
-
-/** Maps the Express backend's User shape onto the app's existing `User` type. */
-export function mapBackendUser(u: BackendUser): User {
+/** Maps a public.app_login row onto the app's existing `User` type. */
+export function mapAppLoginRow(row: AppLoginRow): User {
   return {
-    id: u.id,
-    name: u.name,
-    email: u.email,
-    phone: u.mobile,
-    language: u.language || 'en',
+    id: row.id,
+    ayurvedicId: row.ayurvedic_id,
+    name: row.full_name,
+    email: row.email,
+    phone: row.phone,
+    language: row.language || 'en',
     isGuest: false,
-    dateOfBirth: u.dateOfBirth,
-    aadhaarLast4: u.aadhaarLast4,
-    panLast4: u.panLast4,
-    occupation: u.occupation,
-    religion: u.religion,
-    region: u.region,
-    address: u.address,
-    coordinates: u.coordinates,
-    profilePhoto: u.profilePhoto,
-    profileCompletion: u.profileCompletion,
+    dateOfBirth: row.date_of_birth ?? undefined,
+    aadhaarLast4: row.aadhaar_last4 ?? undefined,
+    panLast4: row.pan_last4 ?? undefined,
+    occupation: row.occupation ?? undefined,
+    religion: row.religion ?? undefined,
+    region: row.region ?? undefined,
+    address: row.address ?? undefined,
+    coordinates:
+      row.latitude != null && row.longitude != null
+        ? { latitude: row.latitude, longitude: row.longitude }
+        : undefined,
+    profileCompletion: row.profile_completion,
   };
+}
+
+export function friendlyAuthError(err: unknown): string {
+  const message = err instanceof Error ? err.message : undefined;
+  if (!message) return 'Something went wrong. Please try again.';
+  if (/invalid login credentials/i.test(message)) return 'Incorrect email or password.';
+  if (/email not confirmed/i.test(message)) return 'Please confirm your email before signing in.';
+  if (/rate limit|too many/i.test(message)) return 'Too many attempts. Please wait a few minutes and try again.';
+  if (/network|fetch/i.test(message)) return "Couldn't reach the server. Check your connection and try again.";
+  return message;
+}
+
+async function fetchAppLoginRow(userId: string): Promise<AppLoginRow> {
+  const { data, error } = await supabase.from('app_login').select('*').eq('id', userId).single();
+  if (error || !data) throw error ?? new Error('Profile not found.');
+  return data as AppLoginRow;
 }
 
 export interface LoginResult {
   ok: boolean;
   user?: User;
-  tokens?: AuthTokens;
   error?: string;
 }
 
-export function friendlyAuthError(err: unknown): string {
-  if (err instanceof ApiError) {
-    if (err.status === 0) return err.message;
-    if (err.status === 401) return 'Invalid email/mobile or password.';
-    if (err.status === 429) return 'Too many attempts. Please wait a few minutes and try again.';
-    return err.message;
-  }
-  return 'Something went wrong. Please try again.';
-}
-
 export const authService = {
-  async login(identifier: string, password: string): Promise<LoginResult> {
-    try {
-      const result = await apiRequest<AuthPayload>('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email: identifier.trim(), password }),
-      });
-      return {
-        ok: true,
-        user: mapBackendUser(result.user),
-        tokens: { token: result.token, refreshToken: result.refreshToken },
-      };
-    } catch (err) {
-      return { ok: false, error: friendlyAuthError(err) };
+  /**
+   * Signs in with email + password, then checks the returned account's own
+   * Ayurvedic ID against the one the user typed — same disambiguation
+   * pattern herbchain_web's Login screen uses. A mismatch signs the (correct
+   * credentials, wrong claimed ID) session back out rather than letting it
+   * stand, since the three fields together are the intended login contract.
+   */
+  async login(ayurvedicId: string, email: string, password: string): Promise<LoginResult> {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password,
+    });
+
+    if (error || !data.session) {
+      return { ok: false, error: friendlyAuthError(error) };
     }
+
+    let row: AppLoginRow;
+    try {
+      row = await fetchAppLoginRow(data.session.user.id);
+    } catch {
+      await supabase.auth.signOut();
+      return { ok: false, error: 'Could not load your profile. Please try again.' };
+    }
+
+    if (row.ayurvedic_id.trim().toUpperCase() !== ayurvedicId.trim().toUpperCase()) {
+      await supabase.auth.signOut();
+      return { ok: false, error: 'Ayurvedic ID does not match this account.' };
+    }
+
+    // Best-effort — never blocks sign-in on failure.
+    void supabase.from('app_login').update({ last_login_at: new Date().toISOString() }).eq('id', row.id);
+
+    return { ok: true, user: mapAppLoginRow(row) };
   },
 
-  /** Re-fetches the signed-in user's profile using the currently-set token. */
+  /** Re-fetches the signed-in user's profile for the current Supabase session. */
   async fetchProfile(): Promise<User> {
-    const profile = await apiRequest<BackendUser>('/auth/profile');
-    return mapBackendUser(profile);
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not signed in.');
+    const row = await fetchAppLoginRow(user.id);
+    return mapAppLoginRow(row);
   },
 };

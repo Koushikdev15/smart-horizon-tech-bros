@@ -182,6 +182,8 @@ export interface ConsentRecord {
 
 export interface User {
   id: string;
+  /** Unique per-account ID generated on signup, format AYUR-CUST-XXXXXX. Absent for guest sessions. */
+  ayurvedicId?: string;
   name: string;
   email: string;
   phone: string;

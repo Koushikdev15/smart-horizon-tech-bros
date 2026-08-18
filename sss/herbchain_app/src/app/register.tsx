@@ -48,6 +48,7 @@ import {
   registrationService,
   computeProfileCompletion,
   type RegistrationDraft,
+  type RegistrationResult,
 } from '@/services/registrationService';
 import { useAuthStore } from '@/store/authStore';
 import type { TriState } from '@/types';
@@ -114,6 +115,14 @@ export default function RegisterScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const scrollRef = useRef<ScrollView>(null);
+
+  // Once the account/profile wizard is submitted, a 6-digit code is emailed
+  // to draft.email — this screen switches to asking for it before the
+  // profile (and Ayurvedic ID) actually get created.
+  const [phase, setPhase] = useState<'form' | 'otp'>('form');
+  const [otp, setOtp] = useState('');
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
 
   const set = <K extends keyof RegistrationDraft>(key: K, value: RegistrationDraft[K]) =>
     setDraft((d) => ({ ...d, [key]: value }));
@@ -185,7 +194,7 @@ export default function RegisterScreen() {
     setSubmitting(true);
     setSubmitError(null);
 
-    const result = await registrationService.register(draft);
+    const result = await registrationService.startRegistration(draft);
 
     setSubmitting(false);
 
@@ -194,16 +203,47 @@ export default function RegisterScreen() {
       return;
     }
 
-    if (result.needsEmailConfirmation) {
-      router.replace({
-        pathname: '/registration-complete',
-        params: { pending: '1', email: draft.email, completion: '0' },
-      });
+    if (result.needsOtp) {
+      setPhase('otp');
       return;
     }
 
+    // Rare path: the project has email confirmation disabled, so a session
+    // (and the finished profile) came back immediately — nothing to verify.
+    finishRegistration(result);
+  }
+
+  async function submitOtp() {
+    if (!otp.trim()) {
+      setOtpError('Enter the 6-digit code we emailed you.');
+      return;
+    }
+    setSubmitting(true);
+    setOtpError(null);
+
+    const result = await registrationService.verifySignupOtp(draft, otp.trim());
+
+    setSubmitting(false);
+
+    if (!result.ok) {
+      setOtpError(result.error ?? 'Invalid or expired code. Please try again.');
+      return;
+    }
+
+    finishRegistration(result);
+  }
+
+  async function resendOtp() {
+    setResending(true);
+    setOtpError(null);
+    const result = await registrationService.resendSignupOtp(draft.email);
+    setResending(false);
+    if (!result.ok) setOtpError(result.error ?? 'Could not resend the code. Please try again.');
+  }
+
+  function finishRegistration(result: { user?: RegistrationResult['user']; error?: string }) {
     // Non-fatal warning (e.g. wellness row failed) still lands on success.
-    await login(result.user!, result.tokens!);
+    login(result.user!);
 
     router.replace({
       pathname: '/registration-complete',
@@ -211,11 +251,56 @@ export default function RegisterScreen() {
         completion: String(computeProfileCompletion(draft)),
         wellness: draft.wellnessProvided ? '1' : '0',
         warning: result.error ?? '',
+        ayurvedicId: result.user!.ayurvedicId ?? '',
       },
     });
   }
 
   const isLast = step === REGISTRATION_STEPS.length - 1;
+
+  /* ───────────────────────── OTP step ───────────────────────── */
+
+  function renderOtpStep() {
+    return (
+      <>
+        <View style={styles.privacyCard}>
+          <Icon name="mail-open-outline" size={20} color={Colors.onTertiaryContainer} />
+          <Text style={styles.privacyTitle}>Verify Your Email</Text>
+          <Text style={styles.privacyBody}>
+            We sent a 6-digit code to <Text style={styles.emailHighlight}>{draft.email}</Text>. Enter it
+            below to finish creating your account.
+          </Text>
+        </View>
+
+        <FormField
+          scrollViewRef={scrollRef}
+          label="Verification Code"
+          icon="key-outline"
+          value={otp}
+          onChangeText={(v) => setOtp(v.replace(/\D/g, '').slice(0, 6))}
+          placeholder="123456"
+          keyboardType="number-pad"
+          maxLength={6}
+          error={otpError ?? undefined}
+        />
+
+        <TouchableOpacity onPress={resendOtp} disabled={resending} style={{ marginTop: Spacing.sm }}>
+          <Text style={styles.secondaryBtnText}>{resending ? 'Resending…' : "Didn't get a code? Resend"}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => {
+            setPhase('form');
+            setOtp('');
+            setOtpError(null);
+          }}
+          style={{ marginTop: Spacing.sm }}
+        >
+          <Text style={styles.secondaryBtnText}>Wrong email? Go back and edit it</Text>
+        </TouchableOpacity>
+      </>
+    );
+  }
 
   /* ───────────────────────── step bodies ───────────────────────── */
 
@@ -607,7 +692,11 @@ export default function RegisterScreen() {
 
       <KeyboardWrapper>
         <View style={styles.topBar}>
-          <TouchableOpacity style={styles.backBtn} onPress={goBack} accessibilityLabel="Go back">
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={phase === 'otp' ? () => setPhase('form') : goBack}
+            accessibilityLabel="Go back"
+          >
             <Icon name="arrow-back" size={20} color={Colors.primary} />
           </TouchableOpacity>
         </View>
@@ -619,22 +708,24 @@ export default function RegisterScreen() {
           showsVerticalScrollIndicator={false}
         >
           <Text style={styles.title}>
-            {step === 3 ? 'Your Wellness Profile' : 'Create Your AyurTrace+ Account'}
+            {phase === 'otp' ? 'Verify Your Email' : step === 3 ? 'Your Wellness Profile' : 'Create Your AyurTrace+ Account'}
           </Text>
           <Text style={styles.subtitle}>
-            {step === 3
-              ? 'This information helps us provide relevant safety and product information.'
-              : 'Create your profile to receive personalized product information, safety alerts and verification updates.'}
+            {phase === 'otp'
+              ? 'One last step before your profile and Ayurvedic ID are created.'
+              : step === 3
+                ? 'This information helps us provide relevant safety and product information.'
+                : 'Create your profile to receive personalized product information, safety alerts and verification updates.'}
           </Text>
 
-          <StepProgress steps={[...REGISTRATION_STEPS]} current={step} />
+          {phase === 'form' && <StepProgress steps={[...REGISTRATION_STEPS]} current={step} />}
 
-          <View style={styles.card}>{renderStep()}</View>
+          <View style={styles.card}>{phase === 'otp' ? renderOtpStep() : renderStep()}</View>
 
           <View style={styles.actions}>
             <TouchableOpacity
               style={[styles.primaryBtn, submitting && styles.primaryBtnDisabled]}
-              onPress={isLast ? submit : goNext}
+              onPress={phase === 'otp' ? submitOtp : isLast ? submit : goNext}
               disabled={submitting}
               activeOpacity={0.85}
             >
@@ -642,7 +733,7 @@ export default function RegisterScreen() {
                 <ActivityIndicator color={Colors.onPrimary} />
               ) : (
                 <Text style={styles.primaryBtnText}>
-                  {isLast ? 'Create My Profile' : 'Continue'}
+                  {phase === 'otp' ? 'Verify & Create Account' : isLast ? 'Create My Profile' : 'Continue'}
                 </Text>
               )}
             </TouchableOpacity>
@@ -710,6 +801,7 @@ const styles = StyleSheet.create({
   },
   privacyTitle: { ...Type.headlineSm, color: Colors.primary, marginTop: Spacing.sm },
   privacyBody: { ...Type.bodySm, color: Colors.onSurfaceVariant, marginTop: Spacing.xs },
+  emailHighlight: { fontWeight: '700', color: Colors.primary },
   consentDivider: {
     height: 1,
     backgroundColor: Colors.outlineVariant,

@@ -1,6 +1,7 @@
 import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
+import { setAuthToken } from './api';
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
@@ -49,3 +50,17 @@ export const supabase = createClient(
     },
   }
 );
+
+/**
+ * A handful of backend routes (order creation, the AI chat proxy) still need
+ * a bearer token — they verify it's a real Supabase session server-side (see
+ * herbchain_backend's supabaseAuthMiddleware) rather than issuing their own.
+ * `api.ts` can't import this module's session without a cycle, so push the
+ * current access token into it here instead, kept in sync as it changes.
+ */
+if (isBrowserOrNative) {
+  supabase.auth.getSession().then(({ data }) => setAuthToken(data.session?.access_token ?? null));
+  supabase.auth.onAuthStateChange((_event, session) => {
+    setAuthToken(session?.access_token ?? null);
+  });
+}

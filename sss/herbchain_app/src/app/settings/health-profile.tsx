@@ -21,10 +21,59 @@ import {
   MEDICAL_HISTORY_OPTIONS,
   CURRENT_MEDICATION_OPTIONS,
 } from '@/features/registration/constants';
-import { apiRequest, ApiError } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 import type { HealthProfile, TriState, PregnancyStatus } from '@/types';
 import { useAuthStore } from '@/store/authStore';
 import { GuestGate } from '@/components/GuestGate';
+
+/** public.customer_wellness row <-> the app's HealthProfile type. */
+function rowToHealthProfile(row: Record<string, any>): HealthProfile {
+  return {
+    hasAllergies: row.has_allergies,
+    allergies: row.allergies ?? [],
+    allergyNotes: row.allergy_notes ?? '',
+    ingredientAllergies: row.ingredient_allergies ?? [],
+    hasCurrentHealthIssues: row.has_current_health_issues,
+    currentHealthIssues: row.current_health_issues ?? '',
+    hasExistingConditions: row.has_existing_conditions,
+    conditions: row.conditions ?? [],
+    medicalHistoryTags: row.medical_history_tags ?? [],
+    medicalHistory: row.medical_history ?? '',
+    currentMedicationTags: row.current_medication_tags ?? [],
+    currentMedications: row.current_medications ?? '',
+    previousAdverseReactions: row.previous_adverse_reactions ?? '',
+    pregnancyStatus: row.pregnancy_status,
+    dietaryPreferences: row.dietary_preferences ?? [],
+    ayurvedicPreferences: row.ayurvedic_preferences ?? [],
+    consentStoreHealthData: row.consent_store_health_data,
+    consentPersonalizedAlerts: row.consent_personalized_alerts,
+    updatedAt: row.updated_at,
+  };
+}
+
+function healthProfileToRow(userId: string, p: HealthProfile) {
+  return {
+    user_id: userId,
+    has_allergies: p.hasAllergies,
+    allergies: p.allergies,
+    allergy_notes: p.allergyNotes || null,
+    ingredient_allergies: p.ingredientAllergies,
+    has_current_health_issues: p.hasCurrentHealthIssues,
+    current_health_issues: p.currentHealthIssues || null,
+    has_existing_conditions: p.hasExistingConditions,
+    conditions: p.conditions,
+    medical_history_tags: p.medicalHistoryTags,
+    medical_history: p.medicalHistory || null,
+    current_medication_tags: p.currentMedicationTags,
+    current_medications: p.currentMedications || null,
+    previous_adverse_reactions: p.previousAdverseReactions || null,
+    pregnancy_status: p.pregnancyStatus,
+    dietary_preferences: p.dietaryPreferences,
+    ayurvedic_preferences: p.ayurvedicPreferences,
+    consent_store_health_data: p.consentStoreHealthData,
+    consent_personalized_alerts: p.consentPersonalizedAlerts,
+  };
+}
 
 const emptyProfile: HealthProfile = {
   hasAllergies: 'undisclosed',
@@ -51,7 +100,8 @@ export default function HealthProfileScreen() {
   const router = useRouter();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isGuest = useAuthStore((s) => s.isGuest);
-  const canUseHealthProfile = isAuthenticated && !isGuest;
+  const userId = useAuthStore((s) => s.user?.id);
+  const canUseHealthProfile = isAuthenticated && !isGuest && Boolean(userId);
 
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<HealthProfile>(emptyProfile);
@@ -70,33 +120,40 @@ export default function HealthProfileScreen() {
       return;
     }
     (async () => {
-      try {
-        const data = await apiRequest<HealthProfile | null>('/health-profile');
-        if (data) setProfile({ ...emptyProfile, ...data });
-      } catch (err) {
-        setError(err instanceof ApiError ? err.message : 'Could not load your health profile.');
-      } finally {
-        setLoading(false);
+      const { data, error: fetchError } = await supabase
+        .from('customer_wellness')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (fetchError) {
+        setError(fetchError.message || 'Could not load your health profile.');
+      } else if (data) {
+        setProfile({ ...emptyProfile, ...rowToHealthProfile(data) });
       }
+      setLoading(false);
     })();
-  }, [canUseHealthProfile]);
+  }, [canUseHealthProfile, userId]);
 
   async function handleSave() {
+    if (!userId) return;
     setSaving(true);
     setError(null);
     setSavedNotice(false);
-    try {
-      const saved = await apiRequest<HealthProfile | null>('/health-profile', {
-        method: 'PUT',
-        body: JSON.stringify(profile),
-      });
-      if (saved) setProfile({ ...emptyProfile, ...saved });
-      setSavedNotice(true);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Could not save your health profile.');
-    } finally {
-      setSaving(false);
+
+    const { data, error: saveError } = await supabase
+      .from('customer_wellness')
+      .upsert(healthProfileToRow(userId, profile), { onConflict: 'user_id' })
+      .select('*')
+      .single();
+
+    setSaving(false);
+
+    if (saveError) {
+      setError(saveError.message || 'Could not save your health profile.');
+      return;
     }
+    if (data) setProfile({ ...emptyProfile, ...rowToHealthProfile(data) });
+    setSavedNotice(true);
   }
 
   function confirmDelete() {
@@ -111,17 +168,20 @@ export default function HealthProfileScreen() {
   }
 
   async function handleDelete() {
+    if (!userId) return;
     setDeleting(true);
     setError(null);
-    try {
-      await apiRequest('/health-profile', { method: 'DELETE' });
-      setProfile(emptyProfile);
-      setSavedNotice(true);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Could not delete your health profile.');
-    } finally {
-      setDeleting(false);
+
+    const { error: deleteError } = await supabase.from('customer_wellness').delete().eq('user_id', userId);
+
+    setDeleting(false);
+
+    if (deleteError) {
+      setError(deleteError.message || 'Could not delete your health profile.');
+      return;
     }
+    setProfile(emptyProfile);
+    setSavedNotice(true);
   }
 
   if (loading) {

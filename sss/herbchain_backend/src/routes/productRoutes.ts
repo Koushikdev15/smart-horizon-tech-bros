@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { ProductController } from '../controllers/ProductController';
 import { authenticateJWT, requireRole } from '../middleware/authMiddleware';
+import { authenticateSupabaseJWT } from '../middleware/supabaseAuthMiddleware';
 
 const router = Router();
 const controller = new ProductController();
@@ -12,7 +13,10 @@ router.post('/', authenticateJWT, requireRole(['Manufacturer']), controller.crea
 
 // Static paths before the generic '/:id' GET below.
 router.get('/by-qr/:qrCode', controller.getByQrCode);
-router.post('/suitability', authenticateJWT, controller.checkSuitability);
+// Customer accounts are Supabase-authenticated now — see rollout notes in
+// herbchain_backend/.env.example. Every other route on this router (product
+// catalog/creation) is Manufacturer-owned and stays on Mongo-JWT.
+router.post('/suitability', authenticateSupabaseJWT, controller.checkSuitability);
 router.post('/sustainability', controller.getSustainability);
 router.get('/purchase', controller.browseForPurchase);
 

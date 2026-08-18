@@ -23,25 +23,23 @@ export default function LoginScreen() {
   const login = useAuthStore((s) => s.login);
   const loginAsGuest = useAuthStore((s) => s.loginAsGuest);
 
-  const [emailOrPhone, setEmailOrPhone] = useState('');
+  const [ayurvedicId, setAyurvedicId] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [otpMode, setOtpMode] = useState(false);
-  const [otp, setOtp] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSignIn = async () => {
-    if (otpMode) return; // OTP login isn't wired to a backend yet — see note below.
-    if (!emailOrPhone.trim() || !password) {
-      setError('Enter your email or phone and password.');
+    if (!ayurvedicId.trim() || !email.trim() || !password) {
+      setError('Enter your Ayurvedic ID, email, and password.');
       return;
     }
 
     setSubmitting(true);
     setError(null);
 
-    const result = await authService.login(emailOrPhone, password);
+    const result = await authService.login(ayurvedicId, email, password);
 
     setSubmitting(false);
 
@@ -50,7 +48,7 @@ export default function LoginScreen() {
       return;
     }
 
-    await login(result.user!, result.tokens!);
+    login(result.user!);
     useToastStore.getState().show(`Welcome back, ${result.user!.name.split(' ')[0]}!`, 'success');
     router.replace('/(tabs)');
   };
@@ -83,62 +81,55 @@ export default function LoginScreen() {
           {/* Form */}
           <View style={styles.formContainer}>
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email or Phone</Text>
+              <Text style={styles.label}>Ayurvedic ID</Text>
+              <View style={styles.inputWrapper}>
+                <Icon name="finger-print-outline" size={20} color={Colors.textMuted} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="AYUR-CUST-XXXXXX"
+                  value={ayurvedicId}
+                  onChangeText={setAyurvedicId}
+                  autoCapitalize="characters"
+                />
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Email</Text>
               <View style={styles.inputWrapper}>
                 <Icon name="mail-outline" size={20} color={Colors.textMuted} style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
-                  placeholder="Enter email or phone number"
-                  value={emailOrPhone}
-                  onChangeText={setEmailOrPhone}
+                  placeholder="Enter your email"
+                  value={email}
+                  onChangeText={setEmail}
                   keyboardType="email-address"
                   autoCapitalize="none"
                 />
               </View>
             </View>
 
-            {!otpMode ? (
-              <View style={styles.inputGroup}>
-                <View style={styles.labelRow}>
-                  <Text style={styles.label}>Password</Text>
-                  <TouchableOpacity onPress={() => alert('Password reset is not available yet. Please contact support.')}>
-                    <Text style={styles.forgotText}>Forgot Password?</Text>
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.inputWrapper}>
-                  <Icon name="lock-closed-outline" size={20} color={Colors.textMuted} style={styles.inputIcon} />
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Enter password"
-                    secureTextEntry={!showPassword}
-                    value={password}
-                    onChangeText={setPassword}
-                  />
-                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                    <Icon name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={Colors.textMuted} />
-                  </TouchableOpacity>
-                </View>
+            <View style={styles.inputGroup}>
+              <View style={styles.labelRow}>
+                <Text style={styles.label}>Password</Text>
+                <TouchableOpacity onPress={() => router.push('/forgot-password')}>
+                  <Text style={styles.forgotText}>Forgot Password?</Text>
+                </TouchableOpacity>
               </View>
-            ) : (
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>OTP Verification Code</Text>
-                <View style={styles.inputWrapper}>
-                  <Icon name="key-outline" size={20} color={Colors.textMuted} style={styles.inputIcon} />
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Enter 6-digit OTP (e.g. 123456)"
-                    value={otp}
-                    onChangeText={setOtp}
-                    keyboardType="number-pad"
-                    maxLength={6}
-                    editable={false}
-                  />
-                </View>
-                <Text style={styles.otpUnavailableText}>
-                  OTP sign-in isn&apos;t available yet — please sign in with your password.
-                </Text>
+              <View style={styles.inputWrapper}>
+                <Icon name="lock-closed-outline" size={20} color={Colors.textMuted} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter password"
+                  secureTextEntry={!showPassword}
+                  value={password}
+                  onChangeText={setPassword}
+                />
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                  <Icon name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={Colors.textMuted} />
+                </TouchableOpacity>
               </View>
-            )}
+            </View>
 
             {error ? (
               <View style={styles.errorBox}>
@@ -148,22 +139,12 @@ export default function LoginScreen() {
             ) : null}
 
             <PrimaryButton
-              title={otpMode ? 'Verify OTP & Sign In' : 'Sign In'}
+              title="Sign In"
               onPress={handleSignIn}
               loading={submitting}
-              disabled={otpMode}
               size="lg"
               style={{ marginTop: Spacing.md }}
             />
-
-            <TouchableOpacity
-              style={styles.otpToggleBtn}
-              onPress={() => setOtpMode(!otpMode)}
-            >
-              <Text style={styles.otpToggleText}>
-                {otpMode ? 'Sign in with Password' : 'Sign in with OTP'}
-              </Text>
-            </TouchableOpacity>
 
             <View style={styles.registerRow}>
               <Text style={styles.noAccountText}>Don't have an account? </Text>
@@ -292,12 +273,6 @@ const styles = StyleSheet.create({
     fontSize: Fonts.size.sm + 1,
     color: Colors.text,
   },
-  otpUnavailableText: {
-    fontFamily: Fonts.family.regular,
-    fontSize: Fonts.size.xs,
-    color: Colors.textMuted,
-    marginTop: Spacing.sm,
-  },
   errorBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -312,16 +287,6 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.family.regular,
     fontSize: Fonts.size.xs + 1,
     color: Colors.onErrorContainer,
-  },
-  otpToggleBtn: {
-    alignItems: 'center',
-    paddingVertical: Spacing.md,
-  },
-  otpToggleText: {
-    fontFamily: Fonts.family.semiBold,
-    fontWeight: Fonts.weight.semiBold,
-    fontSize: Fonts.size.sm,
-    color: Colors.green,
   },
   registerRow: {
     flexDirection: 'row',

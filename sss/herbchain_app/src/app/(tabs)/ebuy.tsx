@@ -295,7 +295,7 @@ export default function EBuyScreen() {
                 <Icon name="checkmark-circle" size={48} color={Colors.success} />
                 <Text style={styles.sheetTitle}>Order Placed</Text>
                 <Text style={styles.confirmText}>
-                  Order #{placedOrder._id.slice(-8).toUpperCase()} · ₹{placedOrder.totalAmount} ·{' '}
+                  Order #{placedOrder.id.slice(-8).toUpperCase()} · ₹{placedOrder.totalAmount} ·{' '}
                   {placedOrder.paymentMethod === 'COD' ? 'Cash on Delivery' : 'Online Payment'}
                 </Text>
                 <PrimaryButton

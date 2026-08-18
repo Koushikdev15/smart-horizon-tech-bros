@@ -1,11 +1,13 @@
 import { Router } from 'express';
 import { OrderController } from '../controllers/OrderController';
-import { authenticateJWT } from '../middleware/authMiddleware';
+import { authenticateSupabaseJWT } from '../middleware/supabaseAuthMiddleware';
 
 const router = Router();
 const controller = new OrderController();
 
-router.use(authenticateJWT);
+// Customer accounts are Supabase-authenticated now — see rollout notes in
+// herbchain_backend/.env.example.
+router.use(authenticateSupabaseJWT);
 
 router.post('/', controller.placeOrder);
 router.get('/me', controller.getOwn);

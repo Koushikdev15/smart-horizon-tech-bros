@@ -4,7 +4,6 @@ import crypto from 'crypto';
 import { UserRepository } from '../repositories/UserRepository';
 import { RefreshToken } from '../models/RefreshToken';
 import { IUser } from '../models/User';
-import { SupabaseMirrorService } from '../integrations/supabase/SupabaseMirrorService';
 
 function toPublicUser(user: IUser) {
   return {
@@ -29,7 +28,6 @@ function toPublicUser(user: IUser) {
 
 export class AuthService {
   private userRepository = new UserRepository();
-  private supabaseMirror = new SupabaseMirrorService();
 
   /** Signs a fresh access token + rotates a refresh token for the given user. */
   private async issueTokens(user: IUser) {
@@ -79,8 +77,6 @@ export class AuthService {
     });
 
     const tokens = await this.issueTokens(user);
-    // Best-effort, never blocks/fails registration — see SupabaseMirrorService.
-    void this.supabaseMirror.mirrorAccount(user);
     return { user: toPublicUser(user), ...tokens };
   }
 

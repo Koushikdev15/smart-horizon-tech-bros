@@ -14,7 +14,6 @@ import { Colors, Fonts, Spacing, BorderRadius, Shadow } from '@/theme';
 import { AppHeader } from '@/components/Header';
 import { PrimaryButton } from '@/components/Buttons';
 import Icon from '@/components/Icon';
-import { ApiError } from '@/lib/api';
 import { complaintService, COMPLAINT_ISSUE_TYPES } from '@/services/complaintService';
 import { useAuthStore } from '@/store/authStore';
 
@@ -51,10 +50,10 @@ export default function ReportIssueScreen() {
         description: description.trim(),
         batchId: ATTACHED_BATCH_ID,
       });
-      setComplaintId(result._id);
+      setComplaintId(result.id);
       setSubmitted(true);
     } catch (err) {
-      setSubmitError(err instanceof ApiError ? err.message : 'Could not submit your report. Please try again.');
+      setSubmitError(err instanceof Error ? err.message : 'Could not submit your report. Please try again.');
     } finally {
       setSubmitting(false);
     }

@@ -1,9 +1,26 @@
 import { IProduct } from '../models/Product';
-import { HealthProfile } from '../models/HealthProfile';
 import { ProductService } from './ProductService';
 import { DoctorGuidanceService } from './DoctorGuidanceService';
-import { findAllergyConflicts, AllergyMatch } from './ChatSafetyService';
-import { User } from '../models/User';
+import { findAllergyConflicts, AllergyMatch, HealthProfileLike } from './ChatSafetyService';
+import { supabaseAdmin } from '../lib/supabaseAdmin';
+
+// Health profiles now live in Supabase (public.customer_wellness) — see
+// herbchain_app/supabase/migrations/0005_customer_wellness.sql. userId is the
+// Supabase auth.users UUID.
+async function fetchHealthProfile(userId: string): Promise<HealthProfileLike | null> {
+  const { data } = await supabaseAdmin.from('customer_wellness').select('*').eq('user_id', userId).maybeSingle();
+  if (!data) return null;
+  return {
+    ingredientAllergies: data.ingredient_allergies ?? [],
+    currentMedications: data.current_medications ?? undefined,
+    pregnancyStatus: data.pregnancy_status ?? undefined,
+  };
+}
+
+async function fetchRegion(userId: string): Promise<string | undefined> {
+  const { data } = await supabaseAdmin.from('app_login').select('region').eq('id', userId).maybeSingle();
+  return data?.region ?? undefined;
+}
 
 // Deliberately a separate, narrower vocabulary from the chatbot's internal
 // ResponseCategory — this is the direct product-suitability check from spec
@@ -52,7 +69,7 @@ export class SuitabilityService {
 
   async check(userId: string, identifier: { productId?: string; productName?: string }) {
     const product = await this.productService.resolve(identifier);
-    const [healthProfile, user] = await Promise.all([HealthProfile.findOne({ userId }), User.findById(userId)]);
+    const [healthProfile, region] = await Promise.all([fetchHealthProfile(userId), fetchRegion(userId)]);
 
     const allergyConflicts = findAllergyConflicts(product, healthProfile);
     const hasIngredientData = product.ingredients.length > 0;
@@ -68,7 +85,7 @@ export class SuitabilityService {
       verdict = 'NO_KNOWN_CONFLICT';
     }
 
-    const guidance = await this.guidanceService.findPublished({ productId: String(product._id), region: user?.region });
+    const guidance = await this.guidanceService.findPublished({ productId: String(product._id), region });
 
     return {
       product,

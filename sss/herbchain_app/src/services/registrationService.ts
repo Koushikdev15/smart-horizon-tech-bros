@@ -1,6 +1,6 @@
-import { apiRequest, ApiError, setAuthToken } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 import { last4 } from '@/lib/validation';
-import { mapBackendUser, friendlyAuthError, type AuthTokens, type BackendUser } from './authService';
+import { mapAppLoginRow, friendlyAuthError, type AppLoginRow } from './authService';
 import type { ConsentRecord, User, WellnessProfile } from '@/types';
 
 export interface RegistrationDraft {
@@ -33,16 +33,15 @@ export interface RegistrationDraft {
 
 export interface RegistrationResult {
   ok: boolean;
-  userId?: string;
   user?: User;
-  tokens?: AuthTokens;
-  /** Always false against the Express backend — kept so callers that still
-   *  check it (there is no email-confirmation step here) stay harmless. */
-  needsEmailConfirmation?: boolean;
+  /** True once signUp has sent the 6-digit code to the user's email — the
+   *  caller should show the OTP entry step next; no app_login row exists
+   *  yet (there's no session to satisfy RLS until the code is verified). */
+  needsOtp?: boolean;
   error?: string;
 }
 
-/** DD/MM/YYYY → YYYY-MM-DD for the backend's ISO date field. */
+/** DD/MM/YYYY → YYYY-MM-DD for Postgres's date column. */
 function toIsoDate(ddmmyyyy: string): string | null {
   const m = ddmmyyyy.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (!m) return null;
@@ -67,92 +66,124 @@ export function computeProfileCompletion(draft: RegistrationDraft): number {
   return Math.round((done / sections.length) * 100);
 }
 
+/**
+ * Writes the profile row (public.app_login, which generates the account's
+ * Ayurvedic ID) and, with consent, the wellness row — both as the
+ * now-authenticated user, so RLS just enforces itself. Shared by the (rare)
+ * path where Supabase returns a session immediately, and the normal path
+ * where it's called right after the signup OTP is verified.
+ */
+async function completeProfile(userId: string, draft: RegistrationDraft): Promise<RegistrationResult> {
+  const phone = normalisePhone(draft.phone);
+  const dob = toIsoDate(draft.dateOfBirth);
+  const email = draft.email.trim().toLowerCase();
+
+  const { data: inserted, error: insertError } = await supabase
+    .from('app_login')
+    .insert({
+      id: userId,
+      full_name: draft.fullName.trim(),
+      email,
+      phone,
+      language: draft.language,
+      role: 'Customer',
+      date_of_birth: dob,
+      aadhaar_last4: draft.aadhaar ? last4(draft.aadhaar) : null,
+      pan_last4: draft.pan ? draft.pan.trim().toUpperCase().slice(-4) : null,
+      occupation: draft.occupation || null,
+      religion: draft.religion || null,
+      region: draft.region || null,
+      address: draft.address || null,
+      latitude: draft.coordinates?.latitude ?? null,
+      longitude: draft.coordinates?.longitude ?? null,
+      consent_terms: draft.consent.terms,
+      consent_privacy: draft.consent.privacy,
+      consent_store_health_data: draft.consent.storeHealthData,
+      consent_personalized_alerts: draft.consent.personalizedAlerts,
+      consent_accepted_at: new Date().toISOString(),
+      profile_completion: computeProfileCompletion(draft),
+    })
+    .select('*')
+    .single();
+
+  if (insertError || !inserted) {
+    // The auth account exists but the profile row failed — sign back out
+    // rather than leave the app in a half-created state, and surface a
+    // clear error instead of a silent partial account.
+    await supabase.auth.signOut();
+    return { ok: false, error: `Account setup failed: ${insertError?.message ?? 'unknown error'}` };
+  }
+
+  let warning: string | undefined;
+  if (draft.wellnessProvided && draft.consent.storeHealthData) {
+    const w = draft.wellness;
+    const { error: wellnessError } = await supabase.from('customer_wellness').insert({
+      user_id: inserted.id,
+      has_allergies: w.hasAllergies,
+      allergies: w.allergies,
+      allergy_notes: w.allergyNotes || null,
+      has_current_health_issues: w.hasCurrentHealthIssues,
+      current_health_issues: w.currentHealthIssues || null,
+      has_existing_conditions: w.hasExistingConditions,
+      conditions: w.conditions,
+      medical_history_tags: w.medicalHistoryTags,
+      medical_history: w.medicalHistory || null,
+      current_medication_tags: w.currentMedicationTags,
+      current_medications: w.currentMedications || null,
+    });
+    if (wellnessError) {
+      warning = `Your account was created, but the wellness profile could not be saved: ${wellnessError.message}`;
+    }
+  }
+
+  return { ok: true, user: mapAppLoginRow(inserted as AppLoginRow), error: warning };
+}
+
 export const registrationService = {
   /**
-   * Creates the account on the Express backend, then writes the health
-   * profile (only with consent) using the token the register call just
-   * issued.
-   *
-   * Sensitive-data policy: the full Aadhaar and PAN entered during registration
-   * never leave the device — only the last four characters of each are sent, and
-   * the raw values are dropped when the draft goes out of scope. Nothing here
-   * logs the draft.
+   * Starts account creation: creates the Supabase Auth account, which sends
+   * a 6-digit verification code to the user's email (see the Supabase
+   * dashboard setup notes — Auth > Providers > Email > Confirm email must be
+   * ON, and the "Confirm signup" template must use {{ .Token }}). No profile
+   * row is written yet — call verifySignupOtp once the user enters the code.
    */
-  async register(draft: RegistrationDraft): Promise<RegistrationResult> {
-    const phone = normalisePhone(draft.phone);
-    const dob = toIsoDate(draft.dateOfBirth);
+  async startRegistration(draft: RegistrationDraft): Promise<RegistrationResult> {
+    const email = draft.email.trim().toLowerCase();
 
-    let payload: { user: BackendUser; token: string; refreshToken: string };
-    try {
-      payload = await apiRequest('/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: draft.fullName.trim(),
-          email: draft.email.trim().toLowerCase(),
-          mobile: phone,
-          password: draft.password,
-          role: 'Customer',
-          language: draft.language,
-          dateOfBirth: dob || undefined,
-          aadhaarLast4: draft.aadhaar ? last4(draft.aadhaar) : undefined,
-          panLast4: draft.pan ? draft.pan.trim().toUpperCase().slice(-4) : undefined,
-          occupation: draft.occupation || undefined,
-          religion: draft.religion || undefined,
-          region: draft.region || undefined,
-          address: draft.address || undefined,
-          coordinates: draft.coordinates,
-          profileCompletion: computeProfileCompletion(draft),
-        }),
-      });
-    } catch (err) {
-      return { ok: false, error: friendlyAuthError(err) };
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password: draft.password,
+    });
+
+    if (signUpError) {
+      return { ok: false, error: friendlyAuthError(signUpError) };
     }
 
-    // The account exists — everything below is best-effort on top of it, so a
-    // failure here must not be reported as registration failure.
-    setAuthToken(payload.token);
-
-    let warning: string | undefined;
-    if (draft.wellnessProvided && draft.consent.storeHealthData) {
-      const w = draft.wellness;
-      try {
-        await apiRequest('/health-profile', {
-          method: 'PUT',
-          body: JSON.stringify({
-            hasAllergies: w.hasAllergies,
-            allergies: w.allergies,
-            allergyNotes: w.allergyNotes || undefined,
-            hasCurrentHealthIssues: w.hasCurrentHealthIssues,
-            currentHealthIssues: w.currentHealthIssues || undefined,
-            hasExistingConditions: w.hasExistingConditions,
-            conditions: w.conditions,
-            medicalHistoryTags: w.medicalHistoryTags,
-            medicalHistory: w.medicalHistory || undefined,
-            currentMedicationTags: w.currentMedicationTags,
-            currentMedications: w.currentMedications || undefined,
-            consentStoreHealthData: true,
-            consentPersonalizedAlerts: draft.consent.personalizedAlerts,
-          } satisfies Record<string, unknown>),
-        });
-      } catch (err) {
-        warning = `Your account was created, but the wellness profile could not be saved: ${
-          err instanceof ApiError ? err.message : 'unknown error'
-        }`;
-      }
+    // Confirmation disabled on the project (not the recommended setup) —
+    // a session came back immediately, so there's nothing to verify.
+    if (signUpData.session && signUpData.user) {
+      return completeProfile(signUpData.user.id, draft);
     }
 
-    return {
-      ok: true,
-      userId: payload.user.id,
-      user: mapBackendUser(payload.user),
-      tokens: { token: payload.token, refreshToken: payload.refreshToken },
-      error: warning,
-    };
+    return { ok: true, needsOtp: true };
   },
 
-  /** Re-fetches the signed-in user's profile using the currently-set token. */
-  async fetchProfile(): Promise<User> {
-    const profile = await apiRequest<BackendUser>('/auth/profile');
-    return mapBackendUser(profile);
+  /** Verifies the 6-digit code emailed by startRegistration, then creates the profile. */
+  async verifySignupOtp(draft: RegistrationDraft, token: string): Promise<RegistrationResult> {
+    const email = draft.email.trim().toLowerCase();
+
+    const { data, error } = await supabase.auth.verifyOtp({ email, token, type: 'signup' });
+    if (error || !data.session || !data.user) {
+      return { ok: false, error: friendlyAuthError(error) || 'Invalid or expired code. Please try again.' };
+    }
+
+    return completeProfile(data.user.id, draft);
+  },
+
+  /** Re-sends the signup verification code (rate-limited by Supabase to ~once/60s). */
+  async resendSignupOtp(email: string): Promise<{ ok: boolean; error?: string }> {
+    const { error } = await supabase.auth.resend({ type: 'signup', email: email.trim().toLowerCase() });
+    if (error) return { ok: false, error: friendlyAuthError(error) };
+    return { ok: true };
   },
 };

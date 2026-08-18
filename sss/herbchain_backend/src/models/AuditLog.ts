@@ -4,7 +4,9 @@ export interface IAuditLog extends Document {
   actorId: mongoose.Types.ObjectId;
   action: string;
   targetType: string;
-  targetId: mongoose.Types.ObjectId;
+  /** A Mongo ObjectId for Mongo-backed entities, or a Supabase UUID string
+   *  for entities that now live in Supabase (Complaint, Order, ...). */
+  targetId: mongoose.Types.ObjectId | string;
   previousStatus?: string;
   newStatus?: string;
   reason?: string;
@@ -17,7 +19,7 @@ const AuditLogSchema: Schema = new Schema(
     actorId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     action: { type: String, required: true },
     targetType: { type: String, required: true },
-    targetId: { type: Schema.Types.ObjectId, required: true },
+    targetId: { type: Schema.Types.Mixed, required: true },
     previousStatus: { type: String },
     newStatus: { type: String },
     reason: { type: String },

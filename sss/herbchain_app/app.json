@@ -33,7 +33,25 @@
           "imageWidth": 120
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.REPLACE_WITH_IOS_CLIENT_ID"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "AyurTrace+ uses the camera to scan product QR codes."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "AyurTrace+ uses your photos to scan a QR code from an image you already have."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

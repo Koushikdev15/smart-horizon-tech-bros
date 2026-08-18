@@ -5,6 +5,7 @@ import { StoreService } from '../services/StoreService';
 import { sendResponse } from '../utils/response';
 import { createProductSchema, suitabilitySchema } from '../validators/productValidator';
 import { AuthRequest } from '../middleware/authMiddleware';
+import { SupabaseAuthRequest } from '../middleware/supabaseAuthMiddleware';
 
 export class ProductController {
   private productService = new ProductService();
@@ -72,13 +73,13 @@ export class ProductController {
     }
   };
 
-  checkSuitability = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  checkSuitability = async (req: SupabaseAuthRequest, res: Response, next: NextFunction) => {
     try {
       const { error, value } = suitabilitySchema.validate(req.body);
       if (error) {
         return sendResponse(res, 400, false, 'Validation Error', undefined, error.details);
       }
-      const result = await this.suitabilityService.check(req.user.id, value);
+      const result = await this.suitabilityService.check(req.supabaseUser!.id, value);
       return sendResponse(res, 200, true, 'Suitability check complete', result);
     } catch (err) {
       next(err);

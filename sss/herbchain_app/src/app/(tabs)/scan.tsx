@@ -1,22 +1,117 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
+import React, { useRef, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { CameraView, useCameraPermissions, Camera, type BarcodeScanningResult } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
 import { Colors, Type, Spacing, BorderRadius } from '@/theme';
 import Icon from '@/components/Icon';
-import { PRODUCTS } from '@/data/mockProducts';
 
 export default function ScanScreen() {
   const router = useRouter();
   const [flashOn, setFlashOn] = useState(false);
+  const [permission, requestPermission] = useCameraPermissions();
+  const [isActive, setIsActive] = useState(true);
+  const [pickingFromGallery, setPickingFromGallery] = useState(false);
+  const scannedRef = useRef(false);
 
-  const handleSimulateScan = (batchId: string = 'AYUR-ASH-2026-000458') => {
-    router.push(`/verify/${batchId}` as any);
+  // Pause scanning while this tab isn't focused, and reset the "already
+  // scanned" guard when it comes back into focus (e.g. returning from
+  // qr-not-found via "Scan Again").
+  useFocusEffect(
+    React.useCallback(() => {
+      scannedRef.current = false;
+      setIsActive(true);
+      return () => setIsActive(false);
+    }, [])
+  );
+
+  const handleBarcodeScanned = (result: BarcodeScanningResult) => {
+    if (scannedRef.current || !result.data) return;
+    scannedRef.current = true;
+    setIsActive(false);
+    router.push(`/verify/${encodeURIComponent(result.data)}` as any);
+  };
+
+  const handleGalleryPick = async () => {
+    if (pickingFromGallery) return;
+    setPickingFromGallery(true);
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
+        Alert.alert('Photo access needed', 'Allow photo access to scan a QR code from your gallery.');
+        return;
+      }
+
+      const picked = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+      });
+      if (picked.canceled || !picked.assets?.[0]) return;
+
+      const results = await Camera.scanFromURLAsync(picked.assets[0].uri, ['qr']);
+      if (!results.length) {
+        Alert.alert('No QR Code Found', 'That photo doesn’t contain a valid QR code. Please choose a photo with a clear, valid QR code.');
+        return;
+      }
+      router.push(`/verify/${encodeURIComponent(results[0].data)}` as any);
+    } catch {
+      Alert.alert('No QR Code Found', 'That photo doesn’t contain a valid QR code. Please choose a photo with a clear, valid QR code.');
+    } finally {
+      setPickingFromGallery(false);
+    }
+  };
+
+  const renderCamera = () => {
+    if (!permission) return <View style={styles.viewfinderContainer} />;
+
+    if (!permission.granted) {
+      return (
+        <View style={[styles.viewfinderContainer, styles.permissionWrap]}>
+          <Icon name="camera-outline" size={48} color={Colors.white} />
+          <Text style={styles.permissionText}>
+            AyurTrace+ needs camera access to scan product QR codes.
+          </Text>
+          <TouchableOpacity style={styles.permissionBtn} onPress={requestPermission}>
+            <Text style={styles.permissionBtnText}>Grant Camera Access</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.viewfinderContainer}>
+        <CameraView
+          style={StyleSheet.absoluteFill}
+          facing="back"
+          enableTorch={flashOn}
+          active={isActive}
+          barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+          onBarcodeScanned={isActive ? handleBarcodeScanned : undefined}
+        />
+
+        {/* Overlay: a flex column filling the same space as the camera
+            behind it, so the middle band's fixed height lines up with the
+            scan frame regardless of screen size. */}
+        <View style={StyleSheet.absoluteFill} pointerEvents="none">
+          <View style={styles.darkOverlayTop} />
+          <View style={styles.scanRow}>
+            <View style={styles.darkOverlaySide} />
+            <View style={styles.scanFrame}>
+              <View style={[styles.corner, styles.topLeft]} />
+              <View style={[styles.corner, styles.topRight]} />
+              <View style={[styles.corner, styles.bottomLeft]} />
+              <View style={[styles.corner, styles.bottomRight]} />
+              <View style={styles.animatedScanLine} />
+            </View>
+            <View style={styles.darkOverlaySide} />
+          </View>
+          <View style={styles.darkOverlayBottom}>
+            <Text style={styles.instructionText}>Align the QR code inside the frame</Text>
+          </View>
+        </View>
+      </View>
+    );
   };
 
   return (
@@ -28,62 +123,14 @@ export default function ScanScreen() {
         <Text style={styles.headerSubtitle}>Place the product QR inside the frame.</Text>
       </View>
 
-      {/* Main Camera Viewfinder Simulation */}
-      <View style={styles.viewfinderContainer}>
-        <View style={styles.darkOverlayTop} />
-
-        <View style={styles.scanRow}>
-          <View style={styles.darkOverlaySide} />
-
-          {/* Scanner Frame */}
-          <View style={styles.scanFrame}>
-            <View style={[styles.corner, styles.topLeft]} />
-            <View style={[styles.corner, styles.topRight]} />
-            <View style={[styles.corner, styles.bottomLeft]} />
-            <View style={[styles.corner, styles.bottomRight]} />
-
-            <View style={styles.animatedScanLine} />
-
-            <Icon name="qr-code-outline" size={80} color={Colors.white + '30'} />
-          </View>
-
-          <View style={styles.darkOverlaySide} />
-        </View>
-
-        <View style={styles.darkOverlayBottom}>
-          <Text style={styles.instructionText}>Align the QR code inside the frame</Text>
-
-          {/* Quick Demo Scan Shortcuts */}
-          <View style={styles.demoPillsRow}>
-            <TouchableOpacity
-              style={styles.demoPill}
-              onPress={() => handleSimulateScan('AYUR-ASH-2026-000458')}
-            >
-              <Text style={styles.demoPillText}>Scan Ashwagandha</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.demoPill, { backgroundColor: Colors.errorContainer }]}
-              onPress={() => handleSimulateScan('AYUR-TRI-2026-000099')}
-            >
-              <Text style={[styles.demoPillText, { color: Colors.error }]}>Scan Recalled Batch</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.demoPill, { backgroundColor: Colors.tertiaryFixed }]}
-              onPress={() => router.push('/qr-not-found')}
-            >
-              <Text style={[styles.demoPillText, { color: Colors.warning }]}>Scan Invalid QR</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
+      {renderCamera()}
 
       {/* Bottom Bar Actions */}
       <View style={styles.bottomBar}>
         <TouchableOpacity
           style={styles.actionItem}
           onPress={() => setFlashOn(!flashOn)}
+          disabled={!permission?.granted}
         >
           <View style={[styles.actionCircle, flashOn && styles.actionActive]}>
             <Icon name={flashOn ? 'flash' : 'flash-outline'} size={20} color={flashOn ? Colors.primary : Colors.white} />
@@ -91,10 +138,7 @@ export default function ScanScreen() {
           <Text style={styles.actionLabel}>Flash</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.actionItem}
-          onPress={() => handleSimulateScan('AYUR-TUL-2026-000271')}
-        >
+        <TouchableOpacity style={styles.actionItem} onPress={handleGalleryPick} disabled={pickingFromGallery}>
           <View style={styles.actionCircle}>
             <Icon name="image-outline" size={20} color={Colors.white} />
           </View>
@@ -155,6 +199,27 @@ const styles = StyleSheet.create({
   },
   viewfinderContainer: {
     flex: 1,
+  },
+  permissionWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.xl,
+    gap: Spacing.md,
+  },
+  permissionText: {
+    ...Type.bodyMd,
+    color: Colors.white,
+    textAlign: 'center',
+  },
+  permissionBtn: {
+    backgroundColor: Colors.secondaryContainer,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: 12,
+    borderRadius: BorderRadius.full,
+  },
+  permissionBtnText: {
+    ...Type.labelMd,
+    color: Colors.onSecondaryContainer,
   },
   darkOverlayTop: {
     flex: 1,
@@ -233,21 +298,6 @@ const styles = StyleSheet.create({
     ...Type.bodyMd,
     color: Colors.primaryFixed,
     textAlign: 'center',
-  },
-  demoPillsRow: {
-    marginTop: Spacing.lg,
-    alignItems: 'center',
-    gap: Spacing.md,
-  },
-  demoPill: {
-    backgroundColor: Colors.secondaryContainer,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: 12,
-    borderRadius: BorderRadius.full,
-  },
-  demoPillText: {
-    ...Type.labelMd,
-    color: Colors.onSecondaryContainer,
   },
   bottomBar: {
     flexDirection: 'row',

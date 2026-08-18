@@ -1,8 +1,7 @@
 import { create } from 'zustand';
 import type { User } from '@/types';
-import { setAuthToken, apiRequest } from '@/lib/api';
-import { authStorage } from '@/lib/authStorage';
-import { mapBackendUser, type AuthTokens, type BackendUser } from '@/services/authService';
+import { supabase } from '@/lib/supabase';
+import { authService } from '@/services/authService';
 
 interface AuthState {
   user: User | null;
@@ -11,12 +10,12 @@ interface AuthState {
   hasSeenOnboarding: boolean;
   /** True once the stored session has been checked on app start (or there was none). */
   hasHydrated: boolean;
-  login: (user: User, tokens: AuthTokens) => Promise<void>;
+  login: (user: User) => void;
   loginAsGuest: () => void;
   logout: () => Promise<void>;
   setOnboardingSeen: () => void;
   updateUser: (updates: Partial<User>) => void;
-  /** Restores a persisted session on app start, if the stored token is still valid. */
+  /** Restores a persisted Supabase session on app start, if one is still valid. */
   hydrate: () => Promise<void>;
 }
 
@@ -27,11 +26,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   hasSeenOnboarding: false,
   hasHydrated: false,
 
-  login: async (user, tokens) => {
-    setAuthToken(tokens.token);
-    await authStorage.setTokens(tokens.token, tokens.refreshToken);
-    set({ user, isAuthenticated: true, isGuest: false });
-  },
+  // Supabase's client persists and auto-refreshes the session itself (see
+  // src/lib/supabase.ts) — there's no separate token to store here.
+  login: (user) => set({ user, isAuthenticated: true, isGuest: false }),
 
   loginAsGuest: () =>
     set({
@@ -41,8 +38,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     }),
 
   logout: async () => {
-    setAuthToken(null);
-    await authStorage.clear();
+    await supabase.auth.signOut();
     set({ user: null, isAuthenticated: false, isGuest: false });
   },
 
@@ -54,20 +50,21 @@ export const useAuthStore = create<AuthState>((set) => ({
     })),
 
   hydrate: async () => {
-    const token = await authStorage.getToken();
-    if (!token) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) {
       set({ hasHydrated: true });
       return;
     }
 
-    setAuthToken(token);
     try {
-      const profile = await apiRequest<BackendUser>('/auth/profile');
-      set({ user: mapBackendUser(profile), isAuthenticated: true, isGuest: false, hasHydrated: true });
+      const user = await authService.fetchProfile();
+      set({ user, isAuthenticated: true, isGuest: false, hasHydrated: true });
     } catch {
-      // Expired/invalid token — clear it and fall through to the login screen.
-      setAuthToken(null);
-      await authStorage.clear();
+      // Session valid but no matching app_login row (or some other fetch
+      // failure) — clear it and fall through to the login screen.
+      await supabase.auth.signOut();
       set({ hasHydrated: true });
     }
   },

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as Clipboard from 'expo-clipboard';
 import { Colors, Fonts, Type, Spacing, BorderRadius, Shadow } from '@/theme';
 import Icon, { IconName } from '@/components/Icon';
 import BotanicalBackdrop from '@/components/BotanicalBackdrop';
@@ -18,37 +19,21 @@ export default function RegistrationCompleteScreen() {
     completion?: string;
     wellness?: string;
     warning?: string;
-    pending?: string;
-    email?: string;
+    ayurvedicId?: string;
   }>();
 
-  const isPending = params.pending === '1';
   const completion = Number(params.completion ?? 0);
   const wellnessDone = params.wellness === '1';
   const warning = params.warning;
+  const ayurvedicId = params.ayurvedicId;
 
-  /* ── Awaiting email confirmation: no session yet, so no profile row exists ── */
-  if (isPending) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <BotanicalBackdrop />
-        <View style={styles.pendingWrap}>
-          <View style={styles.pendingBadge}>
-            <Icon name="mail-unread-outline" size={48} color={Colors.onPrimary} />
-          </View>
-          <Text style={styles.title}>Confirm Your Email</Text>
-          <Text style={styles.body}>
-            We&apos;ve sent a confirmation link to{' '}
-            <Text style={styles.emailText}>{params.email}</Text>. Open it to activate your account,
-            then sign in to finish setting up your profile.
-          </Text>
+  const [copied, setCopied] = useState(false);
 
-          <TouchableOpacity style={styles.primaryBtn} onPress={() => router.replace('/login')}>
-            <Text style={styles.primaryBtnText}>Go to Sign In</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
+  async function copyAyurvedicId() {
+    if (!ayurvedicId) return;
+    await Clipboard.setStringAsync(ayurvedicId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   const sections: SectionRow[] = [
@@ -76,6 +61,20 @@ export default function RegistrationCompleteScreen() {
         <Text style={styles.body}>
           You can now scan any AyurTrace+ product to trace its full botanical journey.
         </Text>
+
+        {ayurvedicId ? (
+          <View style={styles.ayurvedicIdCard}>
+            <Text style={styles.ayurvedicIdLabel}>Your Ayurvedic ID</Text>
+            <Text style={styles.ayurvedicIdValue}>{ayurvedicId}</Text>
+            <TouchableOpacity style={styles.copyBtn} onPress={copyAyurvedicId} activeOpacity={0.8}>
+              <Icon name={copied ? 'checkmark' : 'copy-outline'} size={16} color={Colors.onPrimaryContainer} />
+              <Text style={styles.copyBtnText}>{copied ? 'Copied' : 'Copy'}</Text>
+            </TouchableOpacity>
+            <Text style={styles.ayurvedicIdHint}>
+              You'll need this along with your email and password to sign in — save it somewhere safe.
+            </Text>
+          </View>
+        ) : null}
 
         {/* Completion ring */}
         <View style={[styles.ringOuter, { width: ringSize, height: ringSize, borderRadius: ringSize / 2 }]}>
@@ -170,7 +169,39 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
     marginBottom: Spacing.xl,
   },
-  emailText: { fontFamily: Fonts.family.semiBold, color: Colors.primary },
+  ayurvedicIdCard: {
+    alignSelf: 'stretch',
+    backgroundColor: Colors.primaryContainer,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.base,
+    alignItems: 'center',
+    marginBottom: Spacing.xl,
+  },
+  ayurvedicIdLabel: { ...Type.labelCaps, color: Colors.onPrimaryContainer },
+  ayurvedicIdValue: {
+    fontFamily: Fonts.family.serifSemiBold,
+    fontSize: Fonts.size.xl,
+    color: Colors.onPrimaryContainer,
+    letterSpacing: 1,
+    marginTop: 4,
+  },
+  ayurvedicIdHint: {
+    ...Type.bodySm,
+    color: Colors.onPrimaryContainer,
+    textAlign: 'center',
+    marginTop: Spacing.xs,
+  },
+  copyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: Colors.onPrimaryContainer + '20',
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 6,
+    marginTop: Spacing.sm,
+  },
+  copyBtnText: { ...Type.labelMd, color: Colors.onPrimaryContainer },
   ringOuter: {
     borderWidth: 8,
     borderColor: Colors.secondaryContainer,
@@ -233,21 +264,6 @@ const styles = StyleSheet.create({
     marginTop: Spacing.base,
   },
   warnText: { ...Type.bodySm, color: Colors.onTertiaryFixedVariant, flex: 1 },
-  pendingWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.gutter,
-  },
-  pendingBadge: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: Colors.primaryContainer,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.lg,
-  },
   primaryBtn: {
     alignSelf: 'stretch',
     minHeight: 54,

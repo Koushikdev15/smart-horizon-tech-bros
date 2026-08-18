@@ -1,12 +1,82 @@
-import { ChatSession } from '../models/ChatSession';
-import { ChatMessage, IChatSource, ResponseCategory } from '../models/ChatMessage';
-import { HealthProfile, IHealthProfile } from '../models/HealthProfile';
-import { User } from '../models/User';
+import { IChatSource, ResponseCategory } from '../models/ChatMessage';
 import { Product, IProduct } from '../models/Product';
 import { DoctorGuidanceService } from './DoctorGuidanceService';
 import { StoreService } from './StoreService';
 import { GeminiService, GeminiUnavailableError, ChatTurn } from '../integrations/ai/GeminiService';
-import { detectEmergency, EMERGENCY_RESPONSE_MESSAGE, findAllergyConflicts, classify, AllergyMatch } from './ChatSafetyService';
+import { detectEmergency, EMERGENCY_RESPONSE_MESSAGE, findAllergyConflicts, classify, AllergyMatch, HealthProfileLike } from './ChatSafetyService';
+import { supabaseAdmin } from '../lib/supabaseAdmin';
+
+// Chat sessions/messages and health profiles now live in Supabase
+// (customer_chat_sessions / customer_chat_messages / customer_wellness — see
+// herbchain_app/supabase/migrations). userId is the Supabase auth.users UUID.
+// The Gemini call itself stays backend-only (the API key is a server secret).
+
+interface ChatSessionRow {
+  id: string;
+  user_id: string;
+  title: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ChatMessageRow {
+  id: string;
+  session_id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  category: ResponseCategory | null;
+  sources: IChatSource[];
+  product_ids: string[];
+  doctor_guidance_ids: string[];
+  created_at: string;
+}
+
+function toSessionResponse(row: ChatSessionRow) {
+  return { _id: row.id, userId: row.user_id, title: row.title, createdAt: row.created_at, updatedAt: row.updated_at };
+}
+
+function toMessageResponse(row: ChatMessageRow) {
+  return {
+    _id: row.id,
+    sessionId: row.session_id,
+    role: row.role,
+    content: row.content,
+    category: row.category,
+    sources: row.sources,
+    productIds: row.product_ids,
+    doctorGuidanceIds: row.doctor_guidance_ids,
+    createdAt: row.created_at,
+  };
+}
+
+interface HealthProfileSummary extends HealthProfileLike {
+  hasAllergies: string;
+  allergies: string[];
+  ingredientAllergies: string[];
+  hasExistingConditions: string;
+  conditions: string[];
+  currentMedicationTags: string[];
+}
+
+async function fetchHealthProfile(userId: string): Promise<HealthProfileSummary | null> {
+  const { data } = await supabaseAdmin.from('customer_wellness').select('*').eq('user_id', userId).maybeSingle();
+  if (!data) return null;
+  return {
+    hasAllergies: data.has_allergies,
+    allergies: data.allergies ?? [],
+    ingredientAllergies: data.ingredient_allergies ?? [],
+    hasExistingConditions: data.has_existing_conditions,
+    conditions: data.conditions ?? [],
+    pregnancyStatus: data.pregnancy_status ?? undefined,
+    currentMedicationTags: data.current_medication_tags ?? [],
+    currentMedications: data.current_medications ?? undefined,
+  };
+}
+
+async function fetchAppLogin(userId: string): Promise<{ language: 'en' | 'ta'; region: string | null } | null> {
+  const { data } = await supabaseAdmin.from('app_login').select('language, region').eq('id', userId).maybeSingle();
+  return data ? { language: data.language, region: data.region } : null;
+}
 
 const SYSTEM_INSTRUCTION = `
 You are the AyurTrace+ AI assistant: a knowledgeable, confident Ayurvedic product and wellness guide embedded in this app. Think of your role as a well-informed second opinion that sits ALONGSIDE a doctor, not a nervous disclaimer machine — the app is a professional Ayurvedic traceability platform, and you should sound like it. Users lose trust fast in an assistant that answers every question with "go see a professional," so don't.
@@ -37,7 +107,7 @@ interface SendMessageResult {
   aiAvailable: boolean;
 }
 
-function summarizeHealthProfile(hp: IHealthProfile | null): string {
+function summarizeHealthProfile(hp: HealthProfileSummary | null): string {
   if (!hp) return 'No health profile on file.';
   const parts: string[] = [];
   parts.push(`allergies: ${hp.hasAllergies}${hp.allergies.length ? ` (${hp.allergies.join(', ')})` : ''}`);
@@ -87,18 +157,43 @@ export class ChatbotService {
   private geminiService = new GeminiService();
 
   async createSession(userId: string) {
-    return ChatSession.create({ userId });
+    const { data, error } = await supabaseAdmin
+      .from('customer_chat_sessions')
+      .insert({ user_id: userId })
+      .select('*')
+      .single();
+    if (error || !data) throw { status: 500, message: 'Could not start a chat session.', isOperational: true };
+    return toSessionResponse(data);
   }
 
   async listSessions(userId: string) {
-    return ChatSession.find({ userId }).sort({ updatedAt: -1 }).limit(50);
+    const { data, error } = await supabaseAdmin
+      .from('customer_chat_sessions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('updated_at', { ascending: false })
+      .limit(50);
+    if (error) throw { status: 500, message: 'Could not load chat sessions.', isOperational: true };
+    return (data ?? []).map(toSessionResponse);
   }
 
   async getSession(userId: string, sessionId: string) {
-    const session = await ChatSession.findOne({ _id: sessionId, userId });
-    if (!session) throw { status: 404, message: 'Chat session not found', isOperational: true };
-    const messages = await ChatMessage.find({ sessionId }).sort({ createdAt: 1 });
-    return { session, messages };
+    const { data: session, error: sessionError } = await supabaseAdmin
+      .from('customer_chat_sessions')
+      .select('*')
+      .eq('id', sessionId)
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (sessionError || !session) throw { status: 404, message: 'Chat session not found', isOperational: true };
+
+    const { data: messages, error: messagesError } = await supabaseAdmin
+      .from('customer_chat_messages')
+      .select('*')
+      .eq('session_id', sessionId)
+      .order('created_at', { ascending: true });
+    if (messagesError) throw { status: 500, message: 'Could not load chat messages.', isOperational: true };
+
+    return { session: toSessionResponse(session), messages: (messages ?? []).map(toMessageResponse) };
   }
 
   async sendMessage(
@@ -107,24 +202,37 @@ export class ChatbotService {
     content: string,
     coordinates?: { latitude: number; longitude: number }
   ): Promise<SendMessageResult> {
-    const session = await ChatSession.findOne({ _id: sessionId, userId });
-    if (!session) throw { status: 404, message: 'Chat session not found', isOperational: true };
+    const { data: session, error: sessionError } = await supabaseAdmin
+      .from('customer_chat_sessions')
+      .select('*')
+      .eq('id', sessionId)
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (sessionError || !session) throw { status: 404, message: 'Chat session not found', isOperational: true };
 
-    await ChatMessage.create({ sessionId, role: 'user', content });
-    if (!session.title) session.title = content.slice(0, 60);
+    await supabaseAdmin.from('customer_chat_messages').insert({ session_id: sessionId, role: 'user', content });
+    const titleUpdate = session.title ? {} : { title: content.slice(0, 60) };
 
     // Emergency detection is a hard gate — no LLM call, no product talk.
     if (detectEmergency(content)) {
-      const assistantMsg = await ChatMessage.create({
-        sessionId,
-        role: 'assistant',
-        content: EMERGENCY_RESPONSE_MESSAGE,
-        category: 'URGENT_MEDICAL_ATTENTION',
-        sources: [],
-      });
-      await session.save();
+      const { data: assistantMsg, error: msgError } = await supabaseAdmin
+        .from('customer_chat_messages')
+        .insert({
+          session_id: sessionId,
+          role: 'assistant',
+          content: EMERGENCY_RESPONSE_MESSAGE,
+          category: 'URGENT_MEDICAL_ATTENTION',
+          sources: [],
+        })
+        .select('*')
+        .single();
+      if (msgError || !assistantMsg) throw { status: 500, message: 'Could not send message.', isOperational: true };
+      await supabaseAdmin
+        .from('customer_chat_sessions')
+        .update({ ...titleUpdate, updated_at: new Date().toISOString() })
+        .eq('id', sessionId);
       return {
-        sessionId: String(session._id),
+        sessionId,
         reply: assistantMsg.content,
         category: 'URGENT_MEDICAL_ATTENTION',
         sources: [],
@@ -135,11 +243,18 @@ export class ChatbotService {
       };
     }
 
-    const [healthProfile, user, history] = await Promise.all([
-      HealthProfile.findOne({ userId }),
-      User.findById(userId),
-      ChatMessage.find({ sessionId }).sort({ createdAt: 1 }).limit(20),
+    const [healthProfile, appLogin, historyRows] = await Promise.all([
+      fetchHealthProfile(userId),
+      fetchAppLogin(userId),
+      supabaseAdmin
+        .from('customer_chat_messages')
+        .select('*')
+        .eq('session_id', sessionId)
+        .order('created_at', { ascending: true })
+        .limit(20)
+        .then((r) => (r.data ?? []) as ChatMessageRow[]),
     ]);
+    const history = historyRows.map(toMessageResponse);
 
     let products: IProduct[] = [];
     try {
@@ -149,7 +264,9 @@ export class ChatbotService {
     }
 
     const guidanceHits = (
-      await Promise.all(products.map((p) => this.guidanceService.findPublished({ productId: String(p._id), region: user?.region })))
+      await Promise.all(
+        products.map((p) => this.guidanceService.findPublished({ productId: String(p._id), region: appLogin?.region ?? undefined }))
+      )
     ).flat();
 
     // Only looked up if the client shared location for this turn (e.g. the
@@ -197,7 +314,7 @@ export class ChatbotService {
           ? `Nearby stores carrying this product are available (shown separately in the app) — you may mention that nearby availability was found.`
           : 'No nearby stores currently carry this product in stock.'
         : 'The user has not shared their location, so nearby store availability was not checked.',
-      user?.language === 'ta' ? 'Respond in Tamil.' : 'Respond in English.',
+      appLogin?.language === 'ta' ? 'Respond in Tamil.' : 'Respond in English.',
     ].join('\n');
 
     const turns: ChatTurn[] = history.slice(0, -1).map((m) => ({ role: m.role, content: m.content }));
@@ -213,19 +330,24 @@ export class ChatbotService {
       reply = buildFallbackReply(category, products, allergyConflicts, guidanceHits.length > 0);
     }
 
-    const assistantMsg = await ChatMessage.create({
-      sessionId,
-      role: 'assistant',
-      content: reply,
-      category,
-      sources,
-      productIds: products.map((p) => p._id),
-      doctorGuidanceIds: guidanceHits.map((g) => g.guidance._id),
-    });
-    await session.save();
+    const { data: assistantMsg, error: assistantMsgError } = await supabaseAdmin
+      .from('customer_chat_messages')
+      .insert({
+        session_id: sessionId,
+        role: 'assistant',
+        content: reply,
+        category,
+        sources,
+        product_ids: products.map((p) => String(p._id)),
+        doctor_guidance_ids: guidanceHits.map((g) => String(g.guidance._id)),
+      })
+      .select('*')
+      .single();
+    if (assistantMsgError || !assistantMsg) throw { status: 500, message: 'Could not send message.', isOperational: true };
+    await supabaseAdmin.from('customer_chat_sessions').update(titleUpdate).eq('id', sessionId);
 
     return {
-      sessionId: String(session._id),
+      sessionId,
       reply: assistantMsg.content,
       category,
       sources,

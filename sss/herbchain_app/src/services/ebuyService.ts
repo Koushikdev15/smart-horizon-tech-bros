@@ -1,4 +1,5 @@
 import { apiRequest } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 
 export interface RegionAvailability {
   storeCount: number;
@@ -29,7 +30,7 @@ export interface StoreOffer {
 }
 
 export interface Order {
-  _id: string;
+  id: string;
   items: Array<{ productName: string; storeName: string; quantity: number; unitPrice: number }>;
   totalAmount: number;
   deliveryAddress: string;
@@ -60,7 +61,37 @@ export const ebuyService = {
     return apiRequest('/orders', { method: 'POST', body: JSON.stringify(data) });
   },
 
+  /** Reads straight from Supabase (RLS-owned) — orders are created via the
+   *  backend (needs the Mongo product/store catalog), but history reads don't. */
   async getMyOrders(): Promise<Order[]> {
-    return apiRequest('/orders/me');
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    const { data, error } = await supabase
+      .from('customer_orders')
+      .select('*, customer_order_items(*)')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    return (data ?? []).map((o: any) => ({
+      id: o.id,
+      items: (o.customer_order_items ?? []).map((i: any) => ({
+        productName: i.product_name,
+        storeName: i.store_name,
+        quantity: i.quantity,
+        unitPrice: Number(i.unit_price),
+      })),
+      totalAmount: Number(o.total_amount),
+      deliveryAddress: o.delivery_address,
+      region: o.region,
+      paymentMethod: o.payment_method,
+      paymentStatus: o.payment_status,
+      orderStatus: o.order_status,
+      createdAt: o.created_at,
+    }));
   },
 };
