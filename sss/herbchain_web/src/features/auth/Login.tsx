@@ -12,6 +12,7 @@ import { Shield, Eye, EyeOff, Moon, Sun, Mail, Hash, Lock, ChevronRight, FlaskCo
 import type { UserRole } from '../../types';
 import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import BotanicalBackground from '../../components/BotanicalBackground';
+import LoginBackdrop from '../../components/LoginBackdrop';
 import { authService } from '../../services/authService';
 
 /**
@@ -208,13 +209,12 @@ export default function Login() {
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
           className="relative hidden lg:flex flex-col items-center justify-center p-10 min-h-[620px] overflow-hidden border-r border-border"
-          style={{ 
-            perspective: 1000,
-            background: darkMode 
-              ? 'radial-gradient(circle at 50% 30%, rgba(20, 184, 166, 0.08) 0%, rgba(15, 23, 42, 0.98) 100%)'
-              : 'radial-gradient(circle at 50% 30%, rgba(20, 184, 166, 0.06) 0%, rgba(248, 250, 252, 0.95) 100%)',
-          }}
+          style={{ perspective: 1000 }}
         >
+          {/* Motion backdrop — video when one is supplied, provenance animation
+              otherwise. Sits behind everything else in this panel. */}
+          <LoginBackdrop dark={darkMode} />
+
           {/* Subtle botanical background pattern matching the site background */}
           <motion.div 
             className="absolute inset-0 flex items-center justify-center pointer-events-none"
