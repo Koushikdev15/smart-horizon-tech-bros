@@ -9,47 +9,60 @@ import {
   Modal,
   Pressable,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Colors, Fonts, Type, Spacing, BorderRadius, Shadow } from '@/theme';
-import { AppHeader } from '@/components/Header';
 import Icon from '@/components/Icon';
-import { PrimaryButton, SecondaryButton } from '@/components/Buttons';
-import SelectField from '@/components/forms/SelectField';
-import { STATES } from '@/features/registration/constants';
+import { PrimaryButton } from '@/components/Buttons';
 import { GuestGate } from '@/components/GuestGate';
 import { useAuthStore } from '@/store/authStore';
 import { useCartStore } from '@/store/cartStore';
+import { useToastStore } from '@/store/toastStore';
 import { ApiError } from '@/lib/api';
-import { ebuyService, type PurchaseProduct, type StoreOffer, type Order } from '@/services/ebuyService';
+import { ebuyService, type PurchaseProduct, type Order } from '@/services/ebuyService';
 
-function ProductPurchaseCard({ product, onPress }: { product: PurchaseProduct; onPress: () => void }) {
+function ProductPurchaseCard({
+  product,
+  onPress,
+  onAddToCart,
+  adding,
+}: {
+  product: PurchaseProduct;
+  onPress: () => void;
+  onAddToCart: () => void;
+  adding: boolean;
+}) {
   const avail = product.regionAvailability;
   return (
     <TouchableOpacity style={[styles.productCard, Shadow.sm]} onPress={onPress} activeOpacity={0.8}>
       <View style={styles.productImgBox}>
-        <Icon name="leaf-outline" size={28} color={Colors.primary} />
+        <Icon name="leaf-outline" size={22} color={Colors.primary} />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={styles.productName}>{product.productName}</Text>
-        {product.healthTopics.length > 0 && (
-          <Text style={styles.productTopics}>{product.healthTopics.join(', ')}</Text>
-        )}
-        {avail ? (
-          <View style={styles.availBadge}>
-            <Icon name="checkmark-circle" size={12} color={Colors.onSecondaryContainer} />
-            <Text style={styles.availBadgeText}>
-              {avail.storeCount} store{avail.storeCount > 1 ? 's' : ''} in region
-              {avail.minPrice != null ? ` · from ₹${avail.minPrice}` : ''}
-            </Text>
-          </View>
+        <Text style={styles.productName} numberOfLines={1}>{product.productName}</Text>
+        {avail?.minPrice != null ? (
+          <Text style={styles.productPrice}>From ₹{avail.minPrice}</Text>
+        ) : avail ? (
+          <Text style={styles.productPrice}>{avail.storeCount} store{avail.storeCount > 1 ? 's' : ''} carry this</Text>
         ) : (
-          <Text style={styles.unavailText}>Not stocked in selected region</Text>
+          <Text style={styles.unavailText}>Currently out of stock</Text>
         )}
       </View>
-      <Icon name="chevron-forward" size={20} color={Colors.textMuted} />
+      <TouchableOpacity
+        style={[styles.rowAddBtn, !avail && styles.rowAddBtnDisabled]}
+        onPress={(e) => {
+          e.stopPropagation();
+          onAddToCart();
+        }}
+        disabled={!avail || adding}
+      >
+        {adding ? (
+          <ActivityIndicator size="small" color={Colors.onPrimary} />
+        ) : (
+          <Text style={styles.rowAddBtnText}>Add to Cart</Text>
+        )}
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 }
@@ -59,21 +72,39 @@ export default function EBuyScreen() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isGuest = useAuthStore((s) => s.isGuest);
   const user = useAuthStore((s) => s.user);
-  const { items: cartItems, addItem, updateQuantity, clear } = useCartStore();
+  const { items: cartItems, addItem, updateQuantity, toggleSelected, removeSelected } = useCartStore();
 
-  const [region, setRegion] = useState(user?.region || '');
+  const [view, setView] = useState<'browse' | 'orders'>('browse');
+
   const [query, setQuery] = useState('');
   const [products, setProducts] = useState<PurchaseProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [addingProductId, setAddingProductId] = useState<string | null>(null);
 
-  const [offersProduct, setOffersProduct] = useState<PurchaseProduct | null>(null);
-  const [offers, setOffers] = useState<StoreOffer[] | null>(null);
-  const [offersLoading, setOffersLoading] = useState(false);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersError, setOrdersError] = useState<string | null>(null);
+
+  async function loadOrders() {
+    setOrdersLoading(true);
+    setOrdersError(null);
+    try {
+      const results = await ebuyService.getMyOrders();
+      setOrders(results);
+    } catch {
+      setOrdersError('Could not load your orders.');
+    } finally {
+      setOrdersLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (view === 'orders') loadOrders();
+  }, [view]);
 
   const [cartOpen, setCartOpen] = useState(false);
   const [deliveryAddress, setDeliveryAddress] = useState(user?.address || '');
-  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'ONLINE'>('COD');
   const [placingOrder, setPlacingOrder] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
   const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
@@ -82,7 +113,7 @@ export default function EBuyScreen() {
     setLoading(true);
     setLoadError(null);
     try {
-      const results = await ebuyService.browse({ q: query || undefined, region: region || undefined });
+      const results = await ebuyService.browse({ q: query || undefined });
       setProducts(results);
     } catch (err) {
       setLoadError(err instanceof ApiError ? err.message : 'Could not load products.');
@@ -93,41 +124,43 @@ export default function EBuyScreen() {
 
   useEffect(() => {
     loadProducts();
-  }, [region]);
+  }, []);
 
-  async function openOffers(product: PurchaseProduct) {
-    setOffersProduct(product);
-    setOffers(null);
-    setOffersLoading(true);
+  function openProductDetail(product: PurchaseProduct) {
+    router.push(`/ebuy/${product._id}` as any);
+  }
+
+  async function handleRowAddToCart(product: PurchaseProduct) {
+    setAddingProductId(product._id);
     try {
-      const results = await ebuyService.getOffers(product._id, region || undefined);
-      setOffers(results);
+      const offers = await ebuyService.getOffers(product._id);
+      const inStock = offers.filter((o) => o.price != null);
+      if (inStock.length === 1) {
+        const offer = inStock[0];
+        addItem(
+          { productId: product._id, productName: product.productName, storeId: offer.storeId, storeName: offer.storeName, unitPrice: offer.price! },
+          1
+        );
+        useToastStore.getState().show(`Added ${product.productName} to cart`, 'success');
+      } else {
+        openProductDetail(product);
+      }
     } catch {
-      setOffers([]);
+      openProductDetail(product);
     } finally {
-      setOffersLoading(false);
+      setAddingProductId(null);
     }
   }
 
-  function handleAddToCart(offer: StoreOffer) {
-    if (!offersProduct || offer.price == null) return;
-    addItem(
-      {
-        productId: offersProduct._id,
-        productName: offersProduct.productName,
-        storeId: offer.storeId,
-        storeName: offer.storeName,
-        unitPrice: offer.price,
-      },
-      1
-    );
-    setOffersProduct(null);
-  }
-
-  const cartTotal = cartItems.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
+  const selectedCartItems = cartItems.filter((i) => i.selected);
+  const cartTotal = selectedCartItems.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
   const cartCount = cartItems.reduce((sum, i) => sum + i.quantity, 0);
 
   async function handlePlaceOrder() {
+    if (selectedCartItems.length === 0) {
+      setOrderError('Select at least one item to check out.');
+      return;
+    }
     if (!deliveryAddress.trim()) {
       setOrderError('Enter a delivery address.');
       return;
@@ -135,14 +168,18 @@ export default function EBuyScreen() {
     setPlacingOrder(true);
     setOrderError(null);
     try {
+      // Online payment (Razorpay) is built but not currently offered in the
+      // UI — see herbchain_app/src/app/ebuy/checkout.tsx and
+      // herbchain_backend/src/services/RazorpayService.ts if it's re-enabled
+      // later. Cash on Delivery is the only path customers can select today.
       const order = await ebuyService.placeOrder({
-        items: cartItems.map((i) => ({ productId: i.productId, storeId: i.storeId, quantity: i.quantity })),
+        items: selectedCartItems.map((i) => ({ productId: i.productId, storeId: i.storeId, quantity: i.quantity })),
         deliveryAddress: deliveryAddress.trim(),
-        region: region || user?.region || 'Unspecified',
-        paymentMethod,
+        region: user?.region || 'Unspecified',
+        paymentMethod: 'COD',
       });
       setPlacedOrder(order);
-      clear();
+      removeSelected();
     } catch (err) {
       setOrderError(err instanceof ApiError ? err.message : 'Could not place your order. Please try again.');
     } finally {
@@ -165,119 +202,100 @@ export default function EBuyScreen() {
       </View>
 
       <GuestGate message="Sign in to browse and buy Ayurvedic products online.">
-        <View style={styles.filtersRow}>
-          <View style={{ flex: 1 }}>
-            <SelectField label="" value={region} options={[...STATES]} onSelect={setRegion} placeholder="Sort by region" icon="location-outline" />
-          </View>
-        </View>
-        <View style={styles.searchRow}>
-          <Icon name="search-outline" size={18} color={Colors.textMuted} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search products..."
-            value={query}
-            onChangeText={setQuery}
-            onSubmitEditing={loadProducts}
-            placeholderTextColor={Colors.textMuted}
-          />
+        <View style={styles.segmentRow}>
+          <TouchableOpacity
+            style={[styles.segment, view === 'browse' && styles.segmentActive]}
+            onPress={() => setView('browse')}
+          >
+            <Text style={[styles.segmentText, view === 'browse' && styles.segmentTextActive]}>Browse</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.segment, view === 'orders' && styles.segmentActive]}
+            onPress={() => setView('orders')}
+          >
+            <Text style={[styles.segmentText, view === 'orders' && styles.segmentTextActive]}>Orders</Text>
+          </TouchableOpacity>
         </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {loading ? (
-            <View style={styles.centerBox}>
-              <ActivityIndicator color={Colors.primary} />
+        {view === 'browse' ? (
+          <>
+            <View style={styles.searchRow}>
+              <Icon name="search-outline" size={18} color={Colors.textMuted} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search products..."
+                value={query}
+                onChangeText={setQuery}
+                onSubmitEditing={loadProducts}
+                placeholderTextColor={Colors.textMuted}
+              />
             </View>
-          ) : loadError ? (
-            <View style={styles.centerBox}>
-              <Text style={styles.errorText}>{loadError}</Text>
-            </View>
-          ) : products.length === 0 ? (
-            <View style={styles.centerBox}>
-              <Text style={styles.emptyText}>No products found.</Text>
-            </View>
-          ) : (
-            products.map((p) => <ProductPurchaseCard key={p._id} product={p} onPress={() => openOffers(p)} />)
-          )}
-        </ScrollView>
-      </GuestGate>
 
-      {/* Product details + offers modal */}
-      <Modal visible={Boolean(offersProduct)} transparent animationType="fade" onRequestClose={() => setOffersProduct(null)}>
-        <Pressable style={styles.backdrop} onPress={() => setOffersProduct(null)}>
-          <Pressable style={[styles.sheet, { maxHeight: '85%' }]} onPress={(e) => e.stopPropagation()}>
-            <View style={styles.sheetHandle} />
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <Text style={styles.sheetTitle}>{offersProduct?.productName}</Text>
-
-              {offersProduct?.healthTopics && offersProduct.healthTopics.length > 0 && (
-                <View style={styles.topicsRow}>
-                  {offersProduct.healthTopics.map((topic) => (
-                    <View key={topic} style={styles.topicChip}>
-                      <Text style={styles.topicChipText}>{topic}</Text>
-                    </View>
-                  ))}
+            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+              {loading ? (
+                <View style={styles.centerBox}>
+                  <ActivityIndicator color={Colors.primary} />
                 </View>
-              )}
-
-              {offersProduct?.description ? <Text style={styles.detailText}>{offersProduct.description}</Text> : null}
-
-              {offersProduct?.ingredients && offersProduct.ingredients.length > 0 && (
-                <Text style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Ingredients: </Text>
-                  {offersProduct.ingredients
-                    .map((i) => (i.scientificName ? `${i.name} (${i.scientificName})` : i.name))
-                    .join(', ')}
-                </Text>
-              )}
-              {offersProduct?.usageInstructions ? (
-                <Text style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Usage: </Text>
-                  {offersProduct.usageInstructions}
-                </Text>
-              ) : null}
-              {offersProduct?.precautions ? (
-                <Text style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Precautions: </Text>
-                  {offersProduct.precautions}
-                </Text>
-              ) : null}
-              {offersProduct?.contraindications ? (
-                <Text style={[styles.detailRow, { color: Colors.error }]}>
-                  <Text style={styles.detailLabel}>Contraindications: </Text>
-                  {offersProduct.contraindications}
-                </Text>
-              ) : null}
-
-              <Text style={[styles.sheetTitle, { fontSize: 16, marginTop: Spacing.lg }]}>Available From</Text>
-              {offersLoading ? (
-                <ActivityIndicator color={Colors.primary} style={{ marginVertical: Spacing.lg }} />
-              ) : !offers || offers.length === 0 ? (
-                <Text style={styles.emptyText}>No stores currently stock this product{region ? ` in ${region}` : ''}.</Text>
+              ) : loadError ? (
+                <View style={styles.centerBox}>
+                  <Text style={styles.errorText}>{loadError}</Text>
+                </View>
+              ) : products.length === 0 ? (
+                <View style={styles.centerBox}>
+                  <Text style={styles.emptyText}>No products found.</Text>
+                </View>
               ) : (
-                offers.map((offer) => (
-                  <View key={offer.storeId} style={styles.offerRow}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.offerStoreName}>{offer.storeName}</Text>
-                      <Text style={styles.offerAddress}>{offer.address}</Text>
-                      {offer.isOpenNow !== null && (
-                        <Text style={[styles.offerStatus, { color: offer.isOpenNow ? Colors.secondary : Colors.error }]}>
-                          {offer.isOpenNow ? 'Open now' : 'Closed'}
-                        </Text>
-                      )}
-                    </View>
-                    <View style={{ alignItems: 'flex-end' }}>
-                      <Text style={styles.offerPrice}>{offer.price != null ? `₹${offer.price}` : '—'}</Text>
-                      <TouchableOpacity style={styles.addBtn} onPress={() => handleAddToCart(offer)} disabled={offer.price == null}>
-                        <Text style={styles.addBtnText}>Add to Cart</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
+                products.map((p) => (
+                  <ProductPurchaseCard
+                    key={p._id}
+                    product={p}
+                    onPress={() => openProductDetail(p)}
+                    onAddToCart={() => handleRowAddToCart(p)}
+                    adding={addingProductId === p._id}
+                  />
                 ))
               )}
             </ScrollView>
-          </Pressable>
-        </Pressable>
-      </Modal>
+          </>
+        ) : (
+          <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            {ordersLoading ? (
+              <View style={styles.centerBox}>
+                <ActivityIndicator color={Colors.primary} />
+              </View>
+            ) : ordersError ? (
+              <View style={styles.centerBox}>
+                <Text style={styles.errorText}>{ordersError}</Text>
+              </View>
+            ) : orders.length === 0 ? (
+              <View style={styles.centerBox}>
+                <Text style={styles.emptyText}>You haven't placed any orders yet.</Text>
+              </View>
+            ) : (
+              orders.map((order) => (
+                <View key={order.id} style={[styles.orderCard, Shadow.sm]}>
+                  <View style={styles.orderCardHeader}>
+                    <Text style={styles.orderId}>Order #{order.id.slice(-8).toUpperCase()}</Text>
+                    <View style={styles.orderStatusBadge}>
+                      <Text style={styles.orderStatusText}>{order.orderStatus}</Text>
+                    </View>
+                  </View>
+                  {order.items.map((item, i) => (
+                    <Text key={i} style={styles.orderItemLine}>
+                      {item.quantity}× {item.productName} · {item.storeName} · ₹{item.unitPrice * item.quantity}
+                    </Text>
+                  ))}
+                  <View style={styles.orderFooterRow}>
+                    <Text style={styles.orderDate}>{new Date(order.createdAt).toLocaleDateString()}</Text>
+                    <Text style={styles.orderTotal}>₹{order.totalAmount}</Text>
+                  </View>
+                  <Text style={styles.orderAddress} numberOfLines={1}>{order.deliveryAddress}</Text>
+                </View>
+              ))
+            )}
+          </ScrollView>
+        )}
+      </GuestGate>
 
       {/* Cart / checkout modal */}
       <Modal visible={cartOpen} transparent animationType="slide" onRequestClose={() => setCartOpen(false)}>
@@ -316,6 +334,16 @@ export default function EBuyScreen() {
                   <>
                     {cartItems.map((item) => (
                       <View key={`${item.productId}-${item.storeId}`} style={styles.cartRow}>
+                        <TouchableOpacity
+                          onPress={() => toggleSelected(item.productId, item.storeId)}
+                          accessibilityLabel={item.selected ? 'Deselect item' : 'Select item for checkout'}
+                        >
+                          <Icon
+                            name={item.selected ? 'checkbox' : 'checkbox-outline'}
+                            size={22}
+                            color={item.selected ? Colors.primary : Colors.textMuted}
+                          />
+                        </TouchableOpacity>
                         <View style={{ flex: 1 }}>
                           <Text style={styles.offerStoreName}>{item.productName}</Text>
                           <Text style={styles.offerAddress}>{item.storeName}</Text>
@@ -340,7 +368,9 @@ export default function EBuyScreen() {
                     ))}
 
                     <View style={styles.totalRow}>
-                      <Text style={styles.totalLabel}>Total</Text>
+                      <Text style={styles.totalLabel}>
+                        Total ({selectedCartItems.length} selected{selectedCartItems.length !== cartItems.length ? ` of ${cartItems.length}` : ''})
+                      </Text>
                       <Text style={styles.totalValue}>₹{cartTotal}</Text>
                     </View>
 
@@ -354,26 +384,11 @@ export default function EBuyScreen() {
                       multiline
                     />
 
-                    <Text style={styles.label}>Payment Method</Text>
                     <View style={styles.paymentRow}>
-                      <TouchableOpacity
-                        style={[styles.paymentOption, paymentMethod === 'COD' && styles.paymentOptionActive]}
-                        onPress={() => setPaymentMethod('COD')}
-                      >
-                        <Icon name="cash-outline" size={18} color={paymentMethod === 'COD' ? Colors.onSecondaryContainer : Colors.textSecondary} />
-                        <Text style={[styles.paymentOptionText, paymentMethod === 'COD' && styles.paymentOptionTextActive]}>
-                          Cash on Delivery
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.paymentOption, styles.paymentOptionDisabled]}
-                        onPress={() =>
-                          Alert.alert('Coming soon', 'Online payment isn’t connected yet — please use Cash on Delivery for now.')
-                        }
-                      >
-                        <Icon name="card-outline" size={18} color={Colors.outline} />
-                        <Text style={styles.paymentOptionTextDisabled}>Online Payment (Coming soon)</Text>
-                      </TouchableOpacity>
+                      <View style={[styles.paymentOption, styles.paymentOptionActive]}>
+                        <Icon name="cash-outline" size={18} color={Colors.onSecondaryContainer} />
+                        <Text style={[styles.paymentOptionText, styles.paymentOptionTextActive]}>Cash on Delivery</Text>
+                      </View>
                     </View>
 
                     {orderError ? <Text style={styles.errorText}>{orderError}</Text> : null}
@@ -382,6 +397,7 @@ export default function EBuyScreen() {
                       title={placingOrder ? 'Placing Order…' : `Place Order · ₹${cartTotal}`}
                       onPress={handlePlaceOrder}
                       loading={placingOrder}
+                      disabled={selectedCartItems.length === 0}
                       style={{ marginTop: Spacing.lg, marginBottom: Spacing.xl }}
                     />
                   </>
@@ -426,7 +442,58 @@ const styles = StyleSheet.create({
     paddingHorizontal: 3,
   },
   cartBadgeText: { color: Colors.white, fontSize: 9, fontFamily: Fonts.family.bold },
-  filtersRow: { paddingHorizontal: Spacing.gutter },
+  segmentRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    marginHorizontal: Spacing.gutter,
+    marginBottom: Spacing.sm,
+    backgroundColor: Colors.surfaceContainerHigh,
+    borderRadius: BorderRadius.full,
+    padding: 4,
+  },
+  segment: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderRadius: BorderRadius.full,
+  },
+  segmentActive: { backgroundColor: Colors.primary },
+  segmentText: { ...Type.labelMd, fontSize: 13, color: Colors.onSurfaceVariant },
+  segmentTextActive: { color: Colors.onPrimary },
+  orderCard: {
+    backgroundColor: Colors.surfaceContainerLowest,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: Colors.outlineVariant,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  orderCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.xs,
+  },
+  orderId: { ...Type.labelMd, color: Colors.onSurface },
+  orderStatusBadge: {
+    backgroundColor: Colors.secondaryContainer,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.full,
+  },
+  orderStatusText: { fontFamily: Fonts.family.semiBold, fontSize: 10, color: Colors.onSecondaryContainer },
+  orderItemLine: { ...Type.bodySm, color: Colors.onSurfaceVariant, marginTop: 2 },
+  orderFooterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: Spacing.sm,
+    paddingTop: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: Colors.outlineVariant,
+  },
+  orderDate: { ...Type.bodySm, color: Colors.textMuted },
+  orderTotal: { ...Type.labelMd, color: Colors.primary },
+  orderAddress: { ...Type.bodySm, fontSize: 11, color: Colors.textMuted, marginTop: 2 },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -465,20 +532,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   productName: { ...Type.labelMd, fontSize: 15, color: Colors.onSurface },
-  productTopics: { ...Type.bodySm, color: Colors.textSecondary, marginTop: 2 },
-  availBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    alignSelf: 'flex-start',
-    backgroundColor: Colors.secondaryContainer,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.full,
-    marginTop: Spacing.xs,
-  },
-  availBadgeText: { ...Type.labelMd, fontSize: 10, color: Colors.onSecondaryContainer },
+  productPrice: { ...Type.bodySm, color: Colors.primary, fontFamily: Fonts.family.semiBold, marginTop: 2 },
   unavailText: { ...Type.bodySm, fontSize: 11, color: Colors.textMuted, marginTop: Spacing.xs },
+  rowAddBtn: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: Spacing.sm + 2,
+    paddingVertical: 8,
+    borderRadius: BorderRadius.full,
+  },
+  rowAddBtnDisabled: { backgroundColor: Colors.outlineVariant },
+  rowAddBtnText: { ...Type.labelMd, fontSize: 11, color: Colors.onPrimary },
   backdrop: { flex: 1, backgroundColor: Colors.overlay, justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: Colors.surface,
@@ -498,37 +561,9 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.base,
   },
   sheetTitle: { ...Type.headlineSm, color: Colors.primary, marginBottom: Spacing.md },
-  topicsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: Spacing.sm },
-  topicChip: {
-    backgroundColor: Colors.secondaryContainer,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.full,
-  },
-  topicChipText: { ...Type.labelMd, fontSize: 11, color: Colors.onSecondaryContainer },
-  detailText: { ...Type.bodySm, color: Colors.textSecondary, marginBottom: Spacing.sm, lineHeight: 19 },
-  detailRow: { ...Type.bodySm, color: Colors.textSecondary, marginBottom: Spacing.sm, lineHeight: 18 },
-  detailLabel: { fontFamily: Fonts.family.semiBold, color: Colors.onSurface },
-  offerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    paddingVertical: Spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: Colors.outlineVariant,
-  },
   offerStoreName: { ...Type.labelMd, color: Colors.onSurface },
   offerAddress: { ...Type.bodySm, color: Colors.textMuted, marginTop: 1 },
-  offerStatus: { ...Type.bodySm, fontSize: 11, marginTop: 2 },
   offerPrice: { ...Type.labelMd, color: Colors.primary },
-  addBtn: {
-    marginTop: Spacing.xs,
-    backgroundColor: Colors.primaryContainer,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 5,
-    borderRadius: BorderRadius.full,
-  },
-  addBtnText: { ...Type.labelMd, fontSize: 11, color: Colors.onPrimary },
   cartRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -582,10 +617,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceContainerLowest,
   },
   paymentOptionActive: { borderColor: Colors.secondary, backgroundColor: Colors.secondaryContainer },
-  paymentOptionDisabled: { opacity: 0.6 },
   paymentOptionText: { ...Type.bodyMd, color: Colors.onSurface },
   paymentOptionTextActive: { color: Colors.onSecondaryContainer, fontFamily: Fonts.family.semiBold },
-  paymentOptionTextDisabled: { ...Type.bodyMd, color: Colors.outline },
   confirmBox: { alignItems: 'center', paddingVertical: Spacing.lg },
   confirmText: { ...Type.bodySm, color: Colors.textSecondary, textAlign: 'center', marginTop: Spacing.sm },
 });

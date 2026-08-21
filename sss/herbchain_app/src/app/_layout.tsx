@@ -76,7 +76,13 @@ export default function RootLayout() {
         <Stack.Screen name="verify/[batchId]" options={{ animation: 'slide_from_bottom' }} />
         <Stack.Screen name="verify/manual" options={{ presentation: 'modal' }} />
         <Stack.Screen name="product/[id]" />
-        <Stack.Screen name="copilot" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="doctor-consult/[doctorId]" />
+        <Stack.Screen name="ebuy/[productId]" />
+        <Stack.Screen name="ebuy/checkout" options={{ presentation: 'modal', gestureEnabled: false }} />
+        {/* Not presented as a native modal — on Android, modal-presented
+            screens don't reliably get windowSoftInputMode's resize behavior,
+            so the keyboard covers the chat input instead of pushing it up. */}
+        <Stack.Screen name="copilot" />
         <Stack.Screen name="search" />
         <Stack.Screen name="compare" />
         <Stack.Screen name="saved" />

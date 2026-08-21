@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -30,6 +30,15 @@ const VERDICT_STYLE: Record<SuitabilityResult['verdict'], { bg: string; fg: stri
   POTENTIAL_CONCERN: { bg: Colors.tertiaryFixed, fg: Colors.onTertiaryFixedVariant, icon: 'alert-circle' },
   HIGH_RISK_MATCH: { bg: Colors.errorContainer, fg: Colors.onErrorContainer, icon: 'warning' },
   INSUFFICIENT_INFORMATION: { bg: Colors.surfaceContainerHigh, fg: Colors.onSurfaceVariant, icon: 'help-circle-outline' },
+};
+
+// Higher = riskier — the inverse of TrustScore's provenance-trust semantics
+// used elsewhere on this screen, so this intentionally does not reuse it.
+const RISK_BAND_STYLE: Record<SuitabilityResult['riskBand'], { color: string; label: string }> = {
+  LOW: { color: Colors.success, label: 'Low Risk' },
+  MODERATE: { color: Colors.gold, label: 'Moderate Risk' },
+  ELEVATED: { color: Colors.error + 'B3', label: 'Elevated Risk' },
+  HIGH: { color: Colors.error, label: 'High Risk' },
 };
 
 export default function ProductDetailScreen() {
@@ -72,6 +81,16 @@ export default function ProductDetailScreen() {
       setCheckingSuitability(false);
     }
   }
+
+  // Auto-run once so the risk score is visible without the user needing to
+  // discover a manual "check" button — guest/signed-out users still see the
+  // sign-in prompt on their first interaction with this screen instead.
+  useEffect(() => {
+    if (isAuthenticated && !isGuest) {
+      handleCheckSuitability();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, isGuest, product.name]);
 
   const [stores, setStores] = useState<NearbyStore[] | null>(null);
   const [storesError, setStoresError] = useState<string | null>(null);
@@ -371,6 +390,36 @@ export default function ProductDetailScreen() {
                 </Text>
               </View>
               <Text style={styles.suitabilityExplanation}>{suitability.explanation}</Text>
+
+              <View style={styles.riskScoreCard}>
+                <View style={styles.riskScoreHeaderRow}>
+                  <Text style={styles.riskScoreLabel}>Risk Management Score</Text>
+                  <Text style={[styles.riskScoreValue, { color: RISK_BAND_STYLE[suitability.riskBand].color }]}>
+                    {suitability.riskScore}/100 · {RISK_BAND_STYLE[suitability.riskBand].label}
+                  </Text>
+                </View>
+                <View style={styles.riskScoreTrack}>
+                  <View
+                    style={[
+                      styles.riskScoreFill,
+                      { width: `${suitability.riskScore}%`, backgroundColor: RISK_BAND_STYLE[suitability.riskBand].color },
+                    ]}
+                  />
+                </View>
+                <Text style={styles.riskScoreNote}>
+                  Reflects allergy-conflict severity, documented contraindications, and how complete your health
+                  profile and doctor guidance coverage are for this product. Higher means more caution is warranted.
+                </Text>
+                {(suitability.riskBand === 'ELEVATED' || suitability.riskBand === 'HIGH') && (
+                  <TouchableOpacity
+                    style={styles.consultDoctorBtn}
+                    onPress={() => router.push('/(tabs)/doctor-portal' as any)}
+                  >
+                    <Icon name="medkit-outline" size={15} color={Colors.onPrimary} />
+                    <Text style={styles.consultDoctorBtnText}>Consult a Doctor</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
 
               {!suitability.hasHealthProfile && (
                 <TouchableOpacity onPress={() => router.push('/settings/health-profile' as any)}>
@@ -673,6 +722,49 @@ const styles = StyleSheet.create({
     ...Type.bodySm,
     color: Colors.text,
     lineHeight: 20,
+  },
+  riskScoreCard: {
+    backgroundColor: Colors.surfaceContainerLow,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginTop: Spacing.md,
+  },
+  riskScoreHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.xs,
+  },
+  riskScoreLabel: { ...Type.labelMd, fontSize: 12, color: Colors.onSurface },
+  riskScoreValue: { ...Type.labelMd, fontSize: 12 },
+  riskScoreTrack: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.surfaceVariant,
+    overflow: 'hidden',
+  },
+  riskScoreFill: { height: '100%', borderRadius: 3 },
+  riskScoreNote: {
+    ...Type.bodySm,
+    fontSize: 11,
+    color: Colors.textMuted,
+    marginTop: Spacing.xs,
+    lineHeight: 15,
+  },
+  consultDoctorBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.full,
+    paddingVertical: 10,
+    marginTop: Spacing.sm,
+  },
+  consultDoctorBtnText: {
+    fontFamily: Fonts.family.semiBold,
+    fontSize: Fonts.size.xs + 1,
+    color: Colors.onPrimary,
   },
   suitabilityHint: {
     ...Type.bodySm,

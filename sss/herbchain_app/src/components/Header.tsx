@@ -6,6 +6,7 @@ import Icon from './Icon';
 interface AppHeaderProps {
   greeting?: string;
   onNotificationPress?: () => void;
+  onSearchPress?: () => void;
   onProfilePress?: () => void;
   unreadCount?: number;
   showBack?: boolean;
@@ -16,6 +17,7 @@ interface AppHeaderProps {
 export const AppHeader: React.FC<AppHeaderProps> = ({
   greeting,
   onNotificationPress,
+  onSearchPress,
   onProfilePress,
   unreadCount = 0,
   showBack = false,
@@ -60,16 +62,25 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         ) : null}
       </View>
 
-      {/* Trailing bell */}
-      {onNotificationPress ? (
-        <TouchableOpacity style={styles.iconBtn} onPress={onNotificationPress} activeOpacity={0.7}>
-          <Icon name="notifications-outline" size={22} color={Colors.primary} />
-          {unreadCount > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
-            </View>
+      {/* Trailing search + bell — bell stays rightmost */}
+      {onSearchPress || onNotificationPress ? (
+        <View style={styles.trailingRow}>
+          {onSearchPress && (
+            <TouchableOpacity style={styles.iconBtn} onPress={onSearchPress} activeOpacity={0.7}>
+              <Icon name="search-outline" size={20} color={Colors.primary} />
+            </TouchableOpacity>
           )}
-        </TouchableOpacity>
+          {onNotificationPress && (
+            <TouchableOpacity style={styles.iconBtn} onPress={onNotificationPress} activeOpacity={0.7}>
+              <Icon name="notifications-outline" size={22} color={Colors.primary} />
+              {unreadCount > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          )}
+        </View>
       ) : (
         <View style={styles.iconPlaceholder} />
       )}
@@ -151,6 +162,11 @@ const styles = StyleSheet.create({
   },
   iconPlaceholder: {
     width: 40,
+  },
+  trailingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
   },
   badge: {
     position: 'absolute',

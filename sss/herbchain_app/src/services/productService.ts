@@ -16,6 +16,8 @@ export interface SuitabilityResult {
   verdict: SuitabilityVerdict;
   verdictLabel: string;
   explanation: string;
+  riskScore: number;
+  riskBand: 'LOW' | 'MODERATE' | 'ELEVATED' | 'HIGH';
   allergyConflicts: { productIngredient: string; matchedAllergy: string }[];
   hasHealthProfile: boolean;
   doctorGuidance: { guidanceId: string; title: string; doctorName: string }[];

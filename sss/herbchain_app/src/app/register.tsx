@@ -50,7 +50,7 @@ import {
   type RegistrationDraft,
   type RegistrationResult,
 } from '@/services/registrationService';
-import { useAuthStore } from '@/store/authStore';
+import { supabase } from '@/lib/supabase';
 import type { TriState } from '@/types';
 
 type Errors = Record<string, string | undefined>;
@@ -106,8 +106,6 @@ const emptyDraft: RegistrationDraft = {
 
 export default function RegisterScreen() {
   const router = useRouter();
-  const login = useAuthStore((s) => s.login);
-
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<RegistrationDraft>(emptyDraft);
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -241,9 +239,12 @@ export default function RegisterScreen() {
     if (!result.ok) setOtpError(result.error ?? 'Could not resend the code. Please try again.');
   }
 
-  function finishRegistration(result: { user?: RegistrationResult['user']; error?: string }) {
-    // Non-fatal warning (e.g. wellness row failed) still lands on success.
-    login(result.user!);
+  async function finishRegistration(result: { user?: RegistrationResult['user']; error?: string }) {
+    // The account is created, but the user should land on the login screen
+    // and sign in for themselves (with the Ayurvedic ID they're about to
+    // copy) rather than being auto-signed-in — so the session verifyOtp
+    // just established gets cleared here rather than kept.
+    await supabase.auth.signOut();
 
     router.replace({
       pathname: '/registration-complete',

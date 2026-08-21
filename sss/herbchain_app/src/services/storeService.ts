@@ -11,6 +11,7 @@ export interface NearbyStore {
   isOpenNow: boolean | null;
   coordinates: { latitude: number; longitude: number };
   inventory?: { available: boolean; quantity?: number; price?: number };
+  stockCount: number;
 }
 
 export const storeService = {

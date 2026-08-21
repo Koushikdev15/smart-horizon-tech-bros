@@ -28,10 +28,12 @@ export const SelectField: React.FC<SelectFieldProps> = ({
 
   return (
     <View style={styles.group}>
-      <View style={styles.labelRow}>
-        <Text style={styles.label}>{label}</Text>
-        {optional && <Text style={styles.optional}>Optional</Text>}
-      </View>
+      {label ? (
+        <View style={styles.labelRow}>
+          <Text style={styles.label}>{label}</Text>
+          {optional && <Text style={styles.optional}>Optional</Text>}
+        </View>
+      ) : null}
 
       <TouchableOpacity
         style={[styles.trigger, !!error && styles.triggerError]}

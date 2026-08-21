@@ -52,6 +52,12 @@ export const ebuyService = {
     return apiRequest(`/products/${productId}/offers${query}`);
   },
 
+  async getById(productId: string, region?: string): Promise<PurchaseProduct | null> {
+    const query = new URLSearchParams({ id: productId, ...(region ? { region } : {}) });
+    const results = await apiRequest<PurchaseProduct[]>(`/products/purchase?${query.toString()}`);
+    return results[0] ?? null;
+  },
+
   async placeOrder(data: {
     items: { productId: string; storeId: string; quantity: number }[];
     deliveryAddress: string;

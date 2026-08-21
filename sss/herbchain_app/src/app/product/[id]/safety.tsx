@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Colors, Fonts, Spacing, BorderRadius, Shadow } from '@/theme';
@@ -70,6 +70,14 @@ export default function SafetyScreen() {
             AyurTrace+ displays verified manufacturer information. This information does not replace professional medical advice. Always consult a qualified Ayurvedic doctor.
           </Text>
         </View>
+
+        <TouchableOpacity
+          style={styles.consultDoctorBtn}
+          onPress={() => router.push('/(tabs)/doctor-portal' as any)}
+        >
+          <Icon name="medkit-outline" size={16} color={Colors.onPrimary} />
+          <Text style={styles.consultDoctorBtnText}>Consult a Doctor</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -136,5 +144,20 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: Colors.textMuted,
     lineHeight: 16,
+  },
+  consultDoctorBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.full,
+    paddingVertical: 12,
+    marginTop: Spacing.md,
+  },
+  consultDoctorBtnText: {
+    fontFamily: Fonts.family.semiBold,
+    fontSize: Fonts.size.sm,
+    color: Colors.onPrimary,
   },
 });

@@ -2,7 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { GoogleSignin, isSuccessResponse, isErrorWithCode, statusCodes } from '@react-native-google-signin/google-signin';
+import type {
+  GoogleSignin as GoogleSigninType,
+  isSuccessResponse as isSuccessResponseType,
+  isErrorWithCode as isErrorWithCodeType,
+  statusCodes as statusCodesType,
+} from '@react-native-google-signin/google-signin';
 import { Colors, Fonts, Spacing, BorderRadius, Shadow } from '@/theme';
 import { PrimaryButton, SecondaryButton } from '@/components/Buttons';
 import Icon from '@/components/Icon';
@@ -11,6 +16,31 @@ import { mapAppLoginRow, type AppLoginRow } from '@/services/authService';
 import { validatePassword } from '@/lib/validation';
 import { useAuthStore } from '@/store/authStore';
 import { useToastStore } from '@/store/toastStore';
+
+declare const require: (id: string) => any;
+
+/**
+ * @react-native-google-signin/google-signin is a native module — it isn't
+ * present in plain Expo Go (only in an EAS/dev-client build), and merely
+ * importing it there throws ("TurboModuleRegistry.getEnforcing... could not
+ * be found") before this component even renders. Loading it with `require`
+ * inside a try/catch keeps that crash from taking down the whole route; the
+ * UI below falls back to an explanatory message when it's unavailable.
+ */
+let GoogleSignin: typeof GoogleSigninType | null = null;
+let isSuccessResponse: typeof isSuccessResponseType | null = null;
+let isErrorWithCode: typeof isErrorWithCodeType | null = null;
+let statusCodes: typeof statusCodesType | null = null;
+try {
+  const googleSignInModule = require('@react-native-google-signin/google-signin');
+  GoogleSignin = googleSignInModule.GoogleSignin;
+  isSuccessResponse = googleSignInModule.isSuccessResponse;
+  isErrorWithCode = googleSignInModule.isErrorWithCode;
+  statusCodes = googleSignInModule.statusCodes;
+} catch {
+  // Falls through to the "not available in this build" UI below.
+}
+const isGoogleSignInAvailable = Boolean(GoogleSignin);
 
 /**
  * Forgot-password recovery: sign in with Google (linked by matching, verified
@@ -36,12 +66,14 @@ export default function ForgotPasswordScreen() {
 
   useEffect(() => {
     const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
-    if (webClientId) {
+    if (webClientId && GoogleSignin) {
       GoogleSignin.configure({ webClientId });
     }
   }, []);
 
   const handleGoogleSignIn = async () => {
+    if (!GoogleSignin || !isSuccessResponse || !isErrorWithCode || !statusCodes) return;
+
     setSubmitting(true);
     setError(null);
 
@@ -83,7 +115,7 @@ export default function ForgotPasswordScreen() {
 
       setProfile(row as AppLoginRow);
       setStep('set-password');
-    } catch (err) {
+    } catch (err: any) {
       if (isErrorWithCode(err) && err.code === statusCodes.SIGN_IN_CANCELLED) {
         // user cancelled — no error to show
       } else {
@@ -145,13 +177,23 @@ export default function ForgotPasswordScreen() {
             </View>
           ) : null}
 
-          <SecondaryButton
-            title="Continue with Google"
-            onPress={handleGoogleSignIn}
-            icon="logo-google"
-            size="lg"
-            loading={submitting}
-          />
+          {isGoogleSignInAvailable ? (
+            <SecondaryButton
+              title="Continue with Google"
+              onPress={handleGoogleSignIn}
+              icon="logo-google"
+              size="lg"
+              loading={submitting}
+            />
+          ) : (
+            <View style={styles.errorBox}>
+              <Icon name="information-circle" size={16} color={Colors.textMuted} />
+              <Text style={styles.errorBoxText}>
+                Google sign-in isn&apos;t available in this build (it needs a development build, not Expo
+                Go). Please contact support to reset your password in the meantime.
+              </Text>
+            </View>
+          )}
         </View>
       ) : (
         <View style={styles.body}>

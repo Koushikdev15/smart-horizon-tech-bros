@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Colors, Fonts, Spacing } from '@/theme';
 import { AppHeader } from '@/components/Header';
 import { ProductCard } from '@/components/ProductCard';
@@ -11,6 +12,7 @@ import { useProductStore } from '@/store/productStore';
 
 export default function ProductsScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const { isSaved, toggleSaved } = useProductStore();
 
@@ -18,23 +20,27 @@ export default function ProductsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <AppHeader title="Products" onProfilePress={() => router.push('/(tabs)/profile')} />
+      <AppHeader
+        title="Products"
+        onSearchPress={() => router.push('/search')}
+        onProfilePress={() => router.push('/(tabs)/profile')}
+      />
 
       <View style={styles.content}>
         <SearchBar
           value={query}
           onChangeText={setQuery}
-          placeholder="Search by product name, manufacturer, batch, herb..."
+          placeholder={t('searchScreen.placeholder')}
         />
 
         <Text style={styles.resultsHeader}>
-          {query ? `Search Results (${results.length})` : 'All Verified Products'}
+          {query ? t('productsScreen.searchResults', { count: results.length }) : t('productsScreen.allVerified')}
         </Text>
 
         {results.length === 0 ? (
           <EmptyState
-            title="No matching products"
-            description="Try searching with a different product name, ingredient, or batch number."
+            title={t('productsScreen.noMatching')}
+            description={t('productsScreen.noMatchingDesc')}
           />
         ) : (
           <FlatList

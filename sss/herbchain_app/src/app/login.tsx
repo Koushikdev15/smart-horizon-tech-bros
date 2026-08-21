@@ -17,6 +17,8 @@ import Icon from '@/components/Icon';
 import { useAuthStore } from '@/store/authStore';
 import { authService } from '@/services/authService';
 import { useToastStore } from '@/store/toastStore';
+import { FeaturedCarousel } from '@/components/FeaturedCarousel';
+import { useFeaturedProducts } from '@/hooks/useFeaturedProducts';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -29,6 +31,8 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const { products: featuredProducts, loading: featuredLoading } = useFeaturedProducts();
 
   const handleSignIn = async () => {
     if (!ayurvedicId.trim() || !email.trim() || !password) {
@@ -74,6 +78,14 @@ export default function LoginScreen() {
               AYUTRACE<Text style={styles.goldPlus}>+</Text>
             </Text>
           </View>
+
+          {/* Featured Products — display only, purely for advertisement/education.
+              No navigation on tap; must never interfere with the form below. */}
+          {(featuredLoading || featuredProducts.length > 0) && (
+            <View style={styles.featuredSection}>
+              <FeaturedCarousel items={featuredProducts} loading={featuredLoading} clickable={false} edgeToEdgeInset={Spacing.xl} />
+            </View>
+          )}
 
           <Text style={styles.title}>Welcome Back</Text>
           <Text style={styles.subtitle}>Sign in to access saved products, history, and alerts</Text>
@@ -304,6 +316,7 @@ const styles = StyleSheet.create({
     fontSize: Fonts.size.sm,
     color: Colors.primary,
   },
+  featuredSection: { marginBottom: Spacing.lg },
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',

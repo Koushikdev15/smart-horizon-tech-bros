@@ -22,21 +22,26 @@ export class ProductService {
   }
 
   /**
-   * E-Buy browsing: same product search, but when a region is given, each
-   * result is annotated with that region's in-stock offer summary (store
-   * count / cheapest price) and results with regional availability are
-   * sorted ahead of ones without — never a hard filter, since a product with
-   * no regional stock is still worth showing (just lower priority).
+   * E-Buy browsing: same product search, annotated with each result's
+   * in-stock offer summary (store count / cheapest price) computed across
+   * every active store — nationwide, not filtered by the account's region.
+   * (app_login.region holds a state like "Tamil Nadu" while Store.region
+   * holds city-level names like "Chennai"; those never match, so an
+   * account-region filter here would silently hide all real availability.
+   * If a caller does pass an explicit region string, it's still honored as
+   * a genuine narrowing filter — just not implied from account state.)
    */
-  async browseForPurchase(filters: { q?: string; healthTopic?: string; region?: string }) {
+  async browseForPurchase(filters: { q?: string; healthTopic?: string; region?: string; id?: string }) {
     const query: Record<string, unknown> = {};
     if (filters.q) query.$text = { $search: filters.q };
     if (filters.healthTopic) query.healthTopics = new RegExp(filters.healthTopic, 'i');
+    if (filters.id) query._id = filters.id;
 
     const products = await Product.find(query).limit(50).lean();
-    if (!filters.region) return products.map((p) => ({ ...p, regionAvailability: null as RegionAvailability | null }));
 
-    const stores = await Store.find({ region: new RegExp(`^${filters.region}$`, 'i'), isActive: true });
+    const storeQuery: Record<string, unknown> = { isActive: true };
+    if (filters.region) storeQuery.region = new RegExp(`^${filters.region}$`, 'i');
+    const stores = await Store.find(storeQuery);
     const storeIds = stores.map((s) => s._id);
 
     const inventory = await ProductInventory.find({

@@ -53,8 +53,8 @@ export default function TabsLayout() {
             iconName = focused ? 'leaf' : 'leaf-outline';
           } else if (route.name === 'ebuy') {
             iconName = focused ? 'cart' : 'cart-outline';
-          } else if (route.name === 'profile') {
-            iconName = focused ? 'person' : 'person-outline';
+          } else if (route.name === 'doctor-portal') {
+            iconName = focused ? 'medkit' : 'medkit-outline';
           }
 
           // Active destination sits inside a soft mint pill.
@@ -70,7 +70,9 @@ export default function TabsLayout() {
       <Tabs.Screen name="products" options={{ title: t('nav.products') }} />
       <Tabs.Screen name="scan" options={{ title: t('nav.scan') }} />
       <Tabs.Screen name="ebuy" options={{ title: t('nav.ebuy') }} />
-      <Tabs.Screen name="profile" options={{ title: t('nav.profile') }} />
+      <Tabs.Screen name="doctor-portal" options={{ title: t('nav.doctorPortal') }} />
+      {/* Still reachable via the header avatar button — just no longer a duplicate bottom-tab entry. */}
+      <Tabs.Screen name="profile" options={{ href: null }} />
       {/* Still reachable via the header bell icon — just no longer a duplicate bottom-tab entry. */}
       <Tabs.Screen name="alerts" options={{ href: null }} />
       {/* Still reachable via Profile → Scan History — just no longer a duplicate bottom-tab entry. */}

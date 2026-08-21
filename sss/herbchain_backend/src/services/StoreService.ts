@@ -155,6 +155,15 @@ export class StoreService {
       inventoryByStoreId = new Map(inventory.map((i) => [String(i.storeId), { available: i.available, quantity: i.quantity, price: i.price }]));
     }
 
+    // Distinct in-stock product count per store — shown on the home-page
+    // nearby-stores map, independent of any single-product filter above.
+    const storeIds = stores.map((s) => s._id);
+    const stockCounts = await ProductInventory.aggregate([
+      { $match: { storeId: { $in: storeIds }, available: true, quantity: { $gt: 0 } } },
+      { $group: { _id: '$storeId', count: { $sum: 1 } } },
+    ]);
+    const stockCountByStoreId = new Map(stockCounts.map((c) => [String(c._id), c.count as number]));
+
     return stores
       .filter((s) => !params.productId || inventoryByStoreId.has(String(s._id)))
       .map((s: IStore & { distanceMeters: number; _id: any }) => ({
@@ -168,6 +177,7 @@ export class StoreService {
         isOpenNow: isStoreOpenNow(s),
         coordinates: { latitude: s.location.coordinates[1], longitude: s.location.coordinates[0] },
         inventory: params.productId ? inventoryByStoreId.get(String(s._id)) : undefined,
+        stockCount: stockCountByStoreId.get(String(s._id)) ?? 0,
       }));
   }
 }

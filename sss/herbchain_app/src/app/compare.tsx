@@ -126,6 +126,80 @@ export default function CompareScreen() {
                 ))}
               </View>
 
+              <View style={styles.row}>
+                <View style={styles.labelCol}><Text style={styles.metricLabel}>Manufacturer Verified</Text></View>
+                {selectedProducts.map((p) => (
+                  <View key={p.id} style={styles.itemCol}>
+                    <Icon name={p.quickVerification.manufacturerVerified ? 'checkmark-circle' : 'close-circle'} size={18} color={p.quickVerification.manufacturerVerified ? Colors.success : Colors.error} />
+                  </View>
+                ))}
+              </View>
+
+              <View style={styles.row}>
+                <View style={styles.labelCol}><Text style={styles.metricLabel}>Supply Chain Verified</Text></View>
+                {selectedProducts.map((p) => (
+                  <View key={p.id} style={styles.itemCol}>
+                    <Icon name={p.quickVerification.supplyChainVerified ? 'checkmark-circle' : 'close-circle'} size={18} color={p.quickVerification.supplyChainVerified ? Colors.success : Colors.error} />
+                  </View>
+                ))}
+              </View>
+
+              <View style={styles.row}>
+                <View style={styles.labelCol}><Text style={styles.metricLabel}>QR Verified</Text></View>
+                {selectedProducts.map((p) => (
+                  <View key={p.id} style={styles.itemCol}>
+                    <Icon name={p.quickVerification.qrVerified ? 'checkmark-circle' : 'close-circle'} size={18} color={p.quickVerification.qrVerified ? Colors.success : Colors.error} />
+                  </View>
+                ))}
+              </View>
+
+              <Text style={styles.metricCategory}>Trust Score Breakdown</Text>
+
+              <View style={styles.row}>
+                <View style={styles.labelCol}><Text style={styles.metricLabel}>Source Verification</Text></View>
+                {selectedProducts.map((p) => (
+                  <View key={p.id} style={styles.itemCol}>
+                    <Text style={styles.valBold}>{p.trustBreakdown.sourceVerification}/100</Text>
+                  </View>
+                ))}
+              </View>
+
+              <View style={styles.row}>
+                <View style={styles.labelCol}><Text style={styles.metricLabel}>Lab Verification</Text></View>
+                {selectedProducts.map((p) => (
+                  <View key={p.id} style={styles.itemCol}>
+                    <Text style={styles.valBold}>{p.trustBreakdown.labVerification}/100</Text>
+                  </View>
+                ))}
+              </View>
+
+              <View style={styles.row}>
+                <View style={styles.labelCol}><Text style={styles.metricLabel}>Traceability</Text></View>
+                {selectedProducts.map((p) => (
+                  <View key={p.id} style={styles.itemCol}>
+                    <Text style={styles.valBold}>{p.trustBreakdown.traceability}/100</Text>
+                  </View>
+                ))}
+              </View>
+
+              <View style={styles.row}>
+                <View style={styles.labelCol}><Text style={styles.metricLabel}>Documentation</Text></View>
+                {selectedProducts.map((p) => (
+                  <View key={p.id} style={styles.itemCol}>
+                    <Text style={styles.valBold}>{p.trustBreakdown.documentation}/100</Text>
+                  </View>
+                ))}
+              </View>
+
+              <View style={styles.row}>
+                <View style={styles.labelCol}><Text style={styles.metricLabel}>Sustainability</Text></View>
+                {selectedProducts.map((p) => (
+                  <View key={p.id} style={styles.itemCol}>
+                    <Text style={styles.valBold}>{p.trustBreakdown.sustainability}/100</Text>
+                  </View>
+                ))}
+              </View>
+
               <Text style={styles.metricCategory}>Traceability & Sustainability</Text>
 
               <View style={styles.row}>
@@ -151,6 +225,64 @@ export default function CompareScreen() {
                 {selectedProducts.map((p) => (
                   <View key={p.id} style={styles.itemCol}>
                     <Text style={styles.valText}>{p.expiryDate}</Text>
+                  </View>
+                ))}
+              </View>
+
+              <View style={styles.row}>
+                <View style={styles.labelCol}><Text style={styles.metricLabel}>Lab Tests Passed</Text></View>
+                {selectedProducts.map((p) => (
+                  <View key={p.id} style={styles.itemCol}>
+                    <Text style={styles.valBold}>
+                      {p.labResults.filter((r) => r.status === 'passed').length}/{p.labResults.length}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+
+              <View style={styles.row}>
+                <View style={styles.labelCol}><Text style={styles.metricLabel}>Ingredients Listed</Text></View>
+                {selectedProducts.map((p) => (
+                  <View key={p.id} style={styles.itemCol}>
+                    <Text style={styles.valBold}>{p.ingredients.length}</Text>
+                  </View>
+                ))}
+              </View>
+
+              <Text style={styles.metricCategory}>Safety & Usage</Text>
+
+              <View style={styles.rowWrap}>
+                <View style={styles.labelCol}><Text style={styles.metricLabel}>Usage</Text></View>
+                {selectedProducts.map((p) => (
+                  <View key={p.id} style={styles.itemColWrap}>
+                    <Text style={styles.valTextWrap}>{p.safety.usage}</Text>
+                  </View>
+                ))}
+              </View>
+
+              <View style={styles.rowWrap}>
+                <View style={styles.labelCol}><Text style={styles.metricLabel}>Warnings</Text></View>
+                {selectedProducts.map((p) => (
+                  <View key={p.id} style={styles.itemColWrap}>
+                    <Text style={styles.valTextWrap}>{p.safety.warnings}</Text>
+                  </View>
+                ))}
+              </View>
+
+              <View style={styles.rowWrap}>
+                <View style={styles.labelCol}><Text style={styles.metricLabel}>Contraindications</Text></View>
+                {selectedProducts.map((p) => (
+                  <View key={p.id} style={styles.itemColWrap}>
+                    <Text style={styles.valTextWrap}>{p.safety.contraindications}</Text>
+                  </View>
+                ))}
+              </View>
+
+              <View style={[styles.rowWrap, { borderBottomWidth: 0 }]}>
+                <View style={styles.labelCol}><Text style={styles.metricLabel}>Storage</Text></View>
+                {selectedProducts.map((p) => (
+                  <View key={p.id} style={styles.itemColWrap}>
+                    <Text style={styles.valTextWrap}>{p.safety.storage}</Text>
                   </View>
                 ))}
               </View>
@@ -272,5 +404,22 @@ const styles = StyleSheet.create({
     fontSize: Fonts.size.xs,
     color: Colors.text,
     textAlign: 'center',
+  },
+  rowWrap: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderLight,
+  },
+  itemColWrap: {
+    width: 130,
+    paddingHorizontal: 6,
+  },
+  valTextWrap: {
+    fontFamily: Fonts.family.regular,
+    fontSize: Fonts.size.xs,
+    color: Colors.text,
+    lineHeight: 16,
   },
 });

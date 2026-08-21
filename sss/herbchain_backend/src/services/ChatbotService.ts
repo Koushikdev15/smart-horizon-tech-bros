@@ -104,7 +104,45 @@ interface SendMessageResult {
   products: IProduct[];
   doctorGuidance: Array<{ guidanceId: string; title: string; doctorName: string }>;
   stores: Array<{ _id: string; name: string; address: string; distanceKm: number; isOpenNow: boolean | null }>;
+  doctors: Array<{ id: string; doctorName: string; clinicHospitalName: string | null; district: string }>;
   aiAvailable: boolean;
+}
+
+interface AyurvedicDoctorRow {
+  id: string;
+  doctor_name: string;
+  clinic_hospital_name: string | null;
+  district: string;
+  latitude: number;
+  longitude: number;
+}
+
+function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+/** Reference-directory lookup (government gazette + verified clinic
+ *  listings, not platform users — see ayurvedic_doctors migration) for the
+ *  chat context and the app's Doctor Portal CTA, not a live "contactable
+ *  doctor" list. Real Haversine distance, same pattern as StoreService — the
+ *  table is small enough (~540 rows) to fetch-and-sort rather than needing
+ *  PostGIS. */
+async function findNearbyDoctors(coordinates: { latitude: number; longitude: number }, limit = 3): Promise<AyurvedicDoctorRow[]> {
+  const { data } = await supabaseAdmin
+    .from('ayurvedic_doctors')
+    .select('id, doctor_name, clinic_hospital_name, district, latitude, longitude')
+    .not('latitude', 'is', null)
+    .not('longitude', 'is', null);
+  return (data ?? [])
+    .map((d) => ({ ...d, distanceKm: haversineKm(coordinates.latitude, coordinates.longitude, d.latitude, d.longitude) }))
+    .sort((a, b) => a.distanceKm - b.distanceKm)
+    .slice(0, limit);
 }
 
 function summarizeHealthProfile(hp: HealthProfileSummary | null): string {
@@ -164,6 +202,13 @@ export class ChatbotService {
       .single();
     if (error || !data) throw { status: 500, message: 'Could not start a chat session.', isOperational: true };
     return toSessionResponse(data);
+  }
+
+  async transcribe(userId: string, buffer: Buffer, mimeType: string, language?: 'en' | 'ta') {
+    const appLogin = await fetchAppLogin(userId);
+    const targetLanguage = language ?? appLogin?.language ?? 'en';
+    const text = await this.geminiService.transcribeAudio(buffer, mimeType, targetLanguage);
+    return { text };
   }
 
   async listSessions(userId: string) {
@@ -239,6 +284,7 @@ export class ChatbotService {
         products: [],
         doctorGuidance: [],
         stores: [],
+        doctors: [],
         aiAvailable: this.geminiService.isConfigured,
       };
     }
@@ -276,6 +322,10 @@ export class ChatbotService {
         ? await this.storeService.findNearby({ ...coordinates, productId: String(products[0]._id) })
         : [];
 
+    // Reference-directory doctors near the user, by real distance — same
+    // "never stored, never required" treatment as the stores lookup above.
+    const nearbyDoctors = coordinates ? await findNearbyDoctors(coordinates) : [];
+
     const allergyConflicts = products.flatMap((p) => findAllergyConflicts(p, healthProfile));
     const hasContraindicationNote = products.some((p) => Boolean(p.contraindications));
     const hasMedicationNote =
@@ -311,9 +361,19 @@ export class ChatbotService {
         : 'No verified doctor guidance is available on this topic yet.',
       coordinates
         ? nearbyStores.length
-          ? `Nearby stores carrying this product are available (shown separately in the app) — you may mention that nearby availability was found.`
+          ? `Nearby stores carrying this product: ${nearbyStores
+              .slice(0, 3)
+              .map((s) => `${s.name} (${s.distanceKm} km away)`)
+              .join(', ')}. These are also shown separately in the app.`
           : 'No nearby stores currently carry this product in stock.'
         : 'The user has not shared their location, so nearby store availability was not checked.',
+      coordinates
+        ? nearbyDoctors.length
+          ? `Nearby Ayurvedic doctors: ${nearbyDoctors
+              .map((d) => `${d.doctor_name}${d.clinic_hospital_name ? ` (${d.clinic_hospital_name})` : ''}, ${d.district}`)
+              .join('; ')}. If a doctor consultation is warranted, you may mention these are available in the app's Doctor Portal — do not imply they can be reached directly through this chat.`
+          : 'No doctors found nearby in the reference directory.'
+        : 'The user has not shared their location, so nearby doctors were not checked.',
       appLogin?.language === 'ta' ? 'Respond in Tamil.' : 'Respond in English.',
     ].join('\n');
 
@@ -363,6 +423,12 @@ export class ChatbotService {
         address: s.address,
         distanceKm: s.distanceKm,
         isOpenNow: s.isOpenNow,
+      })),
+      doctors: nearbyDoctors.map((d) => ({
+        id: d.id,
+        doctorName: d.doctor_name,
+        clinicHospitalName: d.clinic_hospital_name,
+        district: d.district,
       })),
       aiAvailable,
     };

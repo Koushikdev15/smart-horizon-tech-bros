@@ -25,6 +25,7 @@ import complaintRoutes from './routes/complaintRoutes';
 import adminComplaintRoutes from './routes/adminComplaintRoutes';
 import adminDashboardRoutes from './routes/adminDashboardRoutes';
 import orderRoutes from './routes/orderRoutes';
+import razorpayRoutes from './routes/razorpayRoutes';
 import { setupSwagger } from './swagger/swagger';
 
 const app = express();
@@ -90,6 +91,7 @@ app.use('/api/v1/complaints', complaintRoutes);
 app.use('/api/v1/admin/complaints', adminComplaintRoutes);
 app.use('/api/v1/admin/dashboard', adminDashboardRoutes);
 app.use('/api/v1/orders', orderRoutes);
+app.use('/api/v1/razorpay', razorpayRoutes);
 
 setupSwagger(app);
 

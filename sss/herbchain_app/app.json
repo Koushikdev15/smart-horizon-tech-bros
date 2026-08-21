@@ -17,7 +17,8 @@
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png"
       },
-      "package": "com.ayurtrace.customer"
+      "package": "com.ayurtrace.customer",
+      "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
       "output": "static",
@@ -51,7 +52,9 @@
         {
           "photosPermission": "AyurTrace+ uses your photos to scan a QR code from an image you already have."
         }
-      ]
+      ],
+      "expo-audio",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true

@@ -15,10 +15,13 @@ import { AppHeader, SectionHeader } from '@/components/Header';
 import { PrimaryButton, SecondaryButton } from '@/components/Buttons';
 import { ProductCard } from '@/components/ProductCard';
 import { RecallBanner, OfflineBanner } from '@/components/CardsAndInputs';
+import { NearbyStoresMap } from '@/components/NearbyStoresMap';
 import Icon from '@/components/Icon';
 import { useAuthStore } from '@/store/authStore';
 import { useProductStore } from '@/store/productStore';
 import { PRODUCTS, getProductById } from '@/data/mockProducts';
+import { FeaturedCarousel } from '@/components/FeaturedCarousel';
+import { useFeaturedProducts } from '@/hooks/useFeaturedProducts';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -26,6 +29,7 @@ export default function HomeScreen() {
   const user = useAuthStore((s) => s.user);
   const { scanHistory, savedProductIds, isSaved, toggleSaved, unreadAlertCount, isOffline } =
     useProductStore();
+  const { products: featuredProducts, loading: featuredLoading } = useFeaturedProducts('home');
 
   const recalledProduct = PRODUCTS.find((p) => p.status === 'recalled');
   const savedProducts = savedProductIds
@@ -36,6 +40,7 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <AppHeader
         unreadCount={unreadAlertCount()}
+        onSearchPress={() => router.push('/search')}
         onNotificationPress={() => router.push('/(tabs)/alerts')}
         onProfilePress={() => router.push('/(tabs)/profile')}
       />
@@ -48,6 +53,14 @@ export default function HomeScreen() {
           <Text style={styles.greetingTitle}>{t('home.greeting', { name: user?.name || 'Guest' })}</Text>
           <Text style={styles.greetingSub}>{t('home.greetingSub')}</Text>
         </View>
+
+        {/* Featured Products — display only, purely for advertisement/education.
+            No navigation on tap; must never interfere with the sections below. */}
+        {(featuredLoading || featuredProducts.length > 0) && (
+          <View style={styles.featuredSection}>
+            <FeaturedCarousel items={featuredProducts} loading={featuredLoading} clickable={false} edgeToEdgeInset={Spacing.gutter} />
+          </View>
+        )}
 
         {/* Hero Card — first-impression focal point, kept ahead of any alerts */}
         <View style={[styles.heroCard, Shadow.lg]}>
@@ -180,28 +193,9 @@ export default function HomeScreen() {
           </>
         )}
 
-        {/* Trust Summary Cards */}
-        <SectionHeader title={t('home.trustPillars')} />
-
-        <View style={styles.pillarGrid}>
-          <View style={[styles.pillarCard, Shadow.sm]}>
-            <Icon name="location-outline" size={24} color={Colors.primary} />
-            <Text style={styles.pillarTitle}>{t('home.verifiedSources')}</Text>
-            <Text style={styles.pillarDesc}>100% Region-tracked Ayurvedic farms</Text>
-          </View>
-
-          <View style={[styles.pillarCard, Shadow.sm]}>
-            <Icon name="flask-outline" size={24} color={Colors.primary} />
-            <Text style={styles.pillarTitle}>{t('home.labVerified')}</Text>
-            <Text style={styles.pillarDesc}>NABL accredited purity testing</Text>
-          </View>
-
-          <View style={[styles.pillarCard, Shadow.sm]}>
-            <Icon name="cube-outline" size={24} color={Colors.primary} />
-            <Text style={styles.pillarTitle}>{t('home.blockchainTracked')}</Text>
-            <Text style={styles.pillarDesc}>Immutable audit record</Text>
-          </View>
-        </View>
+        {/* Nearby Stores — replaces the old static trust-pillar cards with a
+            live map of nearby AyurTrace+ stores and their in-stock counts. */}
+        <NearbyStoresMap />
       </ScrollView>
     </SafeAreaView>
   );
@@ -215,6 +209,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: Spacing.gutter,
     paddingBottom: Spacing['3xl'],
+  },
+  featuredSection: {
+    marginBottom: Spacing.md,
   },
   greetingBlock: {
     marginTop: Spacing.lg,
@@ -338,31 +335,5 @@ const styles = StyleSheet.create({
     color: Colors.onSurfaceVariant,
     marginTop: 1,
     textAlign: 'center',
-  },
-  pillarGrid: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-    marginBottom: Spacing.base,
-  },
-  pillarCard: {
-    flex: 1,
-    backgroundColor: Colors.surfaceContainerLowest,
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.base,
-    alignItems: 'center',
-  },
-  pillarTitle: {
-    ...Type.labelMd,
-    color: Colors.primary,
-    marginTop: Spacing.sm,
-    textAlign: 'center',
-  },
-  pillarDesc: {
-    fontFamily: Fonts.family.regular,
-    fontSize: 11,
-    color: Colors.onSurfaceVariant,
-    textAlign: 'center',
-    marginTop: 2,
-    lineHeight: 15,
   },
 });

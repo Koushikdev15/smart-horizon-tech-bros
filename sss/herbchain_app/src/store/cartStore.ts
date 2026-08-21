@@ -7,13 +7,16 @@ export interface CartItem {
   storeName: string;
   unitPrice: number;
   quantity: number;
+  selected: boolean;
 }
 
 interface CartState {
   items: CartItem[];
-  addItem: (item: Omit<CartItem, 'quantity'>, quantity: number) => void;
+  addItem: (item: Omit<CartItem, 'quantity' | 'selected'>, quantity: number) => void;
   updateQuantity: (productId: string, storeId: string, quantity: number) => void;
   removeItem: (productId: string, storeId: string) => void;
+  toggleSelected: (productId: string, storeId: string) => void;
+  removeSelected: () => void;
   clear: () => void;
 }
 
@@ -33,7 +36,7 @@ export const useCartStore = create<CartState>((set) => ({
           ),
         };
       }
-      return { items: [...state.items, { ...item, quantity }] };
+      return { items: [...state.items, { ...item, quantity, selected: true }] };
     }),
 
   updateQuantity: (productId, storeId, quantity) =>
@@ -46,6 +49,13 @@ export const useCartStore = create<CartState>((set) => ({
 
   removeItem: (productId, storeId) =>
     set((state) => ({ items: state.items.filter((i) => !sameLine(i, productId, storeId)) })),
+
+  toggleSelected: (productId, storeId) =>
+    set((state) => ({
+      items: state.items.map((i) => (sameLine(i, productId, storeId) ? { ...i, selected: !i.selected } : i)),
+    })),
+
+  removeSelected: () => set((state) => ({ items: state.items.filter((i) => !i.selected) })),
 
   clear: () => set({ items: [] }),
 }));

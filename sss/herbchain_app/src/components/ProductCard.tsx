@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import type { Product } from '@/types';
 import { Colors, Fonts, Type, Spacing, BorderRadius, Shadow } from '@/theme';
 import { StatusBadge } from './Badges';
@@ -20,6 +21,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   isBookmarked = false,
   variant = 'full',
 }) => {
+  const { t } = useTranslation();
   const isCompact = variant === 'compact';
 
   return (
@@ -47,7 +49,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
       <View style={styles.body}>
         <Text style={styles.batchText} numberOfLines={1}>
-          BATCH: {product.batchId}
+          {t('product.batchLabel')}: {product.batchId}
         </Text>
         <Text style={styles.nameText} numberOfLines={2}>
           {product.name}
@@ -59,7 +61,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <View style={styles.footerRow}>
           <View style={styles.trustRow}>
             <Icon name="shield-checkmark-outline" size={16} color={Colors.secondary} />
-            <Text style={styles.trustText}>Trust Score: {product.trustScore}/100</Text>
+            <Text style={styles.trustText}>{t('product.trustScoreLabel')}: {product.trustScore}/100</Text>
           </View>
         </View>
       </View>

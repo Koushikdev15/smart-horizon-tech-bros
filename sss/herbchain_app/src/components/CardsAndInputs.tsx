@@ -7,6 +7,7 @@ import {
   TextInput,
   ScrollView,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import type { BlockchainRecord, RecallInfo, Alert } from '@/types';
 import { Colors, Fonts, Type, Spacing, BorderRadius, Shadow } from '@/theme';
 import Icon from './Icon';
@@ -18,6 +19,7 @@ interface BlockchainCardProps {
 }
 
 export const BlockchainCard: React.FC<BlockchainCardProps> = ({ data, onViewTechnical }) => {
+  const { t } = useTranslation();
   return (
     <View style={[styles.card, styles.blockchainCard, Shadow.sm]}>
       <View style={styles.cardHeaderRow}>
@@ -25,19 +27,19 @@ export const BlockchainCard: React.FC<BlockchainCardProps> = ({ data, onViewTech
           <Icon name="cube" size={20} color={Colors.gold} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.cardTitle}>Blockchain Verified ✓</Text>
-          <Text style={styles.cardSubTitle}>{data.network || 'AyurTrace Ledger'}</Text>
+          <Text style={styles.cardTitle}>{t('blockchain.title')} ✓</Text>
+          <Text style={styles.cardSubTitle}>{data.network || t('blockchain.network')}</Text>
         </View>
       </View>
 
       <View style={styles.infoRow}>
-        <Text style={styles.infoLabel}>Ref:</Text>
+        <Text style={styles.infoLabel}>{t('blockchain.ref')}:</Text>
         <Text style={styles.monoText}>{data.transactionRef || 'N/A'}</Text>
       </View>
 
       {onViewTechnical && (
         <TouchableOpacity style={styles.textBtn} onPress={onViewTechnical}>
-          <Text style={styles.textBtnLabel}>View Technical Details →</Text>
+          <Text style={styles.textBtnLabel}>{t('blockchain.viewTechnical')} →</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -51,11 +53,12 @@ interface RecallBannerProps {
 }
 
 export const RecallBanner: React.FC<RecallBannerProps> = ({ recall, onPressDetails }) => {
+  const { t } = useTranslation();
   return (
     <View style={styles.recallBanner}>
       <View style={styles.recallHeader}>
         <Icon name="warning" size={24} color={Colors.white} />
-        <Text style={styles.recallTitle}>PRODUCT RECALL NOTICE</Text>
+        <Text style={styles.recallTitle}>{t('recall.title')}</Text>
       </View>
 
       <Text style={styles.recallDesc} numberOfLines={3}>
@@ -63,13 +66,13 @@ export const RecallBanner: React.FC<RecallBannerProps> = ({ recall, onPressDetai
       </Text>
 
       <View style={styles.recallMetaRow}>
-        <Text style={styles.recallMeta}>Severity: {recall.severity}</Text>
-        <Text style={styles.recallMeta}>Date: {recall.recallDate}</Text>
+        <Text style={styles.recallMeta}>{t('recall.severity')}: {recall.severity}</Text>
+        <Text style={styles.recallMeta}>{t('recall.recallDate')}: {recall.recallDate}</Text>
       </View>
 
       {onPressDetails && (
         <TouchableOpacity style={styles.recallBtn} onPress={onPressDetails}>
-          <Text style={styles.recallBtnText}>View Full Recall Details</Text>
+          <Text style={styles.recallBtnText}>{t('recall.viewFullDetails')}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -78,12 +81,13 @@ export const RecallBanner: React.FC<RecallBannerProps> = ({ recall, onPressDetai
 
 // Offline Banner Component
 export const OfflineBanner: React.FC = () => {
+  const { t } = useTranslation();
   return (
     <View style={styles.offlineBanner}>
       <Icon name="cloud-offline-outline" size={18} color={Colors.warning} />
       <View style={{ flex: 1 }}>
-        <Text style={styles.offlineTitle}>You&apos;re Offline</Text>
-        <Text style={styles.offlineDesc}>Previously cached product information remains accessible.</Text>
+        <Text style={styles.offlineTitle}>{t('common.offline')}</Text>
+        <Text style={styles.offlineDesc}>{t('common.offlineDesc')}</Text>
       </View>
     </View>
   );
@@ -151,9 +155,10 @@ interface SearchBarProps {
 export const SearchBar: React.FC<SearchBarProps> = ({
   value,
   onChangeText,
-  placeholder = 'Search by name, batch ID...',
+  placeholder,
   onClear,
 }) => {
+  const { t } = useTranslation();
   return (
     <View style={styles.searchContainer}>
       <Icon name="search-outline" size={20} color={Colors.textMuted} style={styles.searchIcon} />
@@ -161,7 +166,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         style={styles.searchInput}
         value={value}
         onChangeText={onChangeText}
-        placeholder={placeholder}
+        placeholder={placeholder ?? t('searchScreen.placeholder')}
         placeholderTextColor={Colors.textMuted}
       />
       {value.length > 0 && (
@@ -174,25 +179,38 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 };
 
 // FilterChips Component
+// `key` is the stable internal filter value (compared against untranslated
+// data like `product.status`); `label` is what's shown, and may be
+// translated independently of `key`.
+export interface FilterChipOption {
+  key: string;
+  label: string;
+}
+
 interface FilterChipsProps {
-  options: string[];
+  options: FilterChipOption[];
   selected: string;
-  onSelect: (opt: string) => void;
+  onSelect: (key: string) => void;
 }
 
 export const FilterChips: React.FC<FilterChipsProps> = ({ options, selected, onSelect }) => {
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipsContainer}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={styles.chipsContainer}
+      contentContainerStyle={styles.chipsContent}
+    >
       {options.map((opt) => {
-        const active = selected === opt;
+        const active = selected === opt.key;
         return (
           <TouchableOpacity
-            key={opt}
+            key={opt.key}
             style={[styles.chip, active && styles.chipActive]}
-            onPress={() => onSelect(opt)}
+            onPress={() => onSelect(opt.key)}
             activeOpacity={0.8}
           >
-            <Text style={[styles.chipText, active && styles.chipTextActive]}>{opt}</Text>
+            <Text style={[styles.chipText, active && styles.chipTextActive]}>{opt.label}</Text>
           </TouchableOpacity>
         );
       })}
@@ -426,10 +444,19 @@ const styles = StyleSheet.create({
     color: Colors.onSurface,
   },
   chipsContainer: {
+    flexGrow: 0,
     marginBottom: Spacing.base,
+  },
+  // Horizontal ScrollView content defaults to alignItems:'stretch' on its
+  // cross axis, which would stretch each chip to the ScrollView's full
+  // height — flex-start keeps them sized to their own text.
+  chipsContent: {
+    alignItems: 'flex-start',
+    paddingRight: Spacing.gutter,
   },
   // Fully pill-shaped status/filter chips.
   chip: {
+    alignSelf: 'flex-start',
     backgroundColor: Colors.surfaceContainerHigh,
     paddingHorizontal: Spacing.lg,
     paddingVertical: 10,

@@ -134,7 +134,7 @@ export class OrderService {
   }
 }
 
-function toOrderResponse(order: Record<string, any>, items: Record<string, any>[]) {
+export function toOrderResponse(order: Record<string, any>, items: Record<string, any>[]) {
   return {
     id: order.id,
     items: items.map((i) => ({

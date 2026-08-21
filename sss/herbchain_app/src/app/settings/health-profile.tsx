@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 import { Colors, Type, Spacing, BorderRadius } from '@/theme';
 import { AppHeader } from '@/components/Header';
 import Icon from '@/components/Icon';
@@ -75,6 +77,98 @@ function healthProfileToRow(userId: string, p: HealthProfile) {
   };
 }
 
+const TRI_STATE_LABEL: Record<TriState, string> = { yes: 'Yes', no: 'No', undisclosed: 'Not disclosed' };
+const PREGNANCY_LABEL: Record<PregnancyStatus, string> = {
+  not_applicable: 'Not applicable',
+  pregnant: 'Pregnant',
+  breastfeeding: 'Breastfeeding',
+  planning: 'Planning pregnancy',
+  undisclosed: 'Not disclosed',
+};
+
+function escapeHtml(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function htmlList(items: string[]): string {
+  return items.length ? `<ul>${items.map((i) => `<li>${escapeHtml(i)}</li>`).join('')}</ul>` : '<p class="muted">None recorded</p>';
+}
+
+function htmlField(label: string, value: string | undefined | null): string {
+  return `<div class="field"><span class="label">${escapeHtml(label)}:</span> ${value ? escapeHtml(value) : '<span class="muted">Not provided</span>'}</div>`;
+}
+
+/**
+ * Every sub-field of the health profile, laid out plainly so it can be used
+ * directly as an input to a risk analysis — no data is summarized or
+ * omitted, only formatted.
+ */
+function buildHealthProfileHtml(profile: HealthProfile, name: string, ayurvedicId?: string): string {
+  const generatedAt = new Date().toLocaleString();
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  body { font-family: -apple-system, Helvetica, Arial, sans-serif; color: #1c1c15; padding: 32px; }
+  h1 { color: #002410; font-size: 22px; margin-bottom: 2px; }
+  .subtitle { color: #717971; font-size: 12px; margin-bottom: 24px; }
+  h2 { color: #002410; font-size: 15px; border-bottom: 1px solid #c1c9bf; padding-bottom: 4px; margin-top: 24px; }
+  .field { font-size: 13px; margin: 6px 0; }
+  .label { font-weight: 600; }
+  .muted { color: #717971; }
+  ul { margin: 6px 0; padding-left: 20px; font-size: 13px; }
+  li { margin-bottom: 2px; }
+</style>
+</head>
+<body>
+  <h1>AyurTrace+ Health Profile</h1>
+  <div class="subtitle">
+    ${escapeHtml(name)}${ayurvedicId ? ` &middot; ${escapeHtml(ayurvedicId)}` : ''} &middot; Generated ${escapeHtml(generatedAt)}
+  </div>
+
+  <h2>Allergies</h2>
+  ${htmlField('Has allergies', TRI_STATE_LABEL[profile.hasAllergies] ?? 'Not specified')}
+  <div class="field"><span class="label">Allergy categories:</span></div>
+  ${htmlList(profile.allergies)}
+  ${htmlField('Allergy details', profile.allergyNotes)}
+  <div class="field"><span class="label">Specific ingredient allergies:</span></div>
+  ${htmlList(profile.ingredientAllergies)}
+
+  <h2>Current Health</h2>
+  ${htmlField('Has current health issues', TRI_STATE_LABEL[profile.hasCurrentHealthIssues] ?? 'Not specified')}
+  ${htmlField('Description', profile.currentHealthIssues)}
+  ${htmlField('Has existing conditions', TRI_STATE_LABEL[profile.hasExistingConditions] ?? 'Not specified')}
+  <div class="field"><span class="label">Conditions:</span></div>
+  ${htmlList(profile.conditions)}
+
+  <h2>Medical History</h2>
+  <div class="field"><span class="label">Tags:</span></div>
+  ${htmlList(profile.medicalHistoryTags)}
+  ${htmlField('Further details', profile.medicalHistory)}
+
+  <h2>Medications</h2>
+  <div class="field"><span class="label">Current medication tags:</span></div>
+  ${htmlList(profile.currentMedicationTags)}
+  ${htmlField('Further details', profile.currentMedications)}
+  ${htmlField('Previous adverse reactions', profile.previousAdverseReactions)}
+
+  <h2>Preferences</h2>
+  ${htmlField('Pregnancy / breastfeeding status', PREGNANCY_LABEL[profile.pregnancyStatus] ?? 'Not specified')}
+  <div class="field"><span class="label">Dietary preferences:</span></div>
+  ${htmlList(profile.dietaryPreferences)}
+  <div class="field"><span class="label">Ayurvedic preferences:</span></div>
+  ${htmlList(profile.ayurvedicPreferences)}
+
+  <h2>Consent</h2>
+  ${htmlField('Consented to store health data', profile.consentStoreHealthData ? 'Yes' : 'No')}
+  ${htmlField('Consented to personalized alerts', profile.consentPersonalizedAlerts ? 'Yes' : 'No')}
+  ${htmlField('Last updated', profile.updatedAt ? new Date(profile.updatedAt).toLocaleString() : undefined)}
+</body>
+</html>`;
+}
+
 const emptyProfile: HealthProfile = {
   hasAllergies: 'undisclosed',
   allergies: [],
@@ -100,13 +194,15 @@ export default function HealthProfileScreen() {
   const router = useRouter();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isGuest = useAuthStore((s) => s.isGuest);
-  const userId = useAuthStore((s) => s.user?.id);
+  const user = useAuthStore((s) => s.user);
+  const userId = user?.id;
   const canUseHealthProfile = isAuthenticated && !isGuest && Boolean(userId);
 
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<HealthProfile>(emptyProfile);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedNotice, setSavedNotice] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
@@ -154,6 +250,24 @@ export default function HealthProfileScreen() {
     }
     if (data) setProfile({ ...emptyProfile, ...rowToHealthProfile(data) });
     setSavedNotice(true);
+  }
+
+  async function handleExportPdf() {
+    setExporting(true);
+    setError(null);
+    try {
+      const html = buildHealthProfileHtml(profile, user?.name || 'AyurTrace+ User', user?.ayurvedicId);
+      const { uri } = await Print.printToFileAsync({ html });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: 'Health Profile PDF' });
+      } else {
+        setError('Sharing is not available on this device — the PDF was generated but could not be saved.');
+      }
+    } catch (err) {
+      setError(`Could not generate the PDF: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setExporting(false);
+    }
   }
 
   function confirmDelete() {
@@ -409,6 +523,15 @@ export default function HealthProfileScreen() {
           disabled={deleting}
           size="lg"
           style={{ marginTop: Spacing.lg }}
+        />
+        <SecondaryButton
+          title="Export as PDF"
+          onPress={handleExportPdf}
+          loading={exporting}
+          disabled={saving || deleting}
+          icon="document-text-outline"
+          size="lg"
+          style={{ marginTop: Spacing.md }}
         />
         <SecondaryButton
           title="Delete My Health Data"

@@ -29,6 +29,27 @@ async function fetchRegion(userId: string): Promise<string | undefined> {
 // Insufficient information."
 export type SuitabilityVerdict = 'NO_KNOWN_CONFLICT' | 'POTENTIAL_CONCERN' | 'HIGH_RISK_MATCH' | 'INSUFFICIENT_INFORMATION';
 
+// A composite 0-100 personal health-risk score, additive alongside the
+// categorical verdict above (not a replacement) — higher means riskier,
+// the inverse of TrustScore's provenance-trust semantics elsewhere in the app.
+export type RiskBand = 'LOW' | 'MODERATE' | 'ELEVATED' | 'HIGH';
+
+function computeRiskScore(
+  verdict: SuitabilityVerdict,
+  hasHealthProfile: boolean,
+  hasIngredientData: boolean,
+  guidanceCount: number
+): { riskScore: number; riskBand: RiskBand } {
+  let score = verdict === 'HIGH_RISK_MATCH' ? 60 : verdict === 'POTENTIAL_CONCERN' ? 30 : 0;
+  if (!hasHealthProfile) score += 15;
+  if (!hasIngredientData) score += 10;
+  if (guidanceCount === 0) score += 5;
+  score = Math.min(100, score);
+
+  const riskBand: RiskBand = score >= 80 ? 'HIGH' : score >= 50 ? 'ELEVATED' : score >= 20 ? 'MODERATE' : 'LOW';
+  return { riskScore: score, riskBand };
+}
+
 const VERDICT_LABELS: Record<SuitabilityVerdict, string> = {
   NO_KNOWN_CONFLICT: 'No known conflict detected',
   POTENTIAL_CONCERN: 'Potential concern',
@@ -86,12 +107,15 @@ export class SuitabilityService {
     }
 
     const guidance = await this.guidanceService.findPublished({ productId: String(product._id), region });
+    const { riskScore, riskBand } = computeRiskScore(verdict, Boolean(healthProfile), hasIngredientData, guidance.length);
 
     return {
       product,
       verdict,
       verdictLabel: VERDICT_LABELS[verdict],
       explanation: buildExplanation(verdict, product, allergyConflicts),
+      riskScore,
+      riskBand,
       allergyConflicts,
       hasHealthProfile: Boolean(healthProfile),
       doctorGuidance: guidance.map((g) => ({

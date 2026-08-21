@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Colors, Fonts, Type, Spacing, BorderRadius } from '@/theme';
 import Icon from './Icon';
 
@@ -14,6 +15,7 @@ export const TrustScore: React.FC<TrustScoreProps> = ({
   size = 'md',
   showLabel = false,
 }) => {
+  const { t } = useTranslation();
   const getColor = () => {
     if (score >= 90) return Colors.trustExcellent;
     if (score >= 75) return Colors.trustGood;
@@ -22,10 +24,10 @@ export const TrustScore: React.FC<TrustScoreProps> = ({
   };
 
   const getLabel = () => {
-    if (score >= 90) return 'Excellent';
-    if (score >= 75) return 'Good';
-    if (score >= 50) return 'Fair';
-    return 'Poor';
+    if (score >= 90) return t('verify.excellent');
+    if (score >= 75) return t('verify.good');
+    if (score >= 50) return t('verify.fair');
+    return t('verify.poor');
   };
 
   const getDimensions = () => {
@@ -61,7 +63,7 @@ export const TrustScore: React.FC<TrustScoreProps> = ({
       </View>
       {showLabel && (
         <Text style={[styles.trustLabel, { fontSize: dims.labelSize }]}>
-          {getLabel()} Trust Score
+          {getLabel()} {t('product.trustScoreLabel')}
         </Text>
       )}
     </View>
@@ -74,18 +76,19 @@ interface StatusBadgeProps {
 }
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md' }) => {
+  const { t } = useTranslation();
   const getBadgeConfig = () => {
     switch (status) {
       case 'verified':
-        return { label: 'VERIFIED', bg: Colors.secondaryContainer, color: Colors.onSecondaryContainer, icon: 'checkmark-circle' as const };
+        return { label: t('common.verified'), bg: Colors.secondaryContainer, color: Colors.onSecondaryContainer, icon: 'checkmark-circle' as const };
       case 'recalled':
-        return { label: 'RECALLED', bg: Colors.errorContainer, color: Colors.onErrorContainer, icon: 'alert-circle' as const };
+        return { label: t('common.recalled'), bg: Colors.errorContainer, color: Colors.onErrorContainer, icon: 'alert-circle' as const };
       case 'expired':
-        return { label: 'EXPIRED', bg: Colors.tertiaryFixed, color: Colors.onTertiaryFixedVariant, icon: 'time' as const };
+        return { label: t('common.expired'), bg: Colors.tertiaryFixed, color: Colors.onTertiaryFixedVariant, icon: 'time' as const };
       case 'warning':
-        return { label: 'WARNING', bg: Colors.tertiaryFixed, color: Colors.onTertiaryFixedVariant, icon: 'warning' as const };
+        return { label: t('common.warning'), bg: Colors.tertiaryFixed, color: Colors.onTertiaryFixedVariant, icon: 'warning' as const };
       default:
-        return { label: 'PENDING', bg: Colors.surfaceContainerHigh, color: Colors.onSurfaceVariant, icon: 'hourglass' as const };
+        return { label: t('common.pending'), bg: Colors.surfaceContainerHigh, color: Colors.onSurfaceVariant, icon: 'hourglass' as const };
     }
   };
 
@@ -154,6 +157,7 @@ const styles = StyleSheet.create({
   badgeText: {
     fontFamily: Fonts.family.semiBold,
     letterSpacing: 0.6,
+    textTransform: 'uppercase',
   },
   verifRow: {
     flexDirection: 'row',

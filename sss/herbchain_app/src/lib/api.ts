@@ -31,6 +31,15 @@ export function setAuthToken(token: string | null) {
   authToken = token;
 }
 
+// Exposed for the rare caller that can't use apiRequest — e.g. a multipart
+// FormData upload, where apiRequest's hardcoded 'Content-Type: application/json'
+// would break the request's own multipart boundary header.
+export function getAuthTokenForUpload(): string | null {
+  return authToken;
+}
+
+export const API_BASE_URL_FOR_UPLOAD = API_BASE_URL;
+
 /**
  * Thin fetch wrapper for the HerbChain Express backend. Talks to the same
  * `{success, message, data, errors, timestamp}` envelope every controller in

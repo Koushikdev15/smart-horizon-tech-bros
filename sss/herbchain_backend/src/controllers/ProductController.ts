@@ -46,8 +46,8 @@ export class ProductController {
 
   browseForPurchase = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { q, healthTopic, region } = req.query as Record<string, string>;
-      const result = await this.productService.browseForPurchase({ q, healthTopic, region });
+      const { q, healthTopic, region, id } = req.query as Record<string, string>;
+      const result = await this.productService.browseForPurchase({ q, healthTopic, region, id });
       return sendResponse(res, 200, true, 'Products fetched', result);
     } catch (err) {
       next(err);

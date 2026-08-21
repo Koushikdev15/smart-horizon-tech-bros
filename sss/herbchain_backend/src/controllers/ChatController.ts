@@ -4,8 +4,30 @@ import { sendResponse } from '../utils/response';
 import { sendMessageSchema } from '../validators/chatValidator';
 import { SupabaseAuthRequest } from '../middleware/supabaseAuthMiddleware';
 
+interface MulterAuthRequest extends SupabaseAuthRequest {
+  file?: Express.Multer.File;
+}
+
 export class ChatController {
   private chatbotService = new ChatbotService();
+
+  transcribe = async (req: MulterAuthRequest, res: Response, next: NextFunction) => {
+    try {
+      if (!req.file) {
+        return sendResponse(res, 400, false, 'No audio file provided.');
+      }
+      const language = req.body.language === 'ta' ? 'ta' : req.body.language === 'en' ? 'en' : undefined;
+      const result = await this.chatbotService.transcribe(
+        req.supabaseUser!.id,
+        req.file.buffer,
+        req.file.mimetype,
+        language
+      );
+      return sendResponse(res, 200, true, 'Audio transcribed', result);
+    } catch (err) {
+      next(err);
+    }
+  };
 
   createSession = async (req: SupabaseAuthRequest, res: Response, next: NextFunction) => {
     try {

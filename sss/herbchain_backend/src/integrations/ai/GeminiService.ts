@@ -56,4 +56,41 @@ export class GeminiService {
       throw new GeminiUnavailableError();
     }
   }
+
+  /**
+   * Transcribes a short voice-chat recording. Text-only, never stored —
+   * the caller just drops the result into the chat input for the user to
+   * review/edit before sending, same as if they'd typed it.
+   */
+  async transcribeAudio(buffer: Buffer, mimeType: string, language: 'en' | 'ta'): Promise<string> {
+    if (!this.client) {
+      throw new GeminiUnavailableError('Voice transcription is not configured (missing GEMINI_API_KEY).');
+    }
+
+    const languageName = language === 'ta' ? 'Tamil' : 'English';
+
+    try {
+      const response = await this.client.models.generateContent({
+        model: MODEL,
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              { inlineData: { mimeType, data: buffer.toString('base64') } },
+              { text: `Transcribe this audio verbatim in ${languageName}. Return only the transcribed text, no commentary.` },
+            ],
+          },
+        ],
+        config: { temperature: 0 },
+      });
+
+      const text = response.text;
+      if (!text) throw new GeminiUnavailableError('Could not transcribe the recording.');
+      return text.trim();
+    } catch (err) {
+      if (err instanceof GeminiUnavailableError) throw err;
+      logger.error(`[GeminiService] transcribeAudio failed: ${(err as Error).message}`);
+      throw new GeminiUnavailableError('Could not transcribe the recording.');
+    }
+  }
 }

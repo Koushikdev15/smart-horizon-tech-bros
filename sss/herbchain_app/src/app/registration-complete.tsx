@@ -29,11 +29,15 @@ export default function RegistrationCompleteScreen() {
 
   const [copied, setCopied] = useState(false);
 
+  // No session survives past this screen (register.tsx signs out right
+  // after account creation) — the user is meant to sign in for themselves
+  // with the Ayurvedic ID they copy here, not be dropped straight into the
+  // app. Copying it is the cue that they're ready to do that.
   async function copyAyurvedicId() {
     if (!ayurvedicId) return;
     await Clipboard.setStringAsync(ayurvedicId);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => router.replace('/login'), 900);
   }
 
   const sections: SectionRow[] = [
@@ -126,17 +130,11 @@ export default function RegistrationCompleteScreen() {
 
         <TouchableOpacity
           style={styles.primaryBtn}
-          onPress={() => router.replace('/(tabs)')}
+          onPress={() => router.replace('/login')}
           activeOpacity={0.85}
         >
-          <Text style={styles.primaryBtnText}>Start Exploring AyurTrace+</Text>
+          <Text style={styles.primaryBtnText}>Continue to Sign In</Text>
         </TouchableOpacity>
-
-        {completion < 100 && (
-          <TouchableOpacity style={styles.secondaryBtn} onPress={() => router.replace('/(tabs)/profile')}>
-            <Text style={styles.secondaryBtnText}>Complete my profile later</Text>
-          </TouchableOpacity>
-        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -274,6 +272,4 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xl,
   },
   primaryBtnText: { ...Type.labelMd, fontSize: 16, color: Colors.onPrimary },
-  secondaryBtn: { minHeight: 48, alignItems: 'center', justifyContent: 'center', marginTop: Spacing.sm },
-  secondaryBtnText: { ...Type.labelMd, color: Colors.primaryContainer },
 });

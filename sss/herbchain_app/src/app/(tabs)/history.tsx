@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Colors, Fonts, Type, Spacing, BorderRadius } from '@/theme';
 import { AppHeader } from '@/components/Header';
 import { ProductCard } from '@/components/ProductCard';
@@ -11,12 +12,19 @@ import { getProductById } from '@/data/mockProducts';
 
 export default function HistoryScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { scanHistory, isSaved, toggleSaved } = useProductStore();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('All');
 
-  const filterOptions = ['All', 'Verified', 'Warning', 'Recalled', 'Expired'];
+  const filterOptions = [
+    { key: 'All', label: t('common.all') },
+    { key: 'Verified', label: t('common.verified') },
+    { key: 'Warning', label: t('common.warning') },
+    { key: 'Recalled', label: t('common.recalled') },
+    { key: 'Expired', label: t('common.expired') },
+  ];
 
   const filteredHistory = scanHistory.filter((item) => {
     const product = getProductById(item.productId);
@@ -38,15 +46,15 @@ export default function HistoryScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <AppHeader title="Scan History" />
+      <AppHeader title={t('history.title')} />
 
       <View style={styles.content}>
-        <Text style={styles.pageTitle}>Scan History</Text>
+        <Text style={styles.pageTitle}>{t('history.title')}</Text>
 
         <SearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholder="Search history by name or batch..."
+          placeholder={t('history.searchPlaceholder')}
         />
 
         <FilterChips
@@ -57,13 +65,9 @@ export default function HistoryScreen() {
 
         {filteredHistory.length === 0 ? (
           <EmptyState
-            title="No scans found"
-            description={
-              scanHistory.length === 0
-                ? 'Scan your first Ayurvedic product to discover its complete journey.'
-                : 'No scan history items match your current filter or search criteria.'
-            }
-            actionText={scanHistory.length === 0 ? 'Scan Product Now' : undefined}
+            title={t('history.noScansFound')}
+            description={scanHistory.length === 0 ? t('history.noScansDesc') : t('history.noMatchDesc')}
+            actionText={scanHistory.length === 0 ? t('history.scanProductNow') : undefined}
             onAction={() => router.push('/(tabs)/scan')}
           />
         ) : (
@@ -78,7 +82,7 @@ export default function HistoryScreen() {
                   {item.statusUpdated && (
                     <View style={styles.updatedBanner}>
                       <Text style={styles.updatedText}>
-                        ⚠️ Status Updated: Issued recall after original scan
+                        ⚠️ {t('history.statusUpdatedBanner')}
                       </Text>
                     </View>
                   )}

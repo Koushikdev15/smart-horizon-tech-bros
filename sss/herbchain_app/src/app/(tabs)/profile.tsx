@@ -75,7 +75,7 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          <Text style={styles.userName}>{user?.name || 'Guest User'}</Text>
+          <Text style={styles.userName}>{user?.name || t('profileScreen.guestUser')}</Text>
 
           <View style={styles.memberChip}>
             <Text style={styles.memberChipText}>
@@ -83,8 +83,16 @@ export default function ProfileScreen() {
             </Text>
           </View>
 
-          <Text style={styles.userSub}>{user?.email || (isGuest ? 'Sign in to save your scans' : 'No email')}</Text>
+          <Text style={styles.userSub}>
+            {user?.email || (isGuest ? t('profileScreen.signInToSave') : t('profileScreen.noEmail'))}
+          </Text>
           {user?.phone && <Text style={styles.userPhone}>{user.phone}</Text>}
+          {user?.ayurvedicId && (
+            <View style={styles.ayurvedicIdChip}>
+              <Icon name="finger-print-outline" size={13} color={Colors.onTertiaryContainer} />
+              <Text style={styles.ayurvedicIdText}>{user.ayurvedicId}</Text>
+            </View>
+          )}
 
           {isGuest && (
             <TouchableOpacity style={styles.loginChip} onPress={() => router.push('/login')}>
@@ -204,6 +212,22 @@ const styles = StyleSheet.create({
     ...Type.bodySm,
     color: Colors.outline,
     marginTop: 2,
+  },
+  ayurvedicIdChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: Colors.tertiaryFixed,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 5,
+    borderRadius: BorderRadius.full,
+    marginTop: Spacing.sm,
+  },
+  ayurvedicIdText: {
+    ...Type.labelMd,
+    fontSize: 12,
+    color: Colors.onTertiaryContainer,
+    letterSpacing: 0.3,
   },
   loginChip: {
     backgroundColor: Colors.primaryContainer,

@@ -38,7 +38,8 @@
     "scan": "Scan",
     "ebuy": "E-Buy",
     "alerts": "Alerts",
-    "profile": "Profile"
+    "profile": "Profile",
+    "doctorPortal": "Doctors"
   },
   "onboarding": {
     "screen1Title": "Know Your Ayurveda",
@@ -145,7 +146,9 @@
     "expiryDate": "Expiry Date",
     "netQuantity": "Net Quantity",
     "formulation": "Formulation",
-    "status": "Status"
+    "status": "Status",
+    "batchLabel": "BATCH",
+    "trustScoreLabel": "Trust Score"
   },
   "ingredients": {
     "title": "What's Inside?",
@@ -204,6 +207,7 @@
     "title": "Blockchain Verified",
     "verificationStatus": "Verification Status",
     "timestamp": "Timestamp",
+    "ref": "Ref",
     "transactionRef": "Transaction Reference",
     "viewTechnical": "View Technical Details",
     "transactionId": "Transaction ID",
@@ -237,13 +241,19 @@
     "recallDate": "Recall Date",
     "recallReason": "Recall Reason",
     "severity": "Severity",
-    "recommendedAction": "Recommended Action"
+    "recommendedAction": "Recommended Action",
+    "viewFullDetails": "View Full Recall Details"
   },
   "history": {
     "title": "Scan History",
     "noScans": "No scans yet",
+    "noScansFound": "No scans found",
     "noScansDesc": "Scan your first Ayurvedic product to discover its journey.",
+    "noMatchDesc": "No scan history items match your current filter or search criteria.",
+    "searchPlaceholder": "Search history by name or batch...",
+    "scanProductNow": "Scan Product Now",
     "statusUpdated": "Status Updated",
+    "statusUpdatedBanner": "Status Updated: Issued recall after original scan",
     "statusUpdatedDesc": "This product was verified when scanned, but a recall notification was issued later.",
     "scanDate": "Scan Date"
   },
@@ -259,6 +269,12 @@
     "manufacturer": "Manufacturer",
     "batchId": "Batch ID",
     "ingredient": "Ingredient"
+  },
+  "productsScreen": {
+    "allVerified": "All Verified Products",
+    "searchResults": "Search Results ({{count}})",
+    "noMatching": "No matching products",
+    "noMatchingDesc": "Try searching with a different product name, ingredient, or batch number."
   },
   "compare": {
     "title": "Compare Products",
@@ -278,8 +294,9 @@
     "disclaimer": "AyurTrace Copilot uses verified product data. It is not a medical professional."
   },
   "alerts": {
-    "title": "Alerts",
+    "title": "Alerts & Notifications",
     "allCaughtUp": "You're all caught up",
+    "noneDesc": "No active alerts or safety warnings matching your selected category.",
     "recall": "Recall",
     "expiryAlert": "Expiry",
     "verification": "Verification",
@@ -308,7 +325,10 @@
     "exitGuest": "Exit Guest Mode",
     "guestAccess": "Guest Access",
     "verifiedMember": "Verified Member",
-    "login": "Login"
+    "login": "Login",
+    "guestUser": "Guest User",
+    "signInToSave": "Sign in to save your scans",
+    "noEmail": "No email"
   },
   "notifications": {
     "title": "Notification Settings",
