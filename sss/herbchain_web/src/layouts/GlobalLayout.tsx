@@ -6,7 +6,7 @@ import { useAppStore } from '../store/appStore';
 import { useSessionGuard } from '../hooks/useSessionGuard';
 import { roleNavItems, roleColors, roleIcons, type NavItem } from '../lib/navConfig';
 import CommandPalette from '../components/CommandPalette';
-import { LogoMark } from '@/components/Logo';
+import { LogoMark, LogoWordmark } from '@/components/Logo';
 import BotanicalBackground from '../components/BotanicalBackground';
 import {
   LogOut, Shield, Menu, X,
@@ -206,15 +206,12 @@ export default function GlobalLayout() {
     <>
       {/* Logo */}
       <div className={`flex items-center gap-3 px-4 py-5 border-b border-border/30 ${sidebarCollapsed ? 'justify-center px-2' : ''}`}>
-        <div className="w-9 h-9 rounded-lg bg-[#10B981]/15 flex items-center justify-center shrink-0">
-          <LogoMark className="w-5 h-5 text-[#10B981]" />
-        </div>
+        {/* No tinted tile behind the emblem — the artwork is transparent and
+            sits directly on the sidebar. */}
+        <LogoMark className="w-12 h-12 shrink-0" />
         {!sidebarCollapsed && (
-          <div>
-            <h2 className="text-base font-bold font-heading leading-tight text-slate-800 dark:text-white" style={{ fontSize: '20px' }}>
-              <span className="text-[#10B981]">Herb</span>Chain
-            </h2>
-            <p className="text-[9.5px] text-slate-600 dark:text-[#94A3B8] uppercase tracking-widest font-semibold">Ministry of AYUSH</p>
+          <div className="min-w-0 flex-1">
+            <LogoWordmark className="w-full max-w-[168px]" />
           </div>
         )}
       </div>

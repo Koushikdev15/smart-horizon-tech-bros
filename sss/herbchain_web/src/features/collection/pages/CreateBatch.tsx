@@ -160,7 +160,7 @@ export default function CreateBatch() {
       estimatedGrade: form.estimatedGrade || undefined,
       moisture: form.moisture ? Number(form.moisture) : undefined,
       aiSummary,
-      // Matches BatchTimelineEvent, which is what BlockchainTimeline renders.
+      // Matches BatchTimelineEvent, the shape the traceability view reads.
       // The later stages are seeded as Pending so the full chain is visible.
       timeline: [
         {

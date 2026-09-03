@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
+import { subscribeToTable } from '../lib/realtimeSubscription';
 import { mockBatches } from '../lib/mockData';
 import type { Batch, BatchTimelineEvent } from '../types';
 
@@ -26,6 +27,8 @@ interface BatchStore {
   subscribe: () => () => void;
 
   addBatch: (batch: Batch) => Promise<void>;
+  /** Merges arbitrary fields into a batch and persists them. */
+  patchBatch: (id: string, patch: Partial<Batch>, event?: BatchTimelineEvent) => Promise<void>;
   updateBatchStatus: (id: string, status: Batch['status'], newEvent: BatchTimelineEvent) => Promise<void>;
   rejectBatch: (id: string, stage: string, reason: string) => Promise<void>;
 }
@@ -67,19 +70,9 @@ export const useBatchStore = create<BatchStore>((set, get) => ({
     });
   },
 
-  /** Live updates so a batch advanced by another role appears without a refresh. */
-  subscribe: () => {
-    const channel = supabase
-      .channel('batches-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'batches' }, () => {
-        get().loadBatches();
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  },
+  /** Live updates. The channel is shared, so several hooks may watch the same
+   *  table without the second one throwing. */
+  subscribe: () => subscribeToTable('batches', () => get().loadBatches()),
 
   addBatch: async (batch) => {
     // Show it straight away, then reconcile with the row the database returns.
@@ -102,6 +95,32 @@ export const useBatchStore = create<BatchStore>((set, get) => ({
       batches: state.batches.map((b) => (b.batchNumber === saved.batchNumber ? saved : b)),
       error: null,
     }));
+  },
+
+  patchBatch: async (id, patch, event) => {
+    const current = get().batches.find((b) => b.id === id);
+    if (!current) return;
+
+    const next: Batch = {
+      ...current,
+      ...patch,
+      timeline: event ? [event, ...current.timeline] : current.timeline,
+    };
+
+    set((state) => ({ batches: state.batches.map((b) => (b.id === id ? next : b)) }));
+
+    if (isMock(id)) return; // demo seed — nothing to persist
+
+    const { error } = await supabase
+      .from('batches')
+      .update({ payload: { ...next, id: undefined } })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Failed to patch batch:', error);
+      set({ error: error.message });
+      throw error;
+    }
   },
 
   updateBatchStatus: async (id, status, newEvent) => {

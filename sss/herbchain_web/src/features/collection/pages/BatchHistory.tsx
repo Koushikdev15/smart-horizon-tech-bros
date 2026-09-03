@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import PageHeader from '../../../components/PageHeader';
 import BatchStatusBadge from '../../../components/BatchStatusBadge';
-import BlockchainTimeline from '../../../components/BlockchainTimeline';
+import BatchTraceability from '../../../components/BatchTraceability';
 import { Search, Package, Leaf, MapPin, CalendarDays, Star, Loader2, AlertCircle } from 'lucide-react';
 import type { Batch } from '../../../types';
 import { useBatchStore, useBatchesLive } from '../../../store/useBatchStore';
@@ -111,7 +111,7 @@ export default function BatchHistory() {
                 {selected.aiSummary}
               </div>
             )}
-            <BlockchainTimeline events={selected.timeline} />
+            <BatchTraceability batch={selected} />
           </DialogContent>
         </Dialog>
       )}

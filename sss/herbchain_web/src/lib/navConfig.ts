@@ -3,7 +3,7 @@ import {
   Users, FileText, Package, BarChart3, CreditCard,
   ClipboardList, Settings, UserCheck, AlertTriangle, Search,
   MessageSquare, History, XCircle, PlusCircle, TreePine, Tractor,
-  ScrollText, User as UserIcon,
+  ScrollText, PackagePlus, User as UserIcon,
 } from 'lucide-react';
 import type { UserRole } from '../types';
 
@@ -53,8 +53,10 @@ export const roleNavItems: Record<UserRole, NavItem[]> = {
     { icon: CreditCard,    label: 'Payments',  id: 'payments'  },
   ],
   'Manufacturer': [
-    { icon: Home,          label: 'Dashboard', id: 'dashboard' },
-    { icon: ClipboardList, label: 'Requests',  id: 'requests'  },
+    { icon: Home,          label: 'Dashboard',      id: 'dashboard'      },
+    { icon: ClipboardList, label: 'Requests',       id: 'requests'       },
+    { icon: PackagePlus,   label: 'Create Product', id: 'create-product' },
+    { icon: Package,       label: 'Available Products', id: 'products' },
     { icon: XCircle,       label: 'Rejected',  id: 'rejected'  },
     { icon: History,       label: 'History',   id: 'history'   },
     { icon: MessageSquare, label: 'Messages',  id: 'messages'  },

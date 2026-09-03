@@ -1,157 +1,335 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis } from 'recharts';
 import PageHeader from '../../../components/PageHeader';
-import StatsCard from '../../../components/StatsCard';
-import { TrendingUp, Package, CreditCard, ShieldCheck, BarChart3 } from 'lucide-react';
+import { useNetworkStats } from '../useNetworkStats';
+import {
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  AreaChart, Area, PieChart, Pie, Cell, Legend, LineChart, Line,
+} from 'recharts';
+import { Loader2, BarChart3, Droplets, Sprout, FlaskConical } from 'lucide-react';
 
-const monthlyBatches = [
-  { name: 'Jan', batches: 42, revenue: 1240000, compliance: 95 },
-  { name: 'Feb', batches: 58, revenue: 1580000, compliance: 96 },
-  { name: 'Mar', batches: 65, revenue: 1850000, compliance: 94 },
-  { name: 'Apr', batches: 72, revenue: 2100000, compliance: 98 },
-  { name: 'May', batches: 88, revenue: 2540000, compliance: 99 },
-  { name: 'Jun', batches: 94, revenue: 2890000, compliance: 98 },
-  { name: 'Jul', batches: 47, revenue: 1420000, compliance: 97 },
-];
+/**
+ * Network analytics, computed from the live ledger.
+ *
+ * Every series on this page used to be a hard-coded array in this file —
+ * monthlyBatches, herbVolume, regionData, qualityRadar. They never changed.
+ */
 
-const herbVolume = [
-  { herb: 'Ashwagandha', kg: 4500 },
-  { herb: 'Brahmi', kg: 2200 },
-  { herb: 'Neem', kg: 6000 },
-  { herb: 'Tulsi', kg: 3200 },
-  { herb: 'Amla', kg: 5100 },
-  { herb: 'Shatavari', kg: 1800 },
-];
+const GREENS = ['#0B7A46', '#159A5A', '#2FB673', '#5FCB93', '#8FDCB4', '#B9E9D0', '#D6F2E3', '#E9F8F0'];
+const QUALITY_COLOURS: Record<string, string> = {
+  Passed: '#159A5A',
+  Conditional: '#D9A02B',
+  Failed: '#C7382F',
+  'Awaiting test': '#B7C3BC',
+};
+const SOURCE_COLOURS: Record<string, string> = {
+  Cultivated: '#159A5A',
+  'Wild-collected': '#2E7D8F',
+};
 
-const regionData = [
-  { region: 'Kerala', batches: 42 },
-  { region: 'Rajasthan', batches: 28 },
-  { region: 'Uttarakhand', batches: 20 },
-  { region: 'Maharashtra', batches: 18 },
-  { region: 'Gujarat', batches: 14 },
-  { region: 'Tamil Nadu', batches: 12 },
-];
+const tooltipStyle = {
+  contentStyle: {
+    background: 'var(--color-card, #fff)',
+    border: '1px solid var(--color-border, #e5e7eb)',
+    borderRadius: '0.6rem',
+    fontSize: '12px',
+    boxShadow: '0 6px 20px -8px rgba(0,0,0,0.25)',
+  },
+  labelStyle: { fontWeight: 600, marginBottom: 2 },
+};
 
-const qualityRadar = [
-  { quality: 'Moisture', A: 94 }, { quality: 'Purity', A: 97 }, { quality: 'DNA Auth', A: 99 },
-  { quality: 'Heavy Metals', A: 88 }, { quality: 'Pesticides', A: 92 }, { quality: 'Microbial', A: 96 },
-];
-
-const COLORS = ['#10b981', '#f59e0b', '#3b82f6', '#06b6d4', '#8b5cf6', '#ef4444'];
+function Empty({ label }: { label: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-2 py-14 text-muted-foreground">
+      <BarChart3 className="w-6 h-6 opacity-40" />
+      <p className="text-xs">{label}</p>
+    </div>
+  );
+}
 
 export default function Analytics() {
+  const s = useNetworkStats();
+
+  if (s.loading && s.counts.batches === 0) {
+    return (
+      <div className="flex h-full min-h-[60vh] flex-col items-center justify-center gap-3">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">Computing analytics…</p>
+      </div>
+    );
+  }
+
+  const avgBatchKg = s.counts.batches ? Math.round(s.counts.totalKg / s.counts.batches) : 0;
+  const testedPct = s.counts.batches
+    ? Math.round((s.counts.tested / s.counts.batches) * 100)
+    : 0;
+
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <PageHeader
-        title="Analytics & Reports"
-        description="System-wide performance metrics and trend analysis"
+        title="Analytics"
+        description="Network performance computed from live batch, product and member records"
       />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatsCard title="Total Batches (YTD)" value="466" icon={Package} iconColor="text-primary" iconBg="bg-primary/6 dark:bg-primary/14" trend="up" trendValue="+24%" subtext="vs last year" />
-        <StatsCard title="Revenue (YTD)" value="₹1.36 Cr" icon={CreditCard} iconColor="text-blue-600" iconBg="bg-blue-50 dark:bg-blue-950/40" trend="up" trendValue="+31%" />
-        <StatsCard title="Avg Compliance" value="96.7%" icon={ShieldCheck} iconColor="text-violet-600" iconBg="bg-violet-50 dark:bg-violet-950/40" trend="up" trendValue="+1.2%" />
-        <StatsCard title="Rejection Rate" value="4.2%" icon={TrendingUp} iconColor="text-red-600" iconBg="bg-red-50 dark:bg-red-950/40" trend="down" trendValue="-0.8%" subtext="vs last month" />
+      {/* Derived indicators */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {[
+          {
+            label: 'Average Batch Size',
+            value: `${avgBatchKg} kg`,
+            sub: `across ${s.counts.batches} batches`,
+            icon: Sprout,
+            tone: 'text-emerald-600',
+          },
+          {
+            label: 'Lab Coverage',
+            value: `${testedPct}%`,
+            sub: `${s.counts.tested} of ${s.counts.batches} tested`,
+            icon: FlaskConical,
+            tone: 'text-blue-600',
+          },
+          {
+            label: 'Average Moisture',
+            value: s.avgMoisture === null ? '—' : `${s.avgMoisture.toFixed(1)}%`,
+            sub: s.avgMoisture === null ? 'no readings yet' : 'limit 10% (API)',
+            icon: Droplets,
+            tone:
+              s.avgMoisture !== null && s.avgMoisture > 10 ? 'text-amber-600' : 'text-emerald-600',
+          },
+          {
+            label: 'Batches per Product',
+            value: s.counts.products
+              ? (s.products.reduce((t, p) => t + p.components.length, 0) / s.counts.products).toFixed(1)
+              : '—',
+            sub: `${s.counts.products} products released`,
+            icon: BarChart3,
+            tone: 'text-indigo-600',
+          },
+        ].map((t) => (
+          <Card key={t.label}>
+            <CardContent className="py-4 space-y-1">
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-[11px] font-medium text-muted-foreground leading-tight">{t.label}</p>
+                <t.icon className={`w-4 h-4 shrink-0 ${t.tone}`} />
+              </div>
+              <p className="text-2xl font-bold leading-none">{t.value}</p>
+              <p className="text-[10px] text-muted-foreground">{t.sub}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Monthly Batch Throughput</CardTitle>
-            <CardDescription>Number of batches processed per month</CardDescription>
+      {/* Volume trend + sourcing */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Collection Volume &amp; Batch Count</CardTitle>
+            <CardDescription className="text-xs">By month of harvest</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={monthlyBatches} barSize={24}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" strokeOpacity={0.08} />
-                <XAxis dataKey="name" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis fontSize={11} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
-                <Bar dataKey="batches" fill="#10b981" radius={[4,4,0,0]} name="Batches" />
-              </BarChart>
-            </ResponsiveContainer>
+            {s.timeline.length === 0 ? (
+              <Empty label="No harvest dates recorded" />
+            ) : (
+              <ResponsiveContainer width="100%" height={240}>
+                <AreaChart data={s.timeline} margin={{ top: 4, right: 8, left: -18, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="anKg" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#159A5A" stopOpacity={0.35} />
+                      <stop offset="100%" stopColor="#159A5A" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-border" vertical={false} />
+                  <XAxis dataKey="month" tick={{ fontSize: 10 }} />
+                  <YAxis yAxisId="kg" tick={{ fontSize: 10 }} />
+                  <YAxis yAxisId="n" orientation="right" tick={{ fontSize: 10 }} allowDecimals={false} />
+                  <Tooltip {...tooltipStyle} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} iconSize={8} />
+                  <Area yAxisId="kg" type="monotone" dataKey="kg" name="Volume (kg)" stroke="#159A5A" strokeWidth={2} fill="url(#anKg)" />
+                  <Line yAxisId="n" type="monotone" dataKey="batches" name="Batches" stroke="#2E7D8F" strokeWidth={2} dot={{ r: 3 }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Herb Volume by Species (kg)</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Sourcing Mix</CardTitle>
+            <CardDescription className="text-xs">Cultivated vs wild-collected, by weight</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={herbVolume} layout="vertical" barSize={14}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="currentColor" strokeOpacity={0.08} />
-                <XAxis type="number" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis dataKey="herb" type="category" fontSize={11} tickLine={false} axisLine={false} width={80} />
-                <Tooltip contentStyle={{ borderRadius: '10px', border: 'none' }} />
-                <Bar dataKey="kg" radius={[0,4,4,0]} name="Volume (kg)">
-                  {herbVolume.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Revenue Trend</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={monthlyBatches}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" strokeOpacity={0.08} />
-                <XAxis dataKey="name" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `${(v/100000).toFixed(1)}L`} />
-                <Tooltip contentStyle={{ borderRadius: '10px', border: 'none' }} formatter={(v: unknown) => [`₹${(Number(v)/100000).toFixed(2)}L`, 'Revenue']} />
-                <Line type="monotone" dataKey="revenue" stroke="#6366f1" strokeWidth={2.5} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Batches by Region</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie data={regionData} cx="50%" cy="50%" outerRadius={80} dataKey="batches" nameKey="region">
-                  {regionData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                </Pie>
-                <Tooltip contentStyle={{ borderRadius: '10px', border: 'none' }} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="grid grid-cols-2 gap-1 mt-2">
-              {regionData.map((d, i) => (
-                <div key={d.region} className="flex items-center gap-1.5 text-xs">
-                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                  <span className="text-muted-foreground">{d.region}</span>
-                  <span className="font-semibold ml-auto">{d.batches}</span>
-                </div>
-              ))}
-            </div>
+            {s.sourcing.length === 0 ? (
+              <Empty label="No collector types recorded" />
+            ) : (
+              <ResponsiveContainer width="100%" height={240}>
+                <PieChart>
+                  <Pie data={s.sourcing} dataKey="value" nameKey="name" innerRadius={45} outerRadius={75} paddingAngle={2}>
+                    {s.sourcing.map((d) => (
+                      <Cell key={d.name} fill={SOURCE_COLOURS[d.name] ?? '#159A5A'} />
+                    ))}
+                  </Pie>
+                  <Tooltip {...tooltipStyle} formatter={(v, n) => [`${v} kg`, n]} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} iconSize={8} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Quality Radar */}
+      {/* Regions + species */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Volume by Region</CardTitle>
+            <CardDescription className="text-xs">Collection districts by weight</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {s.regions.length === 0 ? (
+              <Empty label="No regions recorded" />
+            ) : (
+              <ResponsiveContainer width="100%" height={230}>
+                <BarChart data={s.regions} layout="vertical" margin={{ top: 0, right: 16, left: 8, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-border" horizontal={false} />
+                  <XAxis type="number" tick={{ fontSize: 10 }} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} width={92} />
+                  <Tooltip {...tooltipStyle} formatter={(v, n) => [n === 'kg' ? `${v} kg` : `${v}`, n === 'kg' ? 'Volume' : 'Batches']} />
+                  <Bar dataKey="kg" radius={[0, 6, 6, 0]}>
+                    {s.regions.map((d, i) => <Cell key={d.name} fill={GREENS[i % GREENS.length]} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Volume by Herb</CardTitle>
+            <CardDescription className="text-xs">Top species collected</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {s.species.length === 0 ? (
+              <Empty label="No species recorded" />
+            ) : (
+              <ResponsiveContainer width="100%" height={230}>
+                <BarChart data={s.species} layout="vertical" margin={{ top: 0, right: 16, left: 8, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-border" horizontal={false} />
+                  <XAxis type="number" tick={{ fontSize: 10 }} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} width={104} />
+                  <Tooltip {...tooltipStyle} formatter={(v) => [`${v} kg`, 'Collected']} />
+                  <Bar dataKey="kg" radius={[0, 6, 6, 0]}>
+                    {s.species.map((d, i) => <Cell key={d.name} fill={GREENS[i % GREENS.length]} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quality + labs + products */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Quality Outcomes</CardTitle>
+            <CardDescription className="text-xs">Laboratory verdicts</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {s.quality.length === 0 ? (
+              <Empty label="No results yet" />
+            ) : (
+              <ResponsiveContainer width="100%" height={220}>
+                <PieChart>
+                  <Pie data={s.quality} dataKey="value" nameKey="name" innerRadius={42} outerRadius={70} paddingAngle={2}>
+                    {s.quality.map((d) => (
+                      <Cell key={d.name} fill={QUALITY_COLOURS[d.name] ?? '#159A5A'} />
+                    ))}
+                  </Pie>
+                  <Tooltip {...tooltipStyle} formatter={(v, n) => [`${v} batches`, n]} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} iconSize={8} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Laboratory Throughput</CardTitle>
+            <CardDescription className="text-xs">Batches certified per laboratory</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {s.labs.length === 0 ? (
+              <Empty label="No laboratories recorded" />
+            ) : (
+              <div className="space-y-2 pt-1">
+                {s.labs.map((l, i) => {
+                  const max = s.labs[0]?.value || 1;
+                  return (
+                    <div key={l.name}>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="truncate">{l.name}</span>
+                        <span className="font-semibold shrink-0 ml-2">{l.value}</span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div
+                          className="h-full rounded-full"
+                          style={{ width: `${(l.value / max) * 100}%`, background: GREENS[i % GREENS.length] }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Product Categories</CardTitle>
+            <CardDescription className="text-xs">Finished products by dosage form</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {s.categories.length === 0 ? (
+              <Empty label="No products released" />
+            ) : (
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={s.categories} margin={{ top: 4, right: 8, left: -22, bottom: 4 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-border" vertical={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 9 }} interval={0} angle={-20} textAnchor="end" height={52} />
+                  <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
+                  <Tooltip {...tooltipStyle} formatter={(v) => [`${v} products`, '']} />
+                  <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                    {s.categories.map((d, i) => <Cell key={d.name} fill={GREENS[i % GREENS.length]} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Product release trend */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-violet-500" /> Average Quality Parameters (%)
-          </CardTitle>
-          <CardDescription>Aggregated quality scores across all batches this quarter</CardDescription>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Product Releases</CardTitle>
+          <CardDescription className="text-xs">Finished products by month of manufacture</CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={280}>
-            <RadarChart data={qualityRadar}>
-              <PolarGrid stroke="currentColor" strokeOpacity={0.15} />
-              <PolarAngleAxis dataKey="quality" fontSize={11} />
-              <Radar dataKey="A" stroke="#10b981" fill="#10b981" fillOpacity={0.2} strokeWidth={2} />
-              <Tooltip contentStyle={{ borderRadius: '10px', border: 'none' }} formatter={(v: unknown) => [`${v}%`, 'Score']} />
-            </RadarChart>
-          </ResponsiveContainer>
+          {s.productTrend.length === 0 ? (
+            <Empty label="No products released yet" />
+          ) : (
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={s.productTrend} margin={{ top: 4, right: 12, left: -22, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-border" vertical={false} />
+                <XAxis dataKey="month" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
+                <Tooltip {...tooltipStyle} formatter={(v) => [`${v} products`, 'Released']} />
+                <Line type="monotone" dataKey="products" stroke="#0B7A46" strokeWidth={2} dot={{ r: 3 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
         </CardContent>
       </Card>
     </div>

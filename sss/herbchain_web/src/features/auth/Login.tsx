@@ -5,7 +5,7 @@ import { useAppStore } from '../../store/appStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import Logo, { LogoMark } from '@/components/Logo';
+import Logo, { LogoLockup } from '@/components/Logo';
 import type { User } from '../../types';
 import { toast } from 'sonner';
 import { Shield, Eye, EyeOff, Moon, Sun, Mail, Hash, Lock, ChevronRight, FlaskConical, Factory, Truck, Leaf, Tractor, TreePine } from 'lucide-react';
@@ -248,14 +248,13 @@ export default function Login() {
                 y: logoY,
                 transformStyle: "preserve-3d"
               }}
-              className="w-60 h-60 p-2 flex items-center justify-center filter drop-shadow-[0_8px_25px_rgba(0,0,0,0.15)]"
+              className="w-[22rem] h-[19rem] max-w-full flex items-center justify-center filter drop-shadow-[0_10px_28px_rgba(0,0,0,0.18)]"
             >
-              <LogoMark className="w-full h-full object-contain" />
+              <LogoLockup className="w-full h-full" />
             </motion.div>
-            <div className="space-y-2" style={{ transform: "translateZ(30px)" }}>
-              <h2 className="text-[#0F172A] dark:text-[#F8FAFC] font-heading font-bold tracking-tight text-4xl leading-none">
-                <span className="text-[#14B8A6]">Ayu</span><span className="text-[#0D9488] dark:text-[#ffffff]">Trace</span><span className="text-[#F59E0B]">+</span>
-              </h2>
+            {/* The wordmark lives in the logo artwork itself, so it is not
+                repeated here — only the positioning line sits below it. */}
+            <div style={{ transform: "translateZ(30px)" }}>
               <p className="text-[10px] text-[#64748B] dark:text-[#94A3B8] uppercase tracking-[0.22em] font-medium leading-relaxed">
                 Promoting Holistic Wellness &amp; Innovation
               </p>

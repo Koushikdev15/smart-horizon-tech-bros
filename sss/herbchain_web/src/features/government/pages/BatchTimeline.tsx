@@ -4,7 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import PageHeader from '../../../components/PageHeader';
 import BatchStatusBadge from '../../../components/BatchStatusBadge';
-import BlockchainTimeline from '../../../components/BlockchainTimeline';
+import BatchTraceability from '../../../components/BatchTraceability';
+import LabReportPdfModal from '../../../components/LabReportPdfModal';
 import { useBatchStore, useBatchesLive } from '../../../store/useBatchStore';
 import { Search, Package } from 'lucide-react';
 import type { Batch } from '../../../types';
@@ -15,6 +16,7 @@ export default function BatchTimeline() {
   const allBatches = useBatchStore((s) => s.batches);
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Batch | null>(null);
+  const [certificateFor, setCertificateFor] = useState<Batch | null>(null);
 
   const filtered = allBatches.filter((b) =>
     b.batchNumber.toLowerCase().includes(search.toLowerCase()) ||
@@ -103,14 +105,21 @@ export default function BatchTimeline() {
 
               {/* Right Column: Timeline */}
               <div className="lg:col-span-7 space-y-4 border-t lg:border-t-0 lg:border-l border-border pt-4 lg:pt-0 lg:pl-6">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Immutable Blockchain Timeline</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Farm-to-Factory Traceability</h3>
                 <div className="pr-1">
-                  <BlockchainTimeline events={selected.timeline} />
+                  <BatchTraceability
+                    batch={selected}
+                    onOpenCertificate={() => setCertificateFor(selected)}
+                  />
                 </div>
               </div>
             </div>
           </DialogContent>
         </Dialog>
+      )}
+
+      {certificateFor && (
+        <LabReportPdfModal batch={certificateFor} onClose={() => setCertificateFor(null)} />
       )}
     </div>
   );

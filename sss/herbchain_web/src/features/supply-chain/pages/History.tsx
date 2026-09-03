@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import PageHeader from '../../../components/PageHeader';
 import BatchStatusBadge from '../../../components/BatchStatusBadge';
-import BlockchainTimeline from '../../../components/BlockchainTimeline';
+import BatchTraceability from '../../../components/BatchTraceability';
 import StatsCard from '../../../components/StatsCard';
 
 import { History as HistoryIcon, Leaf, MapPin, Truck, CheckCircle2, QrCode } from 'lucide-react';
@@ -83,7 +83,7 @@ export default function History() {
                 <BatchStatusBadge status={selected.status} />
               </DialogTitle>
             </DialogHeader>
-            <BlockchainTimeline events={selected.timeline} />
+            <BatchTraceability batch={selected} />
           </DialogContent>
         </Dialog>
       )}

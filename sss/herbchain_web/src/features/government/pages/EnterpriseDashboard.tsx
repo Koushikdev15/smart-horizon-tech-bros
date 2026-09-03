@@ -1,180 +1,396 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Package, Activity, Leaf as LeafIcon, AlertTriangle, CheckCircle2, MoreHorizontal } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Package, Users, Leaf as LeafIcon, AlertTriangle, Loader2,
+  Boxes, Truck, FlaskConical, ArrowRight, Link2,
+} from 'lucide-react';
+import {
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  AreaChart, Area, PieChart, Pie, Cell, Legend,
+} from 'recharts';
+import { useNetworkStats } from '../useNetworkStats';
+import BatchStatusBadge from '../../../components/BatchStatusBadge';
 
-const statCards = [
-  { title: 'Total Shipments In-Transit', value: '1,240', subtext: '+12% from last week', tone: 'emerald', icon: Package },
-  { title: 'Active Nodes', value: '45', subtext: 'All systems operational', tone: 'gray', icon: Activity },
-  { title: 'Total Verified Herbs (kg)', value: '8,450', subtext: '+400kg today', tone: 'emerald', icon: LeafIcon },
-  { title: 'Flagged / Delayed', value: '3', subtext: 'Requires attention', tone: 'red', icon: AlertTriangle },
-];
+/**
+ * Government dashboard — the state of the network, from the ledger.
+ *
+ * Every figure here is derived from the batches, products and members that
+ * actually exist. The previous version was entirely hard-coded (1,240
+ * shipments, 45 nodes, a fixed list of ledger hashes), so it told the same
+ * story no matter what the data did.
+ */
 
-const ledgerEntries = [
-  { id: 1, label: 'Batch #Ashwagandha-092 verified', hash: '0x7aB...9f2', time: '2 mins ago' },
-  { id: 2, label: 'Batch #Turmeric-071 minted', hash: '0x3cE...a41', time: '9 mins ago' },
-  { id: 3, label: 'Batch #Brahmi-058 verified', hash: '0x9F1...d67', time: '18 mins ago' },
-  { id: 4, label: 'Batch #Neem-114 shipped', hash: '0x2bA...5c9', time: '32 mins ago' },
-  { id: 5, label: 'Batch #Tulsi-203 verified', hash: '0x8D4...12e', time: '47 mins ago' },
-];
+/** Chart palette — greens for volume, amber for caution, red for failure. */
+const GREENS = ['#0B7A46', '#159A5A', '#2FB673', '#5FCB93', '#8FDCB4', '#B9E9D0', '#D6F2E3', '#E9F8F0'];
+const QUALITY_COLOURS: Record<string, string> = {
+  Passed: '#159A5A',
+  Conditional: '#D9A02B',
+  Failed: '#C7382F',
+  'Awaiting test': '#B7C3BC',
+};
 
-const inventory = [
-  { herb: 'Ashwagandha', origin: 'Kerala', status: 'In Transit', grade: 'A+' },
-  { herb: 'Turmeric', origin: 'Tamil Nadu', status: 'Processing', grade: 'A' },
-  { herb: 'Brahmi', origin: 'Uttarakhand', status: 'Stored', grade: 'A+' },
-  { herb: 'Neem', origin: 'Rajasthan', status: 'In Transit', grade: 'B+' },
-  { herb: 'Tulsi', origin: 'Karnataka', status: 'Stored', grade: 'A' },
-];
+const relative = (iso: string) => {
+  const diff = Date.now() - new Date(iso).getTime();
+  if (!Number.isFinite(diff)) return '';
+  const m = Math.round(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m} min ago`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h} hr ago`;
+  const d = Math.round(h / 24);
+  return d < 30 ? `${d} d ago` : new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+};
 
-const mapNodes = [
-  { id: 'kerala', label: 'Kerala Farms', x: 16, y: 80 },
-  { id: 'kochi', label: 'Kochi Collection', x: 30, y: 60 },
-  { id: 'chennai', label: 'Chennai Processing', x: 55, y: 46 },
-  { id: 'bangalore', label: 'Bengaluru Hub', x: 42, y: 28 },
-  { id: 'mumbai', label: 'Mumbai Distribution', x: 68, y: 14 },
-];
-
-const mapRoutes = [
-  'M16,80 C24,70 26,64 30,60',
-  'M30,60 C40,52 48,48 55,46',
-  'M55,46 C50,38 46,34 42,28',
-  'M42,28 C52,22 60,18 68,14',
-];
-
-const statusPill: Record<string, string> = {
-  'In Transit': 'bg-blue-500/15 text-blue-400 border border-blue-500/30',
-  'Stored': 'bg-slate-500/15 text-slate-300 border border-slate-500/30',
-  'Processing': 'bg-[#F59E0B]/15 text-[#F59E0B] border border-[#F59E0B]/30',
+/** Recharts tooltip styled to the app's surface rather than its white default. */
+const tooltipStyle = {
+  contentStyle: {
+    background: 'var(--color-card, #fff)',
+    border: '1px solid var(--color-border, #e5e7eb)',
+    borderRadius: '0.6rem',
+    fontSize: '12px',
+    boxShadow: '0 6px 20px -8px rgba(0,0,0,0.25)',
+  },
+  labelStyle: { fontWeight: 600, marginBottom: 2 },
 };
 
 export default function EnterpriseDashboard() {
+  const navigate = useNavigate();
+  const s = useNetworkStats();
+
+  const tiles = [
+    {
+      title: 'Batches on Ledger',
+      value: s.counts.batches.toLocaleString('en-IN'),
+      sub: `${s.counts.speciesCount} species · ${s.counts.totalKg.toLocaleString('en-IN')} kg`,
+      icon: Boxes,
+      tone: 'text-emerald-600',
+      to: '/app/timeline',
+    },
+    {
+      title: 'Verified Herbs (kg)',
+      value: s.counts.verifiedKg.toLocaleString('en-IN'),
+      sub: `${s.counts.tested} of ${s.counts.batches} batches lab-tested`,
+      icon: LeafIcon,
+      tone: 'text-emerald-600',
+      to: '/app/timeline',
+    },
+    {
+      title: 'Products Released',
+      value: s.counts.products.toLocaleString('en-IN'),
+      sub: `${s.counts.inTransit} in transit · ${s.counts.delivered} delivered`,
+      icon: Package,
+      tone: 'text-blue-600',
+      to: '/app/tracking',
+    },
+    {
+      title: 'Active Nodes',
+      value: s.counts.activeNodes.toLocaleString('en-IN'),
+      sub: `${s.counts.activeMembers} active of ${s.counts.totalMembers} members`,
+      icon: Users,
+      tone: 'text-indigo-600',
+      to: '/app/members',
+    },
+    {
+      title: 'Flagged',
+      value: s.counts.flagged.toLocaleString('en-IN'),
+      sub: s.counts.flagged ? 'Rejected, quarantined, failed or expired' : 'Nothing requires attention',
+      icon: AlertTriangle,
+      tone: s.counts.flagged ? 'text-red-600' : 'text-muted-foreground',
+      to: '/app/complaints',
+    },
+  ];
+
+  if (s.loading && s.counts.batches === 0) {
+    return (
+      <div className="flex h-full min-h-[60vh] flex-col items-center justify-center gap-3">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">Loading network data…</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="text-foreground animate-in fade-in duration-500 space-y-6">
-      {/* Section A: Quick Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {statCards.map((kpi) => {
-          const Icon = kpi.icon;
-          const subColor = kpi.tone === 'emerald' ? 'text-[#10B981]' : kpi.tone === 'red' ? 'text-[#EF4444]' : 'text-muted-foreground';
-          return (
-            <Card key={kpi.title} className="stat-card rounded-xl hover:scale-100">
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between">
-                  <p className="text-sm text-muted-foreground">{kpi.title}</p>
-                  <div className="w-9 h-9 rounded-lg bg-[#10B981]/10 flex items-center justify-center shrink-0">
-                    <Icon className="w-4.5 h-4.5 text-[#10B981]" />
-                  </div>
-                </div>
-                <h3 className="text-3xl font-bold text-foreground mt-2">{kpi.value}</h3>
-                <p className={`text-xs font-medium mt-1 ${subColor}`}>{kpi.subtext}</p>
-              </CardContent>
-            </Card>
-          );
-        })}
+    <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* ── Headline figures ─────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        {tiles.map((t) => (
+          <Card
+            key={t.title}
+            className="cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => navigate(t.to)}
+          >
+            <CardContent className="py-4 space-y-1.5">
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-[11px] font-medium text-muted-foreground leading-tight">{t.title}</p>
+                <t.icon className={`w-4 h-4 shrink-0 ${t.tone}`} />
+              </div>
+              <p className="text-2xl font-bold leading-none">{t.value}</p>
+              <p className="text-[10px] text-muted-foreground leading-tight">{t.sub}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {/* Section B: Main Visualizations */}
-      <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
-        {/* Left 60%: Live Tracking Map */}
-        <Card className="lg:col-span-6 rounded-xl overflow-hidden hover:scale-100 hover:shadow-sm">
-          <CardHeader className="border-b border-border py-4">
-            <CardTitle className="text-sm font-semibold">Live Supply Chain Routes</CardTitle>
+      {/* ── Flow + quality ───────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Supply Chain Position</CardTitle>
+            <CardDescription className="text-xs">
+              Where every batch currently sits, from collection through to manufacture
+            </CardDescription>
           </CardHeader>
-          <CardContent className="p-0">
-            <div className="relative h-[340px] bg-[#0B1220] overflow-hidden">
-              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <defs>
-                  <pattern id="dashboardGrid" width="8" height="8" patternUnits="userSpaceOnUse">
-                    <path d="M 8 0 L 0 0 0 8" fill="none" stroke="#334155" strokeWidth="0.15" />
-                  </pattern>
-                </defs>
-                <rect width="100" height="100" fill="url(#dashboardGrid)" />
-                {mapRoutes.map((d, i) => (
-                  <path key={i} d={d} fill="none" stroke="#10B981" strokeWidth="0.6" strokeLinecap="round" strokeDasharray="2 2" opacity="0.7">
-                    <animate attributeName="stroke-dashoffset" from="20" to="0" dur="1.5s" repeatCount="indefinite" />
-                  </path>
-                ))}
-              </svg>
-              {mapNodes.map((node) => (
-                <div
-                  key={node.id}
-                  className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1.5"
-                  style={{ left: `${node.x}%`, top: `${node.y}%` }}
-                >
-                  <span className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-60" />
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-[#10B981] ring-2 ring-[#0B1220]" />
-                  </span>
-                  <span className="text-[10px] text-slate-300 bg-[#0B1220]/80 px-1.5 py-0.5 rounded whitespace-nowrap">{node.label}</span>
-                </div>
-              ))}
-            </div>
+          <CardContent>
+            {s.funnel.length === 0 ? (
+              <Empty label="No batches on the ledger yet" />
+            ) : (
+              <ResponsiveContainer width="100%" height={230}>
+                <BarChart data={s.funnel} margin={{ top: 4, right: 8, left: -18, bottom: 4 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-border" vertical={false} />
+                  <XAxis dataKey="stage" tick={{ fontSize: 10 }} interval={0} angle={-12} textAnchor="end" height={48} />
+                  <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
+                  <Tooltip {...tooltipStyle} formatter={(v) => [`${v} batches`, '']} />
+                  <Bar dataKey="count" radius={[6, 6, 0, 0]}>
+                    {s.funnel.map((d, i) => (
+                      <Cell key={d.stage} fill={d.stage === 'Rejected' ? '#C7382F' : GREENS[i % GREENS.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
 
-        {/* Right 40%: Recent Blockchain Transactions */}
-        <Card className="lg:col-span-4 rounded-xl hover:scale-100 hover:shadow-sm">
-          <CardHeader className="border-b border-border py-4">
-            <CardTitle className="text-sm font-semibold">Latest Ledger Entries</CardTitle>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Quality Outcomes</CardTitle>
+            <CardDescription className="text-xs">Laboratory results across all batches</CardDescription>
           </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-border">
-              {ledgerEntries.map((entry) => (
-                <div key={entry.id} className="flex items-start gap-3 px-5 py-3.5 hover:bg-muted/50 transition-colors">
-                  <CheckCircle2 className="w-4 h-4 text-[#10B981] mt-0.5 shrink-0 drop-shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
+          <CardContent>
+            {s.quality.length === 0 ? (
+              <Empty label="No test results yet" />
+            ) : (
+              <ResponsiveContainer width="100%" height={230}>
+                <PieChart>
+                  <Pie
+                    data={s.quality}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={45}
+                    outerRadius={72}
+                    paddingAngle={2}
+                  >
+                    {s.quality.map((d) => (
+                      <Cell key={d.name} fill={QUALITY_COLOURS[d.name] ?? '#159A5A'} />
+                    ))}
+                  </Pie>
+                  <Tooltip {...tooltipStyle} formatter={(v, n) => [`${v} batches`, n]} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} iconSize={8} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── Volume trend + species ───────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Collection Volume</CardTitle>
+            <CardDescription className="text-xs">Quantity harvested by month</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {s.timeline.length === 0 ? (
+              <Empty label="No harvest dates recorded" />
+            ) : (
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart data={s.timeline} margin={{ top: 4, right: 8, left: -18, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="kgFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#159A5A" stopOpacity={0.35} />
+                      <stop offset="100%" stopColor="#159A5A" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-border" vertical={false} />
+                  <XAxis dataKey="month" tick={{ fontSize: 10 }} />
+                  <YAxis tick={{ fontSize: 10 }} />
+                  <Tooltip
+                    {...tooltipStyle}
+                    formatter={(v, n) => [n === 'kg' ? `${v} kg` : `${v} batches`, n === 'kg' ? 'Volume' : 'Batches']}
+                  />
+                  <Area type="monotone" dataKey="kg" stroke="#159A5A" strokeWidth={2} fill="url(#kgFill)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Volume by Herb</CardTitle>
+            <CardDescription className="text-xs">Top species by quantity collected</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {s.species.length === 0 ? (
+              <Empty label="No species recorded" />
+            ) : (
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={s.species} layout="vertical" margin={{ top: 0, right: 16, left: 8, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-border" horizontal={false} />
+                  <XAxis type="number" tick={{ fontSize: 10 }} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} width={104} />
+                  <Tooltip {...tooltipStyle} formatter={(v) => [`${v} kg`, 'Collected']} />
+                  <Bar dataKey="kg" radius={[0, 6, 6, 0]}>
+                    {s.species.map((d, i) => (
+                      <Cell key={d.name} fill={GREENS[i % GREENS.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── Network + ledger ─────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Network Members</CardTitle>
+            <CardDescription className="text-xs">Registered participants by role</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {s.roles.length === 0 ? (
+              <Empty label="No members registered" />
+            ) : (
+              <div className="space-y-2">
+                {s.roles.map((r, i) => {
+                  const pct = s.counts.totalMembers ? (r.value / s.counts.totalMembers) * 100 : 0;
+                  return (
+                    <div key={r.name}>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="truncate">{r.name}</span>
+                        <span className="font-semibold shrink-0 ml-2">{r.value}</span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all"
+                          style={{ width: `${pct}%`, background: GREENS[i % GREENS.length] }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-2 flex-row items-center justify-between space-y-0">
+            <div>
+              <CardTitle className="text-base">Latest Ledger Entries</CardTitle>
+              <CardDescription className="text-xs">Most recent recorded events across the chain</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => navigate('/app/audit')}>
+              Audit Log <ArrowRight className="w-3 h-3 ml-1" />
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {s.ledger.length === 0 ? (
+              <Empty label="No events recorded yet" />
+            ) : (
+              s.ledger.map((e) => (
+                <div key={e.id} className="flex items-start gap-2.5 rounded-lg border border-border/50 p-2.5">
+                  <div
+                    className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                      e.kind === 'product'
+                        ? 'bg-blue-100 dark:bg-blue-950/50 text-blue-600'
+                        : 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600'
+                    }`}
+                  >
+                    {e.kind === 'product' ? <Package className="w-3.5 h-3.5" /> : <FlaskConical className="w-3.5 h-3.5" />}
+                  </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-foreground truncate">{entry.label}</p>
-                    <p className="blockchain-hash mt-1 inline-block">{entry.hash}</p>
+                    <p className="text-xs font-semibold truncate">{e.label}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{e.detail}</p>
+                    {e.hash && (
+                      <p className="text-[10px] font-mono text-muted-foreground truncate flex items-center gap-1 mt-0.5">
+                        <Link2 className="w-2.5 h-2.5 shrink-0" />
+                        {e.hash.slice(0, 22)}…
+                      </p>
+                    )}
                   </div>
-                  <span className="text-xs text-muted-foreground shrink-0">{entry.time}</span>
+                  <span className="text-[10px] text-muted-foreground shrink-0 whitespace-nowrap">
+                    {relative(e.timestamp)}
+                  </span>
                 </div>
-              ))}
-            </div>
+              ))
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Section C: Inventory Overview Table */}
-      <Card className="rounded-xl overflow-hidden hover:scale-100 hover:shadow-sm">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-          <span className="text-sm font-semibold font-heading">Critical Herb Inventory</span>
-          <Button variant="outline" size="sm">View All</Button>
-        </div>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader className="bg-muted/40">
-              <TableRow className="hover:bg-transparent border-b border-border">
-                <TableHead className="text-xs">Herb Name</TableHead>
-                <TableHead className="text-xs">Origin</TableHead>
-                <TableHead className="text-xs">Current Status</TableHead>
-                <TableHead className="text-xs">Quality Grade</TableHead>
-                <TableHead className="text-xs text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {inventory.map((row, i) => (
-                <TableRow
-                  key={row.herb}
-                  className={`border-b border-border last:border-0 hover:bg-muted/40 transition-colors ${i % 2 === 1 ? 'bg-muted/10' : ''}`}
-                >
-                  <TableCell className="font-medium text-sm">{row.herb}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{row.origin}</TableCell>
-                  <TableCell>
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold ${statusPill[row.status]}`}>
-                      {row.status}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-sm font-semibold text-[#F59E0B]">{row.grade}</TableCell>
-                  <TableCell className="text-right">
-                    <button className="text-muted-foreground hover:text-foreground transition-colors">
-                      <MoreHorizontal className="w-4 h-4 inline-block" />
-                    </button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+      {/* ── Recent batches ───────────────────────────────────────────────── */}
+      <Card>
+        <CardHeader className="pb-2 flex-row items-center justify-between space-y-0">
+          <div>
+            <CardTitle className="text-base">Recent Collections</CardTitle>
+            <CardDescription className="text-xs">Newest batches registered on the ledger</CardDescription>
+          </div>
+          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => navigate('/app/timeline')}>
+            View All <ArrowRight className="w-3 h-3 ml-1" />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {s.inventory.length === 0 ? (
+            <Empty label="No batches registered yet" />
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Batch</TableHead>
+                    <TableHead>Herb</TableHead>
+                    <TableHead>Origin</TableHead>
+                    <TableHead>Quantity</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Grade</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {s.inventory.map((b) => (
+                    <TableRow
+                      key={b.id}
+                      className="cursor-pointer"
+                      onClick={() => navigate('/app/timeline')}
+                    >
+                      <TableCell className="font-mono text-xs">{b.batchNumber}</TableCell>
+                      <TableCell className="font-medium">{b.species}</TableCell>
+                      <TableCell className="text-muted-foreground text-xs max-w-48 truncate">{b.region}</TableCell>
+                      <TableCell className="text-xs">{b.quantity} {b.unit}</TableCell>
+                      <TableCell><BatchStatusBadge status={b.status} /></TableCell>
+                      <TableCell className="text-xs font-semibold">{b.estimatedGrade ?? '—'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function Empty({ label }: { label: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground">
+      <Truck className="w-6 h-6 opacity-40" />
+      <p className="text-xs">{label}</p>
     </div>
   );
 }

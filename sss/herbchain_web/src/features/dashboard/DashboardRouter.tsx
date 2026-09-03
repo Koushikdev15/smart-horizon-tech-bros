@@ -27,6 +27,8 @@ import ProcessingHistory from '../processing/pages/History';
 import ProcessingPayments from '../processing/pages/Payments';
 import ManufacturerDashboard from '../manufacturer/ManufacturerDashboard';
 import ManufacturerRequests from '../manufacturer/pages/ManufacturerRequests';
+import ManufacturerCreateProduct from '../manufacturer/pages/CreateProduct';
+import ManufacturerAvailableProducts from '../manufacturer/pages/AvailableProducts';
 import ManufacturerRejectedBatches from '../manufacturer/pages/RejectedBatches';
 import ManufacturerHistory from '../manufacturer/pages/History';
 import ManufacturerPayments from '../manufacturer/pages/Payments';
@@ -78,6 +80,8 @@ const PL_PAGES: Record<string, React.ComponentType> = {
 const MF_PAGES: Record<string, React.ComponentType> = {
   'dashboard': ManufacturerDashboard,
   'requests':  ManufacturerRequests,
+  'create-product': ManufacturerCreateProduct,
+  'products':  ManufacturerAvailableProducts,
   'rejected':  ManufacturerRejectedBatches,
   'history':   ManufacturerHistory,
   'messages':  CollectionMessages,
