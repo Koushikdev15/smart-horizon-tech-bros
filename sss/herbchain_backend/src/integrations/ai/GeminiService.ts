@@ -95,11 +95,16 @@ export class GeminiService {
               { inlineData: { mimeType, data: buffer.toString('base64') } },
               {
                 text:
-                  'Transcribe this audio verbatim, in whichever language is actually being spoken — it will be ' +
-                  'English, Tamil, Hindi, Kannada, Telugu, or Tulu. Write it in that language\'s own native script ' +
-                  '(Tulu, if spoken, should be written in Kannada script, which is the common practice since Tulu ' +
-                  'lacks a widely used digital script). Do not translate it into a different language. Return only ' +
-                  'the transcribed text, no commentary.',
+                  'Transcribe this audio verbatim. First identify which language is actually being spoken, from this ' +
+                  'exact list — English (Latin script), Tamil (தமிழ், Tamil script), Hindi (हिन्दी, Devanagari script), ' +
+                  'Kannada (ಕನ್ನಡ, Kannada script), Telugu (తెలుగు, Telugu script), or Tulu (ತುಳು, written in Kannada ' +
+                  'script since Tulu has no widely used digital script of its own). Then write the transcript in that ' +
+                  'exact language and script — never English unless the speaker is actually speaking English. This is ' +
+                  'important: Kannada audio must be transcribed in Kannada script (ಕನ್ನಡ), not translated or ' +
+                  'transliterated into English — do not let "Kannada" sound like "Canada" mislead you into treating ' +
+                  'it as an English-speaking request. Do not translate the content into a different language under ' +
+                  'any circumstances, no matter which of the six languages above is spoken. Return only the ' +
+                  'transcribed text in its native script, no commentary, no language label.',
               },
             ],
           },
@@ -116,4 +121,74 @@ export class GeminiService {
       throw new GeminiUnavailableError('Could not transcribe the recording.');
     }
   }
+
+  /**
+   * Best-effort extraction of explicitly self-stated health facts from a
+   * single chat message, so the Health Profile can auto-fill itself instead
+   * of making the user re-type what they already told the assistant. Only
+   * called for users who already opted into health-data storage (see
+   * ChatbotService) — this never creates consent, only acts once it exists.
+   * Returns null on any failure or parse issue; callers must treat that as
+   * "nothing extracted," never retry-worthy.
+   */
+  async extractHealthFacts(message: string): Promise<ExtractedHealthFacts | null> {
+    if (!this.client) return null;
+
+    try {
+      const response = await this.client.models.generateContent({
+        model: MODEL,
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              {
+                text:
+                  'You extract ONLY explicitly self-stated personal health facts from a single chat message, to ' +
+                  'auto-fill a health profile. The message may be in English, Tamil, Hindi, Kannada, Telugu, or ' +
+                  'Tulu — extract the facts and write them out in English regardless of the message\'s language. ' +
+                  'Output strict JSON only, no markdown fences, no commentary, in exactly this shape:\n' +
+                  '{"allergies": string[], "conditions": string[], "medications": string[], "pregnancyStatus": ' +
+                  '"pregnant" | "breastfeeding" | "planning" | null}\n' +
+                  'Rules — only include a fact if the user states it about THEMSELVES, in the first person, as a ' +
+                  'real current fact (not a question, not hypothetical, not about someone else, not a symptom they ' +
+                  'have today like "I have a headache"):\n' +
+                  '- allergies: short noun phrases for foods/ingredients/substances they say they are allergic to.\n' +
+                  '- conditions: existing medical conditions/diagnoses they say they have (e.g. diabetes, asthma, ' +
+                  'hypertension) — not a one-off symptom.\n' +
+                  '- medications: medications/drugs they say they are currently taking.\n' +
+                  '- pregnancyStatus: only if they explicitly state they are currently pregnant, breastfeeding, or ' +
+                  'trying to conceive; otherwise null.\n' +
+                  'If nothing in the message qualifies, return {"allergies":[],"conditions":[],"medications":[],' +
+                  '"pregnancyStatus":null}. Never guess, infer, or pad with examples.\n\n' +
+                  `Message: ${message}`,
+              },
+            ],
+          },
+        ],
+        config: { temperature: 0, responseMimeType: 'application/json' },
+      });
+
+      const text = response.text;
+      if (!text) return null;
+      const parsed = JSON.parse(text);
+      return {
+        allergies: Array.isArray(parsed.allergies) ? parsed.allergies.filter((v: unknown) => typeof v === 'string') : [],
+        conditions: Array.isArray(parsed.conditions) ? parsed.conditions.filter((v: unknown) => typeof v === 'string') : [],
+        medications: Array.isArray(parsed.medications) ? parsed.medications.filter((v: unknown) => typeof v === 'string') : [],
+        pregnancyStatus: ['pregnant', 'breastfeeding', 'planning'].includes(parsed.pregnancyStatus)
+          ? parsed.pregnancyStatus
+          : null,
+      };
+    } catch (err) {
+      logger.error(`[GeminiService] extractHealthFacts failed: ${(err as Error).message}`);
+      return null;
+    }
+  }
+}
+
+export interface ExtractedHealthFacts {
+  allergies: string[];
+  conditions: string[];
+  medications: string[];
+  pregnancyStatus: 'pregnant' | 'breastfeeding' | 'planning' | null;
 }

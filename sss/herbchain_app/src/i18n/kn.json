@@ -73,6 +73,9 @@
   },
   "home": {
     "greeting": "ಶುಭೋದಯ, {{name}}",
+    "greetingAfternoon": "ಶುಭ ಮಧ್ಯಾಹ್ನ, {{name}}",
+    "greetingEvening": "ಶುಭ ಸಂಜೆ, {{name}}",
+    "greetingGeneral": "ಮತ್ತೆ ಸ್ವಾಗತ, {{name}}",
     "greetingSub": "ನಿಮ್ಮ ಆಯುರ್ವೇದದ ಹಿಂದಿನ ಕಥೆಯನ್ನು ಅನ್ವೇಷಿಸಿ.",
     "verifyTitle": "ನಿಮ್ಮ ಉತ್ಪನ್ನವನ್ನು ಪರಿಶೀಲಿಸಿ",
     "verifyDesc": "ಅಧಿಕೃತತೆಯನ್ನು ಪರಿಶೀಲಿಸಲು, ಮೂಲವನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಲು ಮತ್ತು ಸಸ್ಯ ಪಯಣವನ್ನು ಅನ್ವೇಷಿಸಲು AyurTrace+ QR ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ.",

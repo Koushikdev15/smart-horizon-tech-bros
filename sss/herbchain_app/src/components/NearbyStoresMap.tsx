@@ -8,6 +8,8 @@ import { storeService, type NearbyStore } from '@/services/storeService';
 
 type LoadState = 'idle' | 'requesting' | 'loading' | 'ready' | 'denied' | 'error';
 
+const NEARBY_STORES_LIMIT = 10;
+
 function openDirections(store: NearbyStore) {
   const { latitude, longitude } = store.coordinates;
   Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`);
@@ -60,7 +62,9 @@ export const NearbyStoresMap: React.FC = () => {
         longitude: pos.coords.longitude,
         maxDistanceKm: 25,
       });
-      setStores(results);
+      // findNearby already returns results sorted by distance ascending
+      // (MongoDB $geoNear) — keep only the closest 10 for the home page.
+      setStores(results.slice(0, NEARBY_STORES_LIMIT));
       setState('ready');
     } catch {
       setState('error');

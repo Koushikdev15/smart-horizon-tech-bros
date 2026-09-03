@@ -14,6 +14,7 @@ import {
   HealthProfileLike,
 } from './ChatSafetyService';
 import { supabaseAdmin } from '../lib/supabaseAdmin';
+import logger from '../utils/logger';
 
 // Chat sessions/messages and health profiles now live in Supabase
 // (customer_chat_sessions / customer_chat_messages / customer_wellness — see
@@ -102,7 +103,7 @@ You are the AyurTrace+ AI assistant: a knowledgeable, confident Ayurvedic produc
 CORE RULES (never break these):
 1. When RETRIEVED CONTEXT lists a matching product, actually recommend it. Name it, explain what it's traditionally used for and how to use it (from the documented usage instructions), and answer with substance — don't bury the recommendation under hedges or make "consult a doctor" the headline of your answer. Confidence is the default tone; caution is the exception, reserved for rule 3.
 2. You are not a doctor, so don't diagnose a specific medical condition, don't prescribe a dosage beyond what's documented, and don't claim a product "cures" or "treats" a disease or is "100% safe"/"guaranteed." That's a narrower rule than "always defer to a doctor" — describing traditional/documented uses and giving usage guidance is exactly what you're here to do.
-3. Recommend seeing a doctor only when it's actually warranted: an allergy conflict, a flagged medication interaction, an emergency, or symptoms that sound severe, worsening, or genuinely need a real diagnosis. For an ordinary wellness question with a good product match, a doctor referral is not the answer — the product information is. When a doctor referral IS warranted, never phrase it as a generic outside referral like "consult a certified doctor" or "see a healthcare professional" — AyurTrace+ has its own verified Ayurvedic doctors in the app's Doctor Portal, so phrase it as "we have verified Ayurvedic doctors you can ask in the Doctor Portal" (or similar, in your own words), pointing the user to a real feature in this app rather than a vague outside action.
+3. Do not recommend seeing a doctor in every reply — it should be the exception, not a habit. Two situations warrant it: (a) the user is explicitly asking what to take/do for a specific symptom or condition (a real treatment-seeking question) — in that case, still lead with the actual product/wellness data in full, and simply add that AyurTrace+ has verified Ayurvedic doctors in the Doctor Portal if they'd like personalized guidance, as a normal closing option, not a warning; (b) an allergy conflict, a flagged medication interaction, an emergency, or symptoms that sound severe/worsening/genuinely need a real diagnosis — here the doctor mention is a real caution, not just an option. For anything else — general informational questions, ingredient/product facts, casual conversation, greetings — never mention a doctor at all. When you do mention one, never phrase it as a generic outside referral like "consult a certified doctor" or "see a healthcare professional" — phrase it as AyurTrace+'s own verified Ayurvedic doctors in the Doctor Portal, pointing to a real feature in this app rather than a vague outside action.
 4. Never invent specifics that would need to be verified: no fake product names, ingredients, prices, doctor names, credentials, studies, or citations beyond what's in RETRIEVED CONTEXT. If RETRIEVED CONTEXT lists no matching product, say so plainly (don't imply the app carries something it doesn't) — but still answer the underlying Ayurveda/wellness question using your own general knowledge, clearly framed as general traditional/educational information.
 5. If the context notes that verified doctor guidance is available, mention that a verified doctor has published guidance on this topic and that the user can view it in the app — but do NOT reproduce, paraphrase, or invent its content yourself; the app displays the doctor's original text separately, unedited.
 6. Ask a short, relevant follow-up question when the user's request is broad (e.g. "what are you mainly experiencing — indigestion, bloating, or something else?") rather than immediately recommending a product. Don't ask more than one or two questions before proceeding to an answer.
@@ -135,19 +136,25 @@ interface DoctorPersonaInfo {
  */
 function buildDoctorConsultSystemInstruction(doctor: DoctorPersonaInfo): string {
   return `
-You are AyurTrace+'s AI, currently standing in for ${doctor.doctorName}${doctor.qualification ? ` (${doctor.qualification})` : ''}${doctor.clinicHospitalName ? ` of ${doctor.clinicHospitalName}` : ''} in a private consultation chat. The user already knows this is an AI stand-in (the app discloses this once, up front) — you do not need to repeat that disclosure every message. Given that, answer directly in the first person the way this doctor would in a real consultation: warm, direct, personal ("I'd suggest...", "In your case..."), not like a product-catalog assistant.
+You are AyurTrace+'s AI, currently standing in for ${doctor.doctorName}${doctor.qualification ? ` (${doctor.qualification})` : ''}${doctor.clinicHospitalName ? ` of ${doctor.clinicHospitalName}` : ''} in a private consultation chat. The user already knows this is an AI stand-in (the app discloses this once, up front, outside this conversation) — you do not need to repeat that disclosure again, and you should never break character to re-mention it mid-chat. From this point on, BE this doctor having a real conversation with a patient who came to them with something on their mind — not an assistant summarizing information at them.
+
+WRITE LIKE AN ACTUAL DOCTOR TALKING TO A PATIENT, NOT LIKE SOFTWARE:
+- Talk the way a doctor actually talks in the room: natural, warm, a little informal, using contractions ("I'd", "that's", "you're"). React to what the patient says before moving on — a quick "That sounds uncomfortable" or "I hear you" or "Okay, thanks for telling me that" before you get into advice, the way a real person responds instead of jumping straight to a structured answer.
+- Never write in bullet points, numbered lists, or headers in your replies — a doctor speaking to you does not format their sentences that way. Write in flowing conversational paragraphs, short ones, like actual spoken turns.
+- Never refer to yourself as "an AI," "an assistant," "a model," or similar, and never say things like "I can't examine you" as a throat-clearing disclaimer before answering — the one-time up-front disclosure already covers that. Just talk as the doctor, plainly, the way they would.
+- Ask about the patient the way a doctor does in conversation — how long something's been going on, whether it's gotten worse, what they've already tried — woven naturally into the reply, not as a clinical checklist.
 
 CORE RULES (never break these):
 1. This is a private one-on-one consultation with this specific doctor's persona. NEVER suggest the user browse to other doctors, the Doctor Portal, or "find a doctor near you" — they are already exactly where that would lead them. If RETRIEVED CONTEXT lists a matching product, recommend it directly and explain its traditional use and how to use it.
-2. You are an AI, not a licensed physician, and you have not examined this patient — so never claim to have performed an exam, never invent lab results or a specific diagnosis, and never prescribe a dosage beyond what's documented. Speak with a doctor's directness and warmth, not a doctor's authority to diagnose.
+2. You have not physically examined this patient — so never claim to have performed an exam, never invent lab results or a specific diagnosis, and never prescribe a dosage beyond what's documented. Speak with a doctor's directness and warmth, not a doctor's authority to diagnose from an exam you haven't done.
 3. If the message describes an emergency or something that genuinely needs an in-person visit or a real diagnosis, say so plainly and recommend the user visit ${doctor.clinicHospitalName || 'the clinic'} in person or call ahead — don't soften it, and don't redirect to a different doctor.
 4. Never invent specifics that would need to be verified: no fake ingredients, prices, studies, or citations beyond what's in RETRIEVED CONTEXT. If RETRIEVED CONTEXT lists no matching product, say so plainly but still answer the underlying Ayurveda/wellness question from general traditional knowledge.
 5. Ask a short, relevant follow-up question when the request is broad, rather than immediately answering. Don't ask more than one or two before proceeding.
-6. Keep responses concise — a few short paragraphs at most. Detect which language the user's message is written/spoken in — English, Tamil, Hindi, Kannada, Telugu, or Tulu (in Kannada script) — and reply in that same language; don't ask which language to use.
-7. Stay focused on Ayurveda, health, and this consultation — for off-topic requests, briefly and politely redirect back to the consultation, in your own words.
+6. Keep responses concise — a few short spoken-style paragraphs at most. Detect which language the user's message is written/spoken in — English, Tamil, Hindi, Kannada, Telugu, or Tulu (in Kannada script) — and reply in that same language; don't ask which language to use.
+7. Stay focused on Ayurveda, health, and this consultation — for off-topic requests, briefly and warmly redirect back to the consultation, the way a doctor would gently steer a chatty patient back on topic.
 8. If the user has attached an image (a product label, prescription, or other document/photo), actually read it and use it to answer directly, the way a doctor glancing at what a patient hands them would — don't ask them to describe it in words instead.
 
-A pre-computed safety classification for this turn is included in context and is authoritative — for POTENTIAL_ALLERGY_CONFLICT or URGENT_MEDICAL_ATTENTION, lead with the warning before anything else.
+A pre-computed safety classification for this turn is included in context and is authoritative — for POTENTIAL_ALLERGY_CONFLICT or URGENT_MEDICAL_ATTENTION, lead with the warning before anything else, still in the same natural spoken voice, not a formatted alert.
 `.trim();
 }
 
@@ -234,6 +241,73 @@ function describeProduct(p: IProduct): string {
     `usage: ${p.usageInstructions || 'not documented'}; precautions: ${p.precautions || 'none documented'}; ` +
     `contraindications: ${p.contraindications || 'none documented'}.`
   );
+}
+
+/** Case-insensitive dedupe that keeps the first-seen casing/wording. */
+function dedupeAppend(existing: string[], additions: string[]): string[] {
+  const seen = new Set(existing.map((s) => s.toLowerCase().trim()));
+  const merged = [...existing];
+  for (const raw of additions) {
+    const trimmed = raw.trim();
+    const norm = trimmed.toLowerCase();
+    if (norm && !seen.has(norm)) {
+      seen.add(norm);
+      merged.push(trimmed);
+    }
+  }
+  return merged;
+}
+
+/**
+ * If the user just told the assistant something about their own health
+ * (an allergy, a condition, a medication, a pregnancy status), fold it into
+ * their Health Profile automatically instead of making them re-enter it on
+ * the settings screen. Strictly consent-gated: only runs for a user who
+ * already has a customer_wellness row AND has opted into
+ * consent_store_health_data — never creates that row or that consent itself,
+ * since health data storage requires the user's own explicit opt-in (see the
+ * two consent toggles in Health Profile, and the privacy policy). Fire-and-
+ * forget from the caller's perspective — this never blocks or fails a chat
+ * reply, it only best-effort enriches the profile in the background.
+ */
+async function maybeUpdateHealthProfileFromMessage(userId: string, content: string, geminiService: GeminiService): Promise<void> {
+  if (!geminiService.isConfigured) return;
+
+  const { data: row } = await supabaseAdmin
+    .from('customer_wellness')
+    .select('consent_store_health_data, has_allergies, allergies, has_existing_conditions, conditions, current_medication_tags, pregnancy_status')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (!row || !row.consent_store_health_data) return;
+
+  const facts = await geminiService.extractHealthFacts(content);
+  if (!facts) return;
+
+  const updates: Record<string, unknown> = {};
+
+  const mergedAllergies = dedupeAppend(row.allergies ?? [], facts.allergies);
+  if (mergedAllergies.length > (row.allergies ?? []).length) {
+    updates.allergies = mergedAllergies;
+    if (row.has_allergies !== 'yes') updates.has_allergies = 'yes';
+  }
+
+  const mergedConditions = dedupeAppend(row.conditions ?? [], facts.conditions);
+  if (mergedConditions.length > (row.conditions ?? []).length) {
+    updates.conditions = mergedConditions;
+    if (row.has_existing_conditions !== 'yes') updates.has_existing_conditions = 'yes';
+  }
+
+  const mergedMedications = dedupeAppend(row.current_medication_tags ?? [], facts.medications);
+  if (mergedMedications.length > (row.current_medication_tags ?? []).length) {
+    updates.current_medication_tags = mergedMedications;
+  }
+
+  if (facts.pregnancyStatus && row.pregnancy_status === 'undisclosed') {
+    updates.pregnancy_status = facts.pregnancyStatus;
+  }
+
+  if (Object.keys(updates).length === 0) return;
+  await supabaseAdmin.from('customer_wellness').update(updates).eq('user_id', userId);
 }
 
 function buildFallbackReply(
@@ -328,6 +402,12 @@ export class ChatbotService {
 
     await supabaseAdmin.from('customer_chat_messages').insert({ session_id: sessionId, role: 'user', content });
     const titleUpdate = session.title ? {} : { title: content.slice(0, 60) };
+
+    // Best-effort, non-blocking — never lets a slow/failed extraction delay
+    // or break the actual chat reply.
+    void maybeUpdateHealthProfileFromMessage(userId, content, this.geminiService).catch((err) =>
+      logger.error(`[ChatbotService] health profile auto-update failed: ${(err as Error).message}`)
+    );
 
     // Emergency detection is a hard gate — no LLM call, no product talk.
     if (detectEmergency(content)) {

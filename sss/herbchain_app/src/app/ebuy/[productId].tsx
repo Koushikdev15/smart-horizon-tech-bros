@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as Location from 'expo-location';
 import { Colors, Fonts, Spacing, BorderRadius, Shadow } from '@/theme';
 import { AppHeader } from '@/components/Header';
 import Icon from '@/components/Icon';
@@ -10,7 +11,12 @@ import { useToastStore } from '@/store/toastStore';
 import { useAuthStore } from '@/store/authStore';
 import { ApiError } from '@/lib/api';
 import { ebuyService, type PurchaseProduct, type StoreOffer } from '@/services/ebuyService';
+import { storeService } from '@/services/storeService';
 import { estimateDelivery } from '@/lib/deliveryEstimate';
+
+const NEAREST_STORES_LIMIT = 5;
+
+type OfferRow = StoreOffer & { distanceKm?: number };
 
 export default function EBuyProductDetailScreen() {
   const router = useRouter();
@@ -19,7 +25,8 @@ export default function EBuyProductDetailScreen() {
   const userAddress = useAuthStore((s) => s.user?.address);
 
   const [product, setProduct] = useState<PurchaseProduct | null>(null);
-  const [offers, setOffers] = useState<StoreOffer[] | null>(null);
+  const [offers, setOffers] = useState<OfferRow[] | null>(null);
+  const [showingNearest, setShowingNearest] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -29,13 +36,48 @@ export default function EBuyProductDetailScreen() {
       setLoading(true);
       setLoadError(null);
       try {
-        const [productResult, offersResult] = await Promise.all([
-          ebuyService.getById(productId),
-          ebuyService.getOffers(productId),
-        ]);
+        const productResult = await ebuyService.getById(productId);
         if (cancelled) return;
         setProduct(productResult);
-        setOffers(offersResult);
+
+        // Prefer the nearest 5 stores that actually stock this product, by
+        // real distance — falls back to the flat region-matched list below
+        // if location permission isn't granted or a fix can't be obtained.
+        let nearest: OfferRow[] | null = null;
+        try {
+          const { status } = await Location.requestForegroundPermissionsAsync();
+          if (status === 'granted') {
+            const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+            const nearby = await storeService.findNearby({
+              latitude: pos.coords.latitude,
+              longitude: pos.coords.longitude,
+              productId,
+            });
+            nearest = nearby.slice(0, NEAREST_STORES_LIMIT).map((s) => ({
+              storeId: s._id,
+              storeName: s.name,
+              region: s.region,
+              address: s.address,
+              isOpenNow: s.isOpenNow,
+              price: s.inventory?.price,
+              quantity: s.inventory?.quantity,
+              distanceKm: s.distanceKm,
+            }));
+          }
+        } catch {
+          // Location denied/unavailable — fall through to the region-based list.
+        }
+        if (cancelled) return;
+
+        if (nearest && nearest.length > 0) {
+          setOffers(nearest);
+          setShowingNearest(true);
+        } else {
+          const fallback = await ebuyService.getOffers(productId);
+          if (cancelled) return;
+          setOffers(fallback);
+          setShowingNearest(false);
+        }
       } catch (err) {
         if (!cancelled) setLoadError(err instanceof ApiError ? err.message : 'Could not load this product.');
       } finally {
@@ -116,7 +158,7 @@ export default function EBuyProductDetailScreen() {
             </Text>
           ) : null}
 
-          <Text style={styles.sectionTitle}>Available From</Text>
+          <Text style={styles.sectionTitle}>{showingNearest ? 'Nearest Stores' : 'Available From'}</Text>
           {!offers || offers.length === 0 ? (
             <Text style={styles.emptyText}>No stores currently stock this product.</Text>
           ) : (
@@ -125,6 +167,12 @@ export default function EBuyProductDetailScreen() {
                 <View style={{ flex: 1 }}>
                   <Text style={styles.offerStoreName}>{offer.storeName}</Text>
                   <Text style={styles.offerAddress}>{offer.address}</Text>
+                  {offer.distanceKm != null && (
+                    <View style={styles.deliveryRow}>
+                      <Icon name="navigate-outline" size={12} color={Colors.primary} />
+                      <Text style={[styles.deliveryText, { color: Colors.primary }]}>{offer.distanceKm} km away</Text>
+                    </View>
+                  )}
                   {offer.isOpenNow !== null && (
                     <Text style={[styles.offerStatus, { color: offer.isOpenNow ? Colors.secondary : Colors.error }]}>
                       {offer.isOpenNow ? 'Open now' : 'Closed'}

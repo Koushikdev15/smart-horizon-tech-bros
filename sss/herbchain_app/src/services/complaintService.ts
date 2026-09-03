@@ -1,4 +1,6 @@
 import { supabase } from '@/lib/supabase';
+import * as FileSystem from 'expo-file-system/legacy';
+import { decode } from 'base64-arraybuffer';
 
 export const COMPLAINT_ISSUE_TYPES = [
   'QR not working',
@@ -15,12 +17,43 @@ export interface Complaint {
   issueType: string;
   description: string;
   batchId?: string;
+  photoUrl?: string;
   status: 'OPEN' | 'UNDER_REVIEW' | 'RESOLVED' | 'DISMISSED';
   createdAt: string;
 }
 
 export const complaintService = {
-  async submit(data: { issueType: string; description: string; batchId?: string; productId?: string }): Promise<Complaint> {
+  /** Reads the local file as base64 and uploads via ArrayBuffer — a plain
+   *  fetch(uri).blob() silently reads near-empty data from a local file://
+   *  URI under React Native's New Architecture (confirmed this session on
+   *  the chat voice/image upload path), so every RN-originated file upload
+   *  in this app goes through this same base64 route instead. */
+  async uploadPhoto(uri: string): Promise<string> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not signed in.');
+
+    const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+    const ext = uri.split('.').pop()?.toLowerCase() || 'jpg';
+    const path = `${user.id}/${Date.now()}.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('complaint-photos')
+      .upload(path, decode(base64), { contentType: `image/${ext === 'jpg' ? 'jpeg' : ext}` });
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage.from('complaint-photos').getPublicUrl(path);
+    return data.publicUrl;
+  },
+
+  async submit(data: {
+    issueType: string;
+    description: string;
+    batchId?: string;
+    productId?: string;
+    photoUrl?: string;
+  }): Promise<Complaint> {
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -34,6 +67,7 @@ export const complaintService = {
         description: data.description,
         batch_id: data.batchId ?? null,
         product_id: data.productId ?? null,
+        photo_url: data.photoUrl ?? null,
       })
       .select('*')
       .single();
@@ -45,6 +79,7 @@ export const complaintService = {
       issueType: row.issue_type,
       description: row.description,
       batchId: row.batch_id ?? undefined,
+      photoUrl: row.photo_url ?? undefined,
       status: row.status,
       createdAt: row.created_at,
     };

@@ -289,7 +289,7 @@ export default function EBuyScreen() {
                 <View style={[styles.categoryIcon, !healthTopic && styles.categoryIconActive]}>
                   <Icon name="grid-outline" size={22} color={!healthTopic ? Colors.onPrimary : Colors.primary} />
                 </View>
-                <Text style={[styles.categoryLabel, !healthTopic && styles.categoryLabelActive]}>All</Text>
+                <Text style={[styles.categoryLabel, !healthTopic && styles.categoryLabelActive]} numberOfLines={2}>All</Text>
               </TouchableOpacity>
               {HEALTH_CATEGORIES.map((cat) => {
                 const active = healthTopic === cat.label;
@@ -298,7 +298,7 @@ export default function EBuyScreen() {
                     <View style={[styles.categoryIcon, active && styles.categoryIconActive]}>
                       <Icon name={cat.icon} size={22} color={active ? Colors.onPrimary : Colors.primary} />
                     </View>
-                    <Text style={[styles.categoryLabel, active && styles.categoryLabelActive]} numberOfLines={1}>
+                    <Text style={[styles.categoryLabel, active && styles.categoryLabelActive]} numberOfLines={2}>
                       {cat.label}
                     </Text>
                   </TouchableOpacity>
@@ -585,8 +585,8 @@ const styles = StyleSheet.create({
     borderColor: Colors.outlineVariant,
   },
   searchInput: { flex: 1, ...Type.bodyMd, color: Colors.text },
-  categoryRow: { paddingHorizontal: Spacing.gutter, paddingBottom: Spacing.md, gap: Spacing.md },
-  categoryItem: { alignItems: 'center', width: 68 },
+  categoryRow: { paddingHorizontal: Spacing.gutter, paddingBottom: Spacing.md, gap: Spacing.md, alignItems: 'flex-start' },
+  categoryItem: { alignItems: 'center', width: 76 },
   categoryIcon: {
     width: 56,
     height: 56,
@@ -597,7 +597,14 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   categoryIconActive: { backgroundColor: Colors.primary },
-  categoryLabel: { fontFamily: Fonts.family.medium, fontSize: 11, color: Colors.onSurfaceVariant, textAlign: 'center' },
+  categoryLabel: {
+    fontFamily: Fonts.family.medium,
+    fontSize: 11,
+    lineHeight: 13,
+    height: 26,
+    color: Colors.onSurfaceVariant,
+    textAlign: 'center',
+  },
   categoryLabelActive: { color: Colors.primary, fontFamily: Fonts.family.semiBold },
   scrollContent: { paddingHorizontal: Spacing.gutter, paddingBottom: Spacing['3xl'] },
   centerBox: { paddingVertical: Spacing['2xl'], alignItems: 'center' },

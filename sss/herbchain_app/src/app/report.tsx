@@ -2,14 +2,17 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
+  Image,
   StyleSheet,
   TextInput,
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import { Colors, Fonts, Spacing, BorderRadius, Shadow } from '@/theme';
 import { AppHeader } from '@/components/Header';
 import { PrimaryButton } from '@/components/Buttons';
@@ -27,11 +30,52 @@ export default function ReportIssueScreen() {
 
   const [selectedIssue, setSelectedIssue] = useState<(typeof ISSUE_TYPES)[number]>(ISSUE_TYPES[0]);
   const [description, setDescription] = useState('');
-  const [photoAttached, setPhotoAttached] = useState(false);
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [pickingPhoto, setPickingPhoto] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [complaintId, setComplaintId] = useState<string | null>(null);
+
+  async function takePhoto() {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) return;
+    const result = await ImagePicker.launchCameraAsync({ quality: 0.7 });
+    if (result.canceled || !result.assets?.[0]) return;
+    setPhotoUri(result.assets[0].uri);
+  }
+
+  async function choosePhoto() {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return;
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7,
+    });
+    if (result.canceled || !result.assets?.[0]) return;
+    setPhotoUri(result.assets[0].uri);
+  }
+
+  function handlePhotoBoxPress() {
+    if (photoUri) {
+      Alert.alert('Remove photo?', undefined, [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Remove', style: 'destructive', onPress: () => setPhotoUri(null) },
+      ]);
+      return;
+    }
+    setPickingPhoto(true);
+    Alert.alert(
+      'Attach a photo',
+      'Take a new photo or choose one from your gallery.',
+      [
+        { text: 'Take Photo', onPress: () => takePhoto().finally(() => setPickingPhoto(false)) },
+        { text: 'Choose from Gallery', onPress: () => choosePhoto().finally(() => setPickingPhoto(false)) },
+        { text: 'Cancel', style: 'cancel', onPress: () => setPickingPhoto(false) },
+      ],
+      { onDismiss: () => setPickingPhoto(false), cancelable: true }
+    );
+  }
 
   const handleSubmit = async () => {
     if (!isAuthenticated || isGuest) {
@@ -45,10 +89,12 @@ export default function ReportIssueScreen() {
     setSubmitting(true);
     setSubmitError(null);
     try {
+      const photoUrl = photoUri ? await complaintService.uploadPhoto(photoUri) : undefined;
       const result = await complaintService.submit({
         issueType: selectedIssue,
         description: description.trim(),
         batchId: ATTACHED_BATCH_ID,
+        photoUrl,
       });
       setComplaintId(result.id);
       setSubmitted(true);
@@ -143,20 +189,26 @@ export default function ReportIssueScreen() {
             placeholderTextColor={Colors.textMuted}
           />
 
-          {/* Photo Upload Simulator */}
+          {/* Photo Upload */}
           <Text style={[styles.label, { marginTop: Spacing.md }]}>Photo Upload</Text>
           <TouchableOpacity
-            style={[styles.photoBox, photoAttached && styles.photoBoxAttached]}
-            onPress={() => setPhotoAttached(!photoAttached)}
+            style={[styles.photoBox, photoUri && styles.photoBoxAttached]}
+            onPress={handlePhotoBoxPress}
+            disabled={pickingPhoto}
           >
-            <Icon
-              name={photoAttached ? 'checkmark-circle' : 'camera-outline'}
-              size={24}
-              color={photoAttached ? Colors.success : Colors.primary}
-            />
-            <Text style={styles.photoText}>
-              {photoAttached ? 'Packaging Photo Attached ✓' : 'Upload Packaging or Product Photo'}
-            </Text>
+            {photoUri ? (
+              <>
+                <Image source={{ uri: photoUri }} style={styles.photoPreview} />
+                <Text style={styles.photoText}>Packaging Photo Attached ✓ — tap to remove</Text>
+              </>
+            ) : pickingPhoto ? (
+              <ActivityIndicator color={Colors.primary} />
+            ) : (
+              <>
+                <Icon name="camera-outline" size={24} color={Colors.primary} />
+                <Text style={styles.photoText}>Upload Packaging or Product Photo</Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -271,11 +323,20 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
+    minHeight: 56,
   },
   photoBoxAttached: {
+    flexDirection: 'column',
     backgroundColor: Colors.lightGreen,
     borderColor: Colors.success,
     borderStyle: 'solid',
+  },
+  photoPreview: {
+    width: '100%',
+    height: 160,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.xs,
+    backgroundColor: Colors.surfaceVariant,
   },
   photoText: {
     fontFamily: Fonts.family.medium,

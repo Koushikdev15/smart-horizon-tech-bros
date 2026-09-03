@@ -73,6 +73,9 @@
   },
   "home": {
     "greeting": "Good Morning, {{name}}",
+    "greetingAfternoon": "Good Afternoon, {{name}}",
+    "greetingEvening": "Good Evening, {{name}}",
+    "greetingGeneral": "Welcome back, {{name}}",
     "greetingSub": "Discover the story behind your Ayurveda.",
     "verifyTitle": "Verify Your Product",
     "verifyDesc": "Scan the AyurTrace+ QR code to verify authenticity, track provenance, and explore the botanical journey.",

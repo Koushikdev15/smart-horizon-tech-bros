@@ -73,6 +73,9 @@
   },
   "home": {
     "greeting": "सुप्रभात, {{name}}",
+    "greetingAfternoon": "शुभ दोपहर, {{name}}",
+    "greetingEvening": "शुभ संध्या, {{name}}",
+    "greetingGeneral": "वापसी पर स्वागत है, {{name}}",
     "greetingSub": "अपने आयुर्वेद के पीछे की कहानी जानें।",
     "verifyTitle": "अपना उत्पाद सत्यापित करें",
     "verifyDesc": "प्रामाणिकता सत्यापित करने, उत्पत्ति ट्रैक करने और वानस्पतिक यात्रा जानने के लिए AyurTrace+ QR कोड स्कैन करें।",

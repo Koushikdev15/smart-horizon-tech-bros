@@ -1,4 +1,6 @@
 import { supabase } from '@/lib/supabase';
+import * as FileSystem from 'expo-file-system/legacy';
+import { decode } from 'base64-arraybuffer';
 
 export type ForumPostType = 'question' | 'thought';
 
@@ -91,20 +93,24 @@ export const forumService = {
   },
 
   /** Uploads a post image to the public forum-content bucket and returns its public URL. */
+  /** Reads the local file as base64 and uploads via ArrayBuffer — a plain
+   *  fetch(uri).blob() silently reads near-empty data from a local file://
+   *  URI under React Native's New Architecture (confirmed this session on
+   *  the chat voice/image upload path), so every RN-originated file upload
+   *  in this app goes through this same base64 route instead. */
   async uploadImage(uri: string): Promise<string> {
     const {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) throw new Error('Not signed in.');
 
-    const response = await fetch(uri);
-    const blob = await response.blob();
+    const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
     const ext = uri.split('.').pop()?.toLowerCase() || 'jpg';
     const path = `${user.id}/${Date.now()}.${ext}`;
 
-    const { error: uploadError } = await supabase.storage.from('forum-content').upload(path, blob, {
-      contentType: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
-    });
+    const { error: uploadError } = await supabase.storage
+      .from('forum-content')
+      .upload(path, decode(base64), { contentType: `image/${ext === 'jpg' ? 'jpeg' : ext}` });
     if (uploadError) throw uploadError;
 
     const { data } = supabase.storage.from('forum-content').getPublicUrl(path);

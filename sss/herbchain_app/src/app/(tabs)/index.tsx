@@ -41,6 +41,14 @@ export default function HomeScreen() {
       .catch(() => setBlogPosts([]));
   }, []);
 
+  const greetingKey = (() => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return 'home.greeting';
+    if (hour >= 12 && hour < 17) return 'home.greetingAfternoon';
+    if (hour >= 17 && hour < 21) return 'home.greetingEvening';
+    return 'home.greetingGeneral';
+  })();
+
   const recalledProduct = PRODUCTS.find((p) => p.status === 'recalled');
   const savedProducts = savedProductIds
     .map((id) => getProductById(id))
@@ -60,7 +68,7 @@ export default function HomeScreen() {
 
         {/* Greeting */}
         <View style={styles.greetingBlock}>
-          <Text style={styles.greetingTitle}>{t('home.greeting', { name: user?.name || 'Guest' })}</Text>
+          <Text style={styles.greetingTitle}>{t(greetingKey, { name: user?.name || 'Guest' })}</Text>
           <Text style={styles.greetingSub}>{t('home.greetingSub')}</Text>
         </View>
 
@@ -191,15 +199,18 @@ export default function HomeScreen() {
               onActionPress={() => router.push('/saved')}
             />
 
-            {savedProducts.slice(0, 2).map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                isBookmarked={true}
-                onBookmarkPress={() => toggleSaved(product.id)}
-                onPress={() => router.push(`/product/${product.id}` as any)}
-              />
-            ))}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: Spacing.md }}>
+              {savedProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  variant="compact"
+                  isBookmarked={true}
+                  onBookmarkPress={() => toggleSaved(product.id)}
+                  onPress={() => router.push(`/product/${product.id}` as any)}
+                />
+              ))}
+            </ScrollView>
           </>
         )}
 

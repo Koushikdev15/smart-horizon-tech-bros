@@ -191,9 +191,9 @@ export function ChatThread({
   return (
     <KeyboardWrapper>
       <ScrollView ref={scrollRef} contentContainerStyle={styles.chatScroll} showsVerticalScrollIndicator={false}>
-        <View style={styles.disclaimerBox}>
-          <Icon name="information-circle" size={16} color={Colors.primary} style={{ marginRight: 6 }} />
-          <Text style={styles.disclaimerText}>{disclaimer}</Text>
+        <View style={[styles.disclaimerBox, isDoctor && styles.disclaimerBoxDoctor]}>
+          <Icon name={isDoctor ? 'medkit' : 'information-circle'} size={16} color={isDoctor ? Colors.onSecondaryContainer : Colors.primary} style={{ marginRight: 6 }} />
+          <Text style={[styles.disclaimerText, isDoctor && styles.disclaimerTextDoctor]}>{disclaimer}</Text>
         </View>
 
         {sessionError ? (
@@ -330,10 +330,10 @@ export function ChatThread({
         </View>
       )}
 
-      <View style={styles.inputBar}>
+      <View style={[styles.inputBar, isDoctor && styles.inputBarDoctor]}>
         {handleAttachImage && (
           <TouchableOpacity
-            style={styles.micBtn}
+            style={[styles.micBtn, isDoctor && styles.micBtnDoctor]}
             onPress={handleAttachImage}
             disabled={attachingImage || sending}
             accessibilityLabel="Attach a photo or document"
@@ -346,7 +346,7 @@ export function ChatThread({
           </TouchableOpacity>
         )}
         <TouchableOpacity
-          style={[styles.micBtn, micState === 'recording' && styles.micBtnActive]}
+          style={[styles.micBtn, isDoctor && styles.micBtnDoctor, micState === 'recording' && styles.micBtnActive]}
           onPress={handleMicPress}
           disabled={micState === 'transcribing'}
           accessibilityLabel={micState === 'recording' ? 'Stop recording' : 'Record a voice question'}
@@ -362,7 +362,7 @@ export function ChatThread({
           )}
         </TouchableOpacity>
         <TextInput
-          style={styles.textInput}
+          style={[styles.textInput, isDoctor && styles.textInputDoctor]}
           placeholder={placeholder ?? 'Ask AyurTrace+...'}
           value={inputText}
           onChangeText={setInputText}
@@ -371,7 +371,7 @@ export function ChatThread({
           onSubmitEditing={() => handleSend()}
         />
         <TouchableOpacity
-          style={[styles.sendBtn, (!sessionId || sending) && styles.sendBtnDisabled]}
+          style={[styles.sendBtn, isDoctor && styles.sendBtnDoctor, (!sessionId || sending) && styles.sendBtnDisabled]}
           onPress={() => handleSend()}
           disabled={!sessionId || sending}
         >
@@ -420,6 +420,15 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     lineHeight: 15,
   },
+  disclaimerBoxDoctor: {
+    backgroundColor: Colors.secondaryContainer,
+    borderWidth: 1,
+    borderColor: Colors.gold + '50',
+  },
+  disclaimerTextDoctor: {
+    color: Colors.onSecondaryContainer,
+    fontFamily: Fonts.family.medium,
+  },
   msgRow: { flexDirection: 'row', alignItems: 'flex-end' },
   aiRow: { justifyContent: 'flex-start' },
   userRow: { justifyContent: 'flex-end' },
@@ -444,13 +453,19 @@ const styles = StyleSheet.create({
     borderColor: Colors.outlineVariant,
   },
   aiAvatarDoctor: {
-    backgroundColor: Colors.secondaryContainer,
+    backgroundColor: Colors.surfaceContainerLowest,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1.5,
+    borderColor: Colors.gold,
   },
   aiBubbleDoctor: {
-    backgroundColor: Colors.secondaryContainer + '55',
-    borderBottomLeftRadius: 4,
+    backgroundColor: Colors.surfaceContainerLowest,
+    borderRadius: BorderRadius.md,
+    borderBottomLeftRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: Colors.secondaryContainer,
+    borderColor: Colors.outlineVariant,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.gold,
   },
   userBubble: {
     backgroundColor: Colors.primary,
@@ -577,6 +592,11 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Colors.borderLight,
   },
+  inputBarDoctor: {
+    backgroundColor: Colors.secondaryContainer + '30',
+    borderTopWidth: 2,
+    borderTopColor: Colors.gold + '50',
+  },
   textInput: {
     flex: 1,
     height: 44,
@@ -588,6 +608,14 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginRight: Spacing.sm,
   },
+  textInputDoctor: {
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.gold + '40',
+  },
+  micBtnDoctor: {
+    borderRadius: BorderRadius.md,
+  },
   sendBtn: {
     width: 44,
     height: 44,
@@ -595,6 +623,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  sendBtnDoctor: {
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.onSecondaryContainer,
   },
   sendBtnDisabled: { opacity: 0.5 },
 });

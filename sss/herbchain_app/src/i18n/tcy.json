@@ -73,6 +73,9 @@
   },
   "home": {
     "greeting": "ಶುಭೋದಯ, {{name}}",
+    "greetingAfternoon": "ಶುಭ ಮಧ್ಯಾಹ್ನ, {{name}}",
+    "greetingEvening": "ಶುಭ ಸಂಜೆ, {{name}}",
+    "greetingGeneral": "ಬರ್ಪುನ ಸ್ವಾಗತ, {{name}}",
     "greetingSub": "ನಿಕ್ಲೆನ ಆಯುರ್ವೇದದ ಪಿರವುಗು ಕತೆ ತೆರಿಯಲೆ.",
     "verifyTitle": "ನಿಕ್ಲೆನ ಉತ್ಪನ್ನ ದೃಢೀಕರಣ ಮಲ್ಪುಲೆ",
     "verifyDesc": "ನಿಜತ್ವ ದೃಢೀಕರಣ ಮಲ್ಪೆರೆ, ಮೂಲ ಪತ್ತೆ ಮಲ್ಪೆರೆ ಬೊಕ್ಕ ಸಸ್ಯದ ಪಯಣ ತೆರಿಯೆರೆ AyurTrace+ QR ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಲ್ಪುಲೆ.",

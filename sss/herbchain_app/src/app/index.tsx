@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, Text, Image, StyleSheet, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Colors, Fonts, Spacing, BorderRadius } from '@/theme';
-import Icon from '@/components/Icon';
+import { Colors, Fonts, Spacing } from '@/theme';
 import { useAuthStore } from '@/store/authStore';
 
 export default function SplashScreen() {
@@ -67,9 +66,11 @@ export default function SplashScreen() {
           },
         ]}
       >
-        <View style={styles.logoBadge}>
-          <Icon name="leaf" size={48} color={Colors.gold} />
-        </View>
+        <Image
+          source={require('@/assets/images/logo-mark-white.png')}
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
 
         <Text style={styles.brandTitle}>
           AYUTRACE<Text style={styles.goldPlus}>+</Text>
@@ -101,15 +102,9 @@ const styles = StyleSheet.create({
   content: {
     alignItems: 'center',
   },
-  logoBadge: {
-    width: 90,
-    height: 90,
-    borderRadius: BorderRadius['2xl'],
-    backgroundColor: Colors.primary,
-    borderWidth: 2,
-    borderColor: Colors.gold + '60',
-    alignItems: 'center',
-    justifyContent: 'center',
+  logoImage: {
+    width: 100,
+    height: 100,
     marginBottom: Spacing.lg,
   },
   brandTitle: {
