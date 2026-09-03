@@ -9,7 +9,6 @@ import {
   Modal,
   Pressable,
   ActivityIndicator,
-  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -227,14 +226,10 @@ export default function EBuyScreen() {
     router.push(`/ebuy/${product._id}` as any);
   }
 
+  // Traceability is rendered inside the app; a customer should never be handed
+  // off to a browser to see where their product came from.
   function openTrace(product: TracedProduct) {
-    if (!product.verifyUrl) {
-      useToastStore.getState().show('No trace page is configured for this product.', 'error');
-      return;
-    }
-    Linking.openURL(product.verifyUrl).catch(() =>
-      useToastStore.getState().show('Could not open the trace page.', 'error'),
-    );
+    router.push(`/trace/${product.productCode}` as any);
   }
 
   async function handleRowAddToCart(product: PurchaseProduct) {
