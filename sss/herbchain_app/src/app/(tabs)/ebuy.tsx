@@ -21,17 +21,43 @@ import { useCartStore } from '@/store/cartStore';
 import { useToastStore } from '@/store/toastStore';
 import { ApiError } from '@/lib/api';
 import { ebuyService, type PurchaseProduct, type Order } from '@/services/ebuyService';
+import { reviewService, type ProductReviewStats } from '@/services/reviewService';
+import { estimateDelivery } from '@/lib/deliveryEstimate';
+import type { IconName } from '@/components/Icon';
+
+// Matches the health topics actually present in the product catalog
+// (verified against the live data, not guessed) — filtering by a category
+// with zero real matches would just be a broken, empty screen.
+const HEALTH_CATEGORIES: { label: string; icon: IconName }[] = [
+  { label: 'Immunity', icon: 'shield-checkmark-outline' },
+  { label: 'Digestion', icon: 'nutrition-outline' },
+  { label: 'Skin Health', icon: 'sparkles-outline' },
+  { label: 'Hair & Skin', icon: 'cut-outline' },
+  { label: 'Joint & Muscle Health', icon: 'body-outline' },
+  { label: 'Respiratory Health', icon: 'medkit-outline' },
+  { label: 'Stress', icon: 'leaf-outline' },
+  { label: 'Sleep', icon: 'moon-outline' },
+  { label: 'Energy', icon: 'flash-outline' },
+  { label: 'Focus', icon: 'eye-outline' },
+  { label: 'Memory', icon: 'bulb-outline' },
+  { label: "Women's Health", icon: 'female-outline' },
+  { label: 'Heart Health', icon: 'heart-outline' },
+  { label: 'Detox', icon: 'water-outline' },
+  { label: 'Pain & Inflammation', icon: 'bandage-outline' },
+];
 
 function ProductPurchaseCard({
   product,
   onPress,
   onAddToCart,
   adding,
+  reviewStats,
 }: {
   product: PurchaseProduct;
   onPress: () => void;
   onAddToCart: () => void;
   adding: boolean;
+  reviewStats?: ProductReviewStats;
 }) {
   const avail = product.regionAvailability;
   return (
@@ -47,6 +73,14 @@ function ProductPurchaseCard({
           <Text style={styles.productPrice}>{avail.storeCount} store{avail.storeCount > 1 ? 's' : ''} carry this</Text>
         ) : (
           <Text style={styles.unavailText}>Currently out of stock</Text>
+        )}
+        {reviewStats && reviewStats.reviewCount > 0 && (
+          <View style={styles.ratingChipRow}>
+            <Icon name="star" size={12} color={Colors.gold} />
+            <Text style={styles.ratingChipText}>
+              {reviewStats.avgRating.toFixed(1)} ({reviewStats.reviewCount})
+            </Text>
+          </View>
         )}
       </View>
       <TouchableOpacity
@@ -77,10 +111,12 @@ export default function EBuyScreen() {
   const [view, setView] = useState<'browse' | 'orders'>('browse');
 
   const [query, setQuery] = useState('');
+  const [healthTopic, setHealthTopic] = useState<string | null>(null);
   const [products, setProducts] = useState<PurchaseProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [addingProductId, setAddingProductId] = useState<string | null>(null);
+  const [reviewStatsMap, setReviewStatsMap] = useState<Record<string, ProductReviewStats>>({});
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
@@ -113,8 +149,12 @@ export default function EBuyScreen() {
     setLoading(true);
     setLoadError(null);
     try {
-      const results = await ebuyService.browse({ q: query || undefined });
+      const results = await ebuyService.browse({ q: query || undefined, healthTopic: healthTopic || undefined });
       setProducts(results);
+      reviewService
+        .getStatsForMany(results.map((p) => p._id))
+        .then(setReviewStatsMap)
+        .catch(() => setReviewStatsMap({}));
     } catch (err) {
       setLoadError(err instanceof ApiError ? err.message : 'Could not load products.');
     } finally {
@@ -124,7 +164,8 @@ export default function EBuyScreen() {
 
   useEffect(() => {
     loadProducts();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [healthTopic]);
 
   function openProductDetail(product: PurchaseProduct) {
     router.push(`/ebuy/${product._id}` as any);
@@ -138,7 +179,14 @@ export default function EBuyScreen() {
       if (inStock.length === 1) {
         const offer = inStock[0];
         addItem(
-          { productId: product._id, productName: product.productName, storeId: offer.storeId, storeName: offer.storeName, unitPrice: offer.price! },
+          {
+            productId: product._id,
+            productName: product.productName,
+            storeId: offer.storeId,
+            storeName: offer.storeName,
+            storeRegion: offer.region,
+            unitPrice: offer.price!,
+          },
           1
         );
         useToastStore.getState().show(`Added ${product.productName} to cart`, 'success');
@@ -231,6 +279,33 @@ export default function EBuyScreen() {
               />
             </View>
 
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.categoryRow}
+              style={{ flexGrow: 0 }}
+            >
+              <TouchableOpacity style={styles.categoryItem} onPress={() => setHealthTopic(null)}>
+                <View style={[styles.categoryIcon, !healthTopic && styles.categoryIconActive]}>
+                  <Icon name="grid-outline" size={22} color={!healthTopic ? Colors.onPrimary : Colors.primary} />
+                </View>
+                <Text style={[styles.categoryLabel, !healthTopic && styles.categoryLabelActive]}>All</Text>
+              </TouchableOpacity>
+              {HEALTH_CATEGORIES.map((cat) => {
+                const active = healthTopic === cat.label;
+                return (
+                  <TouchableOpacity key={cat.label} style={styles.categoryItem} onPress={() => setHealthTopic(active ? null : cat.label)}>
+                    <View style={[styles.categoryIcon, active && styles.categoryIconActive]}>
+                      <Icon name={cat.icon} size={22} color={active ? Colors.onPrimary : Colors.primary} />
+                    </View>
+                    <Text style={[styles.categoryLabel, active && styles.categoryLabelActive]} numberOfLines={1}>
+                      {cat.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
               {loading ? (
                 <View style={styles.centerBox}>
@@ -252,6 +327,7 @@ export default function EBuyScreen() {
                     onPress={() => openProductDetail(p)}
                     onAddToCart={() => handleRowAddToCart(p)}
                     adding={addingProductId === p._id}
+                    reviewStats={reviewStatsMap[p._id]}
                   />
                 ))
               )}
@@ -347,6 +423,7 @@ export default function EBuyScreen() {
                         <View style={{ flex: 1 }}>
                           <Text style={styles.offerStoreName}>{item.productName}</Text>
                           <Text style={styles.offerAddress}>{item.storeName}</Text>
+                          <Text style={styles.deliveryEstText}>{estimateDelivery(item.storeRegion, deliveryAddress)}</Text>
                         </View>
                         <View style={styles.qtyRow}>
                           <TouchableOpacity
@@ -508,6 +585,20 @@ const styles = StyleSheet.create({
     borderColor: Colors.outlineVariant,
   },
   searchInput: { flex: 1, ...Type.bodyMd, color: Colors.text },
+  categoryRow: { paddingHorizontal: Spacing.gutter, paddingBottom: Spacing.md, gap: Spacing.md },
+  categoryItem: { alignItems: 'center', width: 68 },
+  categoryIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.secondaryContainer,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  categoryIconActive: { backgroundColor: Colors.primary },
+  categoryLabel: { fontFamily: Fonts.family.medium, fontSize: 11, color: Colors.onSurfaceVariant, textAlign: 'center' },
+  categoryLabelActive: { color: Colors.primary, fontFamily: Fonts.family.semiBold },
   scrollContent: { paddingHorizontal: Spacing.gutter, paddingBottom: Spacing['3xl'] },
   centerBox: { paddingVertical: Spacing['2xl'], alignItems: 'center' },
   errorText: { ...Type.bodySm, color: Colors.error, textAlign: 'center' },
@@ -534,6 +625,8 @@ const styles = StyleSheet.create({
   productName: { ...Type.labelMd, fontSize: 15, color: Colors.onSurface },
   productPrice: { ...Type.bodySm, color: Colors.primary, fontFamily: Fonts.family.semiBold, marginTop: 2 },
   unavailText: { ...Type.bodySm, fontSize: 11, color: Colors.textMuted, marginTop: Spacing.xs },
+  ratingChipRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 },
+  ratingChipText: { fontFamily: Fonts.family.medium, fontSize: 11, color: Colors.textSecondary },
   rowAddBtn: {
     backgroundColor: Colors.primary,
     paddingHorizontal: Spacing.sm + 2,
@@ -563,6 +656,7 @@ const styles = StyleSheet.create({
   sheetTitle: { ...Type.headlineSm, color: Colors.primary, marginBottom: Spacing.md },
   offerStoreName: { ...Type.labelMd, color: Colors.onSurface },
   offerAddress: { ...Type.bodySm, color: Colors.textMuted, marginTop: 1 },
+  deliveryEstText: { ...Type.bodySm, fontSize: 11, color: Colors.secondary, marginTop: 1 },
   offerPrice: { ...Type.labelMd, color: Colors.primary },
   cartRow: {
     flexDirection: 'row',

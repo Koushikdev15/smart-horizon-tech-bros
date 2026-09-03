@@ -5,6 +5,7 @@ export interface CartItem {
   productName: string;
   storeId: string;
   storeName: string;
+  storeRegion?: string;
   unitPrice: number;
   quantity: number;
   selected: boolean;

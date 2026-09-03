@@ -85,6 +85,10 @@ export default function RootLayout() {
         <Stack.Screen name="copilot" />
         <Stack.Screen name="search" />
         <Stack.Screen name="compare" />
+        <Stack.Screen name="forum/index" />
+        <Stack.Screen name="forum/new" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="forum/[postId]" />
+        <Stack.Screen name="blog/[id]" />
         <Stack.Screen name="saved" />
         <Stack.Screen name="report" options={{ presentation: 'modal' }} />
         <Stack.Screen name="qr-not-found" options={{ presentation: 'modal' }} />

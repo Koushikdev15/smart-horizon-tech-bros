@@ -7,13 +7,16 @@ import { AppHeader } from '@/components/Header';
 import Icon from '@/components/Icon';
 import { useCartStore } from '@/store/cartStore';
 import { useToastStore } from '@/store/toastStore';
+import { useAuthStore } from '@/store/authStore';
 import { ApiError } from '@/lib/api';
 import { ebuyService, type PurchaseProduct, type StoreOffer } from '@/services/ebuyService';
+import { estimateDelivery } from '@/lib/deliveryEstimate';
 
 export default function EBuyProductDetailScreen() {
   const router = useRouter();
   const { productId } = useLocalSearchParams<{ productId: string }>();
   const addItem = useCartStore((s) => s.addItem);
+  const userAddress = useAuthStore((s) => s.user?.address);
 
   const [product, setProduct] = useState<PurchaseProduct | null>(null);
   const [offers, setOffers] = useState<StoreOffer[] | null>(null);
@@ -52,6 +55,7 @@ export default function EBuyProductDetailScreen() {
         productName: product.productName,
         storeId: offer.storeId,
         storeName: offer.storeName,
+        storeRegion: offer.region,
         unitPrice: offer.price,
       },
       1
@@ -126,6 +130,12 @@ export default function EBuyProductDetailScreen() {
                       {offer.isOpenNow ? 'Open now' : 'Closed'}
                     </Text>
                   )}
+                  {offer.price != null && (
+                    <View style={styles.deliveryRow}>
+                      <Icon name="bicycle-outline" size={12} color={Colors.textMuted} />
+                      <Text style={styles.deliveryText}>{estimateDelivery(offer.region, userAddress)}</Text>
+                    </View>
+                  )}
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
                   <Text style={styles.offerPrice}>{offer.price != null ? `₹${offer.price}` : '—'}</Text>
@@ -182,6 +192,8 @@ const styles = StyleSheet.create({
   offerStoreName: { fontFamily: Fonts.family.semiBold, fontSize: Fonts.size.sm, color: Colors.onSurface },
   offerAddress: { fontFamily: Fonts.family.regular, fontSize: Fonts.size.xs, color: Colors.textMuted, marginTop: 1 },
   offerStatus: { fontFamily: Fonts.family.regular, fontSize: 11, marginTop: 2 },
+  deliveryRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 },
+  deliveryText: { fontFamily: Fonts.family.regular, fontSize: 11, color: Colors.textMuted },
   offerPrice: { fontFamily: Fonts.family.semiBold, fontSize: Fonts.size.sm, color: Colors.primary },
   addBtn: {
     marginTop: Spacing.xs,

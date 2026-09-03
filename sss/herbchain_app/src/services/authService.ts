@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { apiRequest } from '@/lib/api';
 import type { User } from '@/types';
 
 /** Row shape of public.app_login (see herbchain_app/supabase/migrations/0004_app_login_and_ayurvedic_id.sql). */
@@ -8,7 +9,7 @@ export interface AppLoginRow {
   full_name: string;
   email: string;
   phone: string;
-  language: 'en' | 'ta';
+  language: 'en' | 'ta' | 'hi' | 'kn' | 'te' | 'tcy';
   role: string;
   date_of_birth: string | null;
   aadhaar_last4: string | null;
@@ -114,5 +115,21 @@ export const authService = {
     if (!user) throw new Error('Not signed in.');
     const row = await fetchAppLoginRow(user.id);
     return mapAppLoginRow(row);
+  },
+
+  /**
+   * Permanently deletes the account and every row it owns (health profile,
+   * scan/chat history, orders, forum posts, reviews — anything FK'd to it
+   * with on-delete-cascade), via the backend's service-role-only endpoint.
+   * Irreversible — the caller is responsible for confirming with the user
+   * first. Signs the local session out afterward regardless of outcome,
+   * since a deleted account shouldn't leave a live client-side session.
+   */
+  async deleteAccount(): Promise<void> {
+    try {
+      await apiRequest('/account', { method: 'DELETE' });
+    } finally {
+      await supabase.auth.signOut();
+    }
   },
 };

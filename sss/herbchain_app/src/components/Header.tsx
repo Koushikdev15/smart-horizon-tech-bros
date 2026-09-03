@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, Fonts, Type, Spacing, BorderRadius, Shadow } from '@/theme';
 import Icon from './Icon';
 
@@ -50,11 +50,14 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         <Icon name="person" size={20} color={Colors.primaryContainer} />
       </TouchableOpacity>
 
-      {/* Centred serif wordmark */}
+      {/* Centred logo mark + wordmark */}
       <View style={styles.brandCenter}>
-        <Text style={styles.brandName} numberOfLines={1}>
-          AYUTRACE+
-        </Text>
+        <View style={styles.brandLogoRow}>
+          <Image source={require('@/assets/images/logo-mark.png')} style={styles.brandLogoMark} resizeMode="contain" />
+          <Text style={styles.brandName} numberOfLines={1}>
+            AYUTRACE+
+          </Text>
+        </View>
         {greeting ? (
           <Text style={styles.greetingText} numberOfLines={1}>
             {greeting}
@@ -141,6 +144,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Spacing.sm,
+  },
+  brandLogoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  brandLogoMark: {
+    width: 22,
+    height: 22,
   },
   brandName: {
     ...Type.headlineMd,

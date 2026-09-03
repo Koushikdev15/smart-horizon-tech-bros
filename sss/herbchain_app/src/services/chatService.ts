@@ -1,4 +1,5 @@
-import { apiRequest, ApiError, getAuthTokenForUpload, API_BASE_URL_FOR_UPLOAD } from '@/lib/api';
+import * as FileSystem from 'expo-file-system/legacy';
+import { apiRequest, ApiError } from '@/lib/api';
 
 export type ResponseCategory =
   | 'SAFE_INFORMATIONAL'
@@ -69,6 +70,21 @@ export interface SendMessageResponse {
   aiAvailable: boolean;
 }
 
+/**
+ * Reads a local file straight to base64 via expo-file-system. Deliberately
+ * NOT `fetch(uri).then(r => r.blob())` — under this app's React Native New
+ * Architecture, fetching a local file:// URI into a Blob silently returns a
+ * near-empty blob (confirmed: a real multi-second recording arrived
+ * server-side as 14 bytes), and the classic FormData `{ uri, name, type }`
+ * descriptor object is rejected outright ("Unsupported FormDataPart
+ * implementation"). Reading the file directly and sending it as base64 JSON
+ * — the same transport every other endpoint here already uses reliably —
+ * sidesteps both failure modes at once.
+ */
+async function readFileAsBase64(uri: string): Promise<string> {
+  return FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+}
+
 export const chatService = {
   async createSession(): Promise<{ _id: string }> {
     return apiRequest('/chat/session', { method: 'POST' });
@@ -77,54 +93,77 @@ export const chatService = {
   async sendMessage(
     sessionId: string,
     content: string,
-    coordinates?: { latitude: number; longitude: number }
+    coordinates?: { latitude: number; longitude: number },
+    doctorId?: string
   ): Promise<SendMessageResponse> {
     return apiRequest(`/chat/session/${sessionId}/message`, {
       method: 'POST',
-      body: JSON.stringify({ content, coordinates }),
+      body: JSON.stringify({ content, coordinates, doctorId }),
     });
   },
 
   /**
-   * Uploads a short recording and returns its transcription. Not routed
-   * through apiRequest — that helper hardcodes a JSON Content-Type, which
-   * would break this request's multipart boundary.
+   * Sends a photo or document (a product label, an ingredients list, a
+   * prescription, a lab report PDF) alongside an optional caption, and gets
+   * back the same shape as a normal text message — the file is never
+   * stored, only used for this one reply, same "ephemeral" treatment as voice.
    */
-  async transcribeAudio(uri: string, language: 'en' | 'ta'): Promise<{ text: string }> {
+  async sendImageMessage(
+    sessionId: string,
+    imageUri: string,
+    content: string,
+    coordinates?: { latitude: number; longitude: number },
+    doctorId?: string,
+    mimeTypeOverride?: string
+  ): Promise<SendMessageResponse> {
+    const ext = imageUri.split('.').pop()?.toLowerCase().split('?')[0] || 'jpg';
+    const mimeType =
+      mimeTypeOverride ||
+      (ext === 'pdf'
+        ? 'application/pdf'
+        : ext === 'png'
+          ? 'image/png'
+          : ext === 'webp'
+            ? 'image/webp'
+            : 'image/jpeg');
+
+    let imageBase64: string;
+    try {
+      imageBase64 = await readFileAsBase64(imageUri);
+    } catch {
+      throw new ApiError(0, 'Could not read that file. Please try again.');
+    }
+
+    return apiRequest(
+      `/chat/session/${sessionId}/image-message`,
+      { method: 'POST', body: JSON.stringify({ content, coordinates, doctorId, imageBase64, mimeType }) },
+      45000
+    );
+  },
+
+  /**
+   * Uploads a short recording and returns its transcription. The backend
+   * auto-detects which of the app's supported languages (English, Tamil,
+   * Hindi, Kannada, Telugu, Tulu) was actually spoken rather than forcing a
+   * fixed target — no language needs to be passed in here.
+   */
+  async transcribeAudio(uri: string): Promise<{ text: string }> {
     // expo-audio's HIGH_QUALITY preset records AAC in an .m4a container, but
     // Gemini's documented supported audio MIME types don't include
     // "audio/m4a" (only audio/aac, audio/wav, audio/mp3, audio/aiff,
     // audio/ogg, audio/flac) — sending the container name instead of the
     // codec name here made every transcription fail silently.
-    const formData = new FormData();
-    formData.append('audio', { uri, name: 'recording.m4a', type: 'audio/aac' } as unknown as Blob);
-    formData.append('language', language);
-
-    const token = getAuthTokenForUpload();
-    const headers: Record<string, string> = {};
-    if (token) headers.Authorization = `Bearer ${token}`;
-
-    let response: Response;
+    let audioBase64: string;
     try {
-      response = await fetch(`${API_BASE_URL_FOR_UPLOAD}/chat/transcribe`, {
-        method: 'POST',
-        headers,
-        body: formData,
-      });
+      audioBase64 = await readFileAsBase64(uri);
     } catch {
-      throw new ApiError(0, "Couldn't reach the server. Check your connection and try again.");
+      throw new ApiError(0, 'Could not read that recording. Please try again.');
     }
 
-    let body: { success: boolean; message: string; data?: { text: string }; errors?: unknown } | undefined;
-    try {
-      body = await response.json();
-    } catch {
-      // no-op — some error responses may not carry a JSON body
-    }
-
-    if (!response.ok || !body?.success || !body.data) {
-      throw new ApiError(response.status, body?.message || `Request failed (${response.status})`, body?.errors);
-    }
-    return body.data;
+    return apiRequest(
+      '/chat/transcribe',
+      { method: 'POST', body: JSON.stringify({ audioBase64, mimeType: 'audio/aac' }) },
+      45000
+    );
   },
 };

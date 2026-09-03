@@ -31,6 +31,7 @@ export interface Ingredient {
 export interface ProductLike {
   ingredients: Ingredient[];
   contraindications?: string;
+  precautions?: string;
 }
 
 export interface HealthProfileLike {
@@ -56,6 +57,56 @@ export function findAllergyConflicts(product: ProductLike, healthProfile: Health
     if (hit) matches.push({ productIngredient: ingredient.name, matchedAllergy: hit });
   }
   return matches;
+}
+
+/**
+ * Whether a product's documented contraindications actually overlap with
+ * something on this user's profile (a declared condition, or a pregnancy-
+ * related term when the user is pregnant/breastfeeding/planning) — not just
+ * "this product happens to have some contraindications text on file," which
+ * is true of most real herbal products and made the deterministic gate flag
+ * CAUTION (and therefore nudge toward a doctor) on nearly every product
+ * question regardless of whether it applied to this user at all.
+ */
+export function hasRelevantContraindication(
+  products: ProductLike[],
+  healthProfile: (HealthProfileLike & { conditions?: string[]; medicalHistoryTags?: string[] }) | null
+): boolean {
+  return products.some((p) => {
+    const text = p.contraindications?.toLowerCase().trim();
+    if (!text) return false;
+    if (
+      healthProfile?.pregnancyStatus &&
+      ['pregnant', 'breastfeeding', 'planning'].includes(healthProfile.pregnancyStatus) &&
+      /pregnan|breastfeed|lactat/.test(text)
+    ) {
+      return true;
+    }
+    const conditionTerms = [...(healthProfile?.conditions ?? []), ...(healthProfile?.medicalHistoryTags ?? [])]
+      .map((c) => c.toLowerCase().trim())
+      .filter(Boolean);
+    return conditionTerms.some((c) => text.includes(c));
+  });
+}
+
+/**
+ * Whether a product's own documented precautions/contraindications actually
+ * flag a medication interaction, for a user who has a medication on file —
+ * not just "user takes something and a product came up," which triggered
+ * POTENTIAL_INTERACTION on almost every product question for anyone with any
+ * medication logged, regardless of whether that product says anything about
+ * drug interactions at all.
+ */
+export function hasRelevantMedicationInteraction(
+  products: ProductLike[],
+  healthProfile: (HealthProfileLike & { currentMedicationTags?: string[] }) | null
+): boolean {
+  const hasMedicationOnFile = Boolean(healthProfile?.currentMedications) || (healthProfile?.currentMedicationTags?.length ?? 0) > 0;
+  if (!hasMedicationOnFile) return false;
+  return products.some((p) => {
+    const text = `${p.precautions ?? ''} ${p.contraindications ?? ''}`.toLowerCase();
+    return /medication|drug interaction|blood thinner|anticoagulant|concurrent medicine|prescription|interact/.test(text);
+  });
 }
 
 export type SafetyCategory = typeof import('../models/ChatMessage').RESPONSE_CATEGORIES[number];

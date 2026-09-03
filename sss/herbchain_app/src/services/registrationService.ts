@@ -9,7 +9,7 @@ export interface RegistrationDraft {
   email: string;
   phone: string;
   password: string;
-  language: 'en' | 'ta';
+  language: 'en' | 'ta' | 'hi' | 'kn' | 'te' | 'tcy';
 
   // Step 2 — Identity
   dateOfBirth: string; // DD/MM/YYYY

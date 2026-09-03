@@ -3,7 +3,16 @@ import { Product, IProduct } from '../models/Product';
 import { DoctorGuidanceService } from './DoctorGuidanceService';
 import { StoreService } from './StoreService';
 import { GeminiService, GeminiUnavailableError, ChatTurn } from '../integrations/ai/GeminiService';
-import { detectEmergency, EMERGENCY_RESPONSE_MESSAGE, findAllergyConflicts, classify, AllergyMatch, HealthProfileLike } from './ChatSafetyService';
+import {
+  detectEmergency,
+  EMERGENCY_RESPONSE_MESSAGE,
+  findAllergyConflicts,
+  classify,
+  hasRelevantContraindication,
+  hasRelevantMedicationInteraction,
+  AllergyMatch,
+  HealthProfileLike,
+} from './ChatSafetyService';
 import { supabaseAdmin } from '../lib/supabaseAdmin';
 
 // Chat sessions/messages and health profiles now live in Supabase
@@ -73,7 +82,16 @@ async function fetchHealthProfile(userId: string): Promise<HealthProfileSummary 
   };
 }
 
-async function fetchAppLogin(userId: string): Promise<{ language: 'en' | 'ta'; region: string | null } | null> {
+const LANGUAGE_NAMES: Record<string, string> = {
+  en: 'English',
+  ta: 'Tamil',
+  hi: 'Hindi',
+  kn: 'Kannada',
+  te: 'Telugu',
+  tcy: 'Tulu',
+};
+
+async function fetchAppLogin(userId: string): Promise<{ language: string; region: string | null } | null> {
   const { data } = await supabaseAdmin.from('app_login').select('language, region').eq('id', userId).maybeSingle();
   return data ? { language: data.language, region: data.region } : null;
 }
@@ -84,17 +102,54 @@ You are the AyurTrace+ AI assistant: a knowledgeable, confident Ayurvedic produc
 CORE RULES (never break these):
 1. When RETRIEVED CONTEXT lists a matching product, actually recommend it. Name it, explain what it's traditionally used for and how to use it (from the documented usage instructions), and answer with substance — don't bury the recommendation under hedges or make "consult a doctor" the headline of your answer. Confidence is the default tone; caution is the exception, reserved for rule 3.
 2. You are not a doctor, so don't diagnose a specific medical condition, don't prescribe a dosage beyond what's documented, and don't claim a product "cures" or "treats" a disease or is "100% safe"/"guaranteed." That's a narrower rule than "always defer to a doctor" — describing traditional/documented uses and giving usage guidance is exactly what you're here to do.
-3. Recommend seeing a doctor only when it's actually warranted: an allergy conflict, a flagged medication interaction, an emergency, or symptoms that sound severe, worsening, or genuinely need a real diagnosis. For an ordinary wellness question with a good product match, a doctor referral is not the answer — the product information is.
+3. Recommend seeing a doctor only when it's actually warranted: an allergy conflict, a flagged medication interaction, an emergency, or symptoms that sound severe, worsening, or genuinely need a real diagnosis. For an ordinary wellness question with a good product match, a doctor referral is not the answer — the product information is. When a doctor referral IS warranted, never phrase it as a generic outside referral like "consult a certified doctor" or "see a healthcare professional" — AyurTrace+ has its own verified Ayurvedic doctors in the app's Doctor Portal, so phrase it as "we have verified Ayurvedic doctors you can ask in the Doctor Portal" (or similar, in your own words), pointing the user to a real feature in this app rather than a vague outside action.
 4. Never invent specifics that would need to be verified: no fake product names, ingredients, prices, doctor names, credentials, studies, or citations beyond what's in RETRIEVED CONTEXT. If RETRIEVED CONTEXT lists no matching product, say so plainly (don't imply the app carries something it doesn't) — but still answer the underlying Ayurveda/wellness question using your own general knowledge, clearly framed as general traditional/educational information.
 5. If the context notes that verified doctor guidance is available, mention that a verified doctor has published guidance on this topic and that the user can view it in the app — but do NOT reproduce, paraphrase, or invent its content yourself; the app displays the doctor's original text separately, unedited.
 6. Ask a short, relevant follow-up question when the user's request is broad (e.g. "what are you mainly experiencing — indigestion, bloating, or something else?") rather than immediately recommending a product. Don't ask more than one or two questions before proceeding to an answer.
 7. A one-line reminder that this doesn't replace professional medical advice is fine at the very end of an answer that involves a real health concern — keep it to a single short trailing line, never the framing or focus of the response, and skip it entirely for purely informational questions (ingredients, general product facts) where it would just be noise.
 8. Keep responses concise — a few short paragraphs at most, not an essay. Vary your sentence structure and opening naturally between turns; don't fall into a repetitive template.
-9. Respond in the user's preferred language if it is Tamil ('ta'); otherwise respond in English.
+9. Detect which language the user's current message is written/spoken in — English, Tamil, Hindi, Kannada, Telugu, or Tulu — and respond in that same language and script (Tulu, if that's what the user wrote, in Kannada script, the common digital convention). If a message mixes languages or is ambiguous, fall back to the account's stored preferred language noted in the context below. Don't ask the user which language to use — just match what they actually wrote.
 10. Stay focused on Ayurveda, health, and this app's products — for off-topic requests (trivia, jokes, unrelated tasks), briefly and politely redirect the user back to what you can actually help with, in your own words.
+11. If the user has attached an image (a product label, ingredients list, a prescription, or any other document/photo), actually look at it and use what it shows to answer — read label text, identify ingredients, describe what's visible — instead of asking the user to just describe it in words. If the image is unclear or doesn't show what's needed to answer, say so specifically (e.g. "the ingredient list isn't legible in this photo") rather than guessing at its contents.
 
 A pre-computed safety classification for this turn is included in the context and is authoritative — let it shape your tone (e.g. for POTENTIAL_ALLERGY_CONFLICT or URGENT_MEDICAL_ATTENTION, lead with the warning before anything else). For SAFE_INFORMATIONAL or CAUTION, lead with the actual answer.
 `.trim();
+
+interface DoctorPersonaInfo {
+  doctorName: string;
+  qualification: string | null;
+  clinicHospitalName: string | null;
+  district: string;
+}
+
+/**
+ * Interim persona for the Doctor Portal's per-doctor consult screen — this is
+ * still the same Gemini call and the same safety/emergency gating as the
+ * general assistant, but answers in the first person as the doctor's own
+ * consultation voice instead of a third-party "wellness guide" describing
+ * products. This exists because there is no real two-way doctor messaging
+ * yet; the moment that ships, this persona is meant to be retired in favor of
+ * an actual human doctor on the other end. Never invent medical credentials,
+ * physical-exam findings, or lab results the AI doesn't have — the persona
+ * changes tone and framing, not what's actually knowable from a chat.
+ */
+function buildDoctorConsultSystemInstruction(doctor: DoctorPersonaInfo): string {
+  return `
+You are AyurTrace+'s AI, currently standing in for ${doctor.doctorName}${doctor.qualification ? ` (${doctor.qualification})` : ''}${doctor.clinicHospitalName ? ` of ${doctor.clinicHospitalName}` : ''} in a private consultation chat. The user already knows this is an AI stand-in (the app discloses this once, up front) — you do not need to repeat that disclosure every message. Given that, answer directly in the first person the way this doctor would in a real consultation: warm, direct, personal ("I'd suggest...", "In your case..."), not like a product-catalog assistant.
+
+CORE RULES (never break these):
+1. This is a private one-on-one consultation with this specific doctor's persona. NEVER suggest the user browse to other doctors, the Doctor Portal, or "find a doctor near you" — they are already exactly where that would lead them. If RETRIEVED CONTEXT lists a matching product, recommend it directly and explain its traditional use and how to use it.
+2. You are an AI, not a licensed physician, and you have not examined this patient — so never claim to have performed an exam, never invent lab results or a specific diagnosis, and never prescribe a dosage beyond what's documented. Speak with a doctor's directness and warmth, not a doctor's authority to diagnose.
+3. If the message describes an emergency or something that genuinely needs an in-person visit or a real diagnosis, say so plainly and recommend the user visit ${doctor.clinicHospitalName || 'the clinic'} in person or call ahead — don't soften it, and don't redirect to a different doctor.
+4. Never invent specifics that would need to be verified: no fake ingredients, prices, studies, or citations beyond what's in RETRIEVED CONTEXT. If RETRIEVED CONTEXT lists no matching product, say so plainly but still answer the underlying Ayurveda/wellness question from general traditional knowledge.
+5. Ask a short, relevant follow-up question when the request is broad, rather than immediately answering. Don't ask more than one or two before proceeding.
+6. Keep responses concise — a few short paragraphs at most. Detect which language the user's message is written/spoken in — English, Tamil, Hindi, Kannada, Telugu, or Tulu (in Kannada script) — and reply in that same language; don't ask which language to use.
+7. Stay focused on Ayurveda, health, and this consultation — for off-topic requests, briefly and politely redirect back to the consultation, in your own words.
+8. If the user has attached an image (a product label, prescription, or other document/photo), actually read it and use it to answer directly, the way a doctor glancing at what a patient hands them would — don't ask them to describe it in words instead.
+
+A pre-computed safety classification for this turn is included in context and is authoritative — for POTENTIAL_ALLERGY_CONFLICT or URGENT_MEDICAL_ATTENTION, lead with the warning before anything else.
+`.trim();
+}
 
 interface SendMessageResult {
   sessionId: string;
@@ -133,6 +188,21 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
  *  doctor" list. Real Haversine distance, same pattern as StoreService — the
  *  table is small enough (~540 rows) to fetch-and-sort rather than needing
  *  PostGIS. */
+async function fetchDoctorById(doctorId: string): Promise<DoctorPersonaInfo | null> {
+  const { data } = await supabaseAdmin
+    .from('ayurvedic_doctors')
+    .select('doctor_name, qualification, clinic_hospital_name, district')
+    .eq('id', doctorId)
+    .maybeSingle();
+  if (!data) return null;
+  return {
+    doctorName: data.doctor_name,
+    qualification: data.qualification,
+    clinicHospitalName: data.clinic_hospital_name,
+    district: data.district,
+  };
+}
+
 async function findNearbyDoctors(coordinates: { latitude: number; longitude: number }, limit = 3): Promise<AyurvedicDoctorRow[]> {
   const { data } = await supabaseAdmin
     .from('ayurvedic_doctors')
@@ -176,7 +246,7 @@ function buildFallbackReply(
   if (category === 'POTENTIAL_ALLERGY_CONFLICT') {
     lines.push(
       `Your health profile lists an allergy to ${allergyConflicts.map((c) => c.matchedAllergy).join(', ')}, ` +
-        `which matches an ingredient in a product that came up for your request. Avoid it and consult a qualified healthcare professional.`
+        `which matches an ingredient in a product that came up for your request. Avoid it — AyurTrace+ has verified Ayurvedic doctors you can ask in the Doctor Portal if you'd like guidance.`
     );
   } else if (products.length) {
     lines.push(`I found ${products.length} verified product${products.length > 1 ? 's' : ''} that may be relevant: ${products.map((p) => p.productName).join(', ')}.`);
@@ -204,10 +274,8 @@ export class ChatbotService {
     return toSessionResponse(data);
   }
 
-  async transcribe(userId: string, buffer: Buffer, mimeType: string, language?: 'en' | 'ta') {
-    const appLogin = await fetchAppLogin(userId);
-    const targetLanguage = language ?? appLogin?.language ?? 'en';
-    const text = await this.geminiService.transcribeAudio(buffer, mimeType, targetLanguage);
+  async transcribe(userId: string, buffer: Buffer, mimeType: string) {
+    const text = await this.geminiService.transcribeAudio(buffer, mimeType);
     return { text };
   }
 
@@ -245,8 +313,11 @@ export class ChatbotService {
     userId: string,
     sessionId: string,
     content: string,
-    coordinates?: { latitude: number; longitude: number }
+    coordinates?: { latitude: number; longitude: number },
+    doctorId?: string,
+    image?: { mimeType: string; data: string }
   ): Promise<SendMessageResult> {
+    const doctorPersona = doctorId ? await fetchDoctorById(doctorId) : null;
     const { data: session, error: sessionError } = await supabaseAdmin
       .from('customer_chat_sessions')
       .select('*')
@@ -324,13 +395,13 @@ export class ChatbotService {
 
     // Reference-directory doctors near the user, by real distance — same
     // "never stored, never required" treatment as the stores lookup above.
-    const nearbyDoctors = coordinates ? await findNearbyDoctors(coordinates) : [];
+    // Skipped entirely inside a doctor-consult session: the user is already
+    // talking to a specific doctor, so surfacing alternates is the wrong CTA.
+    const nearbyDoctors = coordinates && !doctorPersona ? await findNearbyDoctors(coordinates) : [];
 
     const allergyConflicts = products.flatMap((p) => findAllergyConflicts(p, healthProfile));
-    const hasContraindicationNote = products.some((p) => Boolean(p.contraindications));
-    const hasMedicationNote =
-      (Boolean(healthProfile?.currentMedications) || (healthProfile?.currentMedicationTags.length ?? 0) > 0) &&
-      products.length > 0;
+    const hasContraindicationNote = hasRelevantContraindication(products, healthProfile);
+    const hasMedicationNote = hasRelevantMedicationInteraction(products, healthProfile);
     const foundAnyContext = products.length > 0 || guidanceHits.length > 0;
 
     const category = classify({
@@ -366,24 +437,28 @@ export class ChatbotService {
               .map((s) => `${s.name} (${s.distanceKm} km away)`)
               .join(', ')}. These are also shown separately in the app.`
           : 'No nearby stores currently carry this product in stock.'
-        : 'The user has not shared their location, so nearby store availability was not checked.',
-      coordinates
-        ? nearbyDoctors.length
-          ? `Nearby Ayurvedic doctors: ${nearbyDoctors
-              .map((d) => `${d.doctor_name}${d.clinic_hospital_name ? ` (${d.clinic_hospital_name})` : ''}, ${d.district}`)
-              .join('; ')}. If a doctor consultation is warranted, you may mention these are available in the app's Doctor Portal — do not imply they can be reached directly through this chat.`
-          : 'No doctors found nearby in the reference directory.'
-        : 'The user has not shared their location, so nearby doctors were not checked.',
-      appLogin?.language === 'ta' ? 'Respond in Tamil.' : 'Respond in English.',
+        : "The app already tried to silently attach the user's live device location to this message and it was unavailable (permission not yet granted, or denied) — do NOT ask the user for a ZIP code or address, this app only supports live device location, not manual entry. If the user is asking to find something nearby, tell them in one short sentence to allow Location access for the AyurTrace+ app in their phone's Settings and then ask again.",
+      doctorPersona
+        ? 'This is a private consultation with one specific doctor (see your persona instructions) — do not mention other doctors, the Doctor Portal, or finding doctors nearby at all.'
+        : coordinates
+          ? nearbyDoctors.length
+            ? `Nearby Ayurvedic doctors: ${nearbyDoctors
+                .map((d) => `${d.doctor_name}${d.clinic_hospital_name ? ` (${d.clinic_hospital_name})` : ''}, ${d.district}`)
+                .join('; ')}. If a doctor consultation is warranted, mention that AyurTrace+ has verified Ayurvedic doctors listed in the app's Doctor Portal and the user can ask them directly there — do not imply they can be reached through this chat, and do not tell the user to "consult a certified doctor" as a generic outside referral when the app already has real, verified doctors available.`
+            : 'No doctors found nearby in the reference directory.'
+          : "The app already tried to silently attach the user's live device location and it was unavailable — see the note above. If a doctor consultation seems warranted but no location is available, still tell the user AyurTrace+ has verified Ayurvedic doctors in the app's Doctor Portal they can ask directly, rather than a generic \"see a doctor\" referral.",
+      `Detect the language of the user's message below and respond in that same language (English, Tamil, Hindi, Kannada, Telugu, or Tulu in Kannada script) — this account's stored language preference is "${LANGUAGE_NAMES[appLogin?.language ?? 'en'] ?? 'English'}", use that only as a fallback if the message itself is ambiguous.`,
     ].join('\n');
 
     const turns: ChatTurn[] = history.slice(0, -1).map((m) => ({ role: m.role, content: m.content }));
     turns.push({ role: 'user', content: `${contextBlock}\n\nUser message: ${content}` });
 
+    const systemInstruction = doctorPersona ? buildDoctorConsultSystemInstruction(doctorPersona) : SYSTEM_INSTRUCTION;
+
     let reply: string;
     let aiAvailable = true;
     try {
-      reply = await this.geminiService.generateReply(SYSTEM_INSTRUCTION, turns);
+      reply = await this.geminiService.generateReply(systemInstruction, turns, image);
     } catch (err) {
       if (!(err instanceof GeminiUnavailableError)) throw err;
       aiAvailable = false;

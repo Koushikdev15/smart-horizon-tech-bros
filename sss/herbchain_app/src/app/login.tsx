@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
+  Image,
   StyleSheet,
   TextInput,
   TouchableOpacity,
@@ -71,12 +72,11 @@ export default function LoginScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           {/* Header Branding */}
           <View style={styles.brandRow}>
-            <View style={styles.logoBadge}>
-              <Icon name="leaf" size={24} color={Colors.gold} />
-            </View>
-            <Text style={styles.brandName}>
-              AYUTRACE<Text style={styles.goldPlus}>+</Text>
-            </Text>
+            <Image
+              source={require('@/assets/images/logo-wordmark.png')}
+              style={styles.brandLogo}
+              resizeMode="contain"
+            />
           </View>
 
           {/* Featured Products — display only, purely for advertisement/education.
@@ -203,26 +203,12 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.lg,
   },
   brandRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     marginBottom: Spacing.xl,
   },
-  logoBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: Spacing.sm,
-  },
-  brandName: {
-    fontFamily: Fonts.family.serifSemiBold,
-    fontSize: Fonts.size.xl,
-    color: Colors.primary,
-  },
-  goldPlus: {
-    color: Colors.gold,
+  brandLogo: {
+    height: 88,
+    aspectRatio: 741 / 595,
   },
   title: {
     fontFamily: Fonts.family.serifSemiBold,

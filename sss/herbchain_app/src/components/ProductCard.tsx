@@ -12,6 +12,8 @@ interface ProductCardProps {
   onBookmarkPress?: () => void;
   isBookmarked?: boolean;
   variant?: 'full' | 'compact';
+  /** Batched by the parent screen (one query per screen, not per card) — omit while unrated. */
+  reviewStats?: { avgRating: number; reviewCount: number } | null;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -20,6 +22,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   onBookmarkPress,
   isBookmarked = false,
   variant = 'full',
+  reviewStats,
 }) => {
   const { t } = useTranslation();
   const isCompact = variant === 'compact';
@@ -63,6 +66,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             <Icon name="shield-checkmark-outline" size={16} color={Colors.secondary} />
             <Text style={styles.trustText}>{t('product.trustScoreLabel')}: {product.trustScore}/100</Text>
           </View>
+          {reviewStats && reviewStats.reviewCount > 0 && (
+            <View style={styles.ratingChip}>
+              <Icon name="star" size={13} color={Colors.gold} />
+              <Text style={styles.ratingChipText}>
+                {reviewStats.avgRating.toFixed(1)} ({reviewStats.reviewCount})
+              </Text>
+            </View>
+          )}
         </View>
       </View>
     </TouchableOpacity>
@@ -140,5 +151,15 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.family.medium,
     fontSize: 14,
     color: Colors.secondary,
+  },
+  ratingChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  ratingChipText: {
+    fontFamily: Fonts.family.medium,
+    fontSize: 12,
+    color: Colors.textSecondary,
   },
 });

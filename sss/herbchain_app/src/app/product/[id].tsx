@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -23,7 +24,18 @@ import { useProductStore } from '@/store/productStore';
 import { ApiError } from '@/lib/api';
 import { productService, type SuitabilityResult } from '@/services/productService';
 import { storeService, type NearbyStore } from '@/services/storeService';
+import { reviewService, type ProductReview, type ProductReviewStats } from '@/services/reviewService';
 import { useAuthStore } from '@/store/authStore';
+
+function StarRow({ rating, size = 15, color = Colors.gold }: { rating: number; size?: number; color?: string }) {
+  return (
+    <View style={{ flexDirection: 'row', gap: 2 }}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <Icon key={n} name={n <= Math.round(rating) ? 'star' : 'star-outline'} size={size} color={color} />
+      ))}
+    </View>
+  );
+}
 
 const VERDICT_STYLE: Record<SuitabilityResult['verdict'], { bg: string; fg: string; icon: 'checkmark-circle' | 'alert-circle' | 'warning' | 'help-circle-outline' }> = {
   NO_KNOWN_CONFLICT: { bg: Colors.secondaryContainer, fg: Colors.onSecondaryContainer, icon: 'checkmark-circle' },
@@ -91,6 +103,58 @@ export default function ProductDetailScreen() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, isGuest, product.name]);
+
+  const [reviewStats, setReviewStats] = useState<ProductReviewStats | null>(null);
+  const [reviews, setReviews] = useState<ProductReview[]>([]);
+  const [myRating, setMyRating] = useState(0);
+  const [myComment, setMyComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
+
+  const loadReviews = useCallback(async () => {
+    try {
+      const [stats, list] = await Promise.all([
+        reviewService.getStats(product.id),
+        reviewService.list(product.id),
+      ]);
+      setReviewStats(stats);
+      setReviews(list);
+      if (isAuthenticated && !isGuest) {
+        const mine = await reviewService.getMyReview(product.id);
+        if (mine) {
+          setMyRating(mine.rating);
+          setMyComment(mine.comment || '');
+        }
+      }
+    } catch {
+      // Reviews are supplementary — a failed fetch shouldn't block the rest of the page.
+    }
+  }, [product.id, isAuthenticated, isGuest]);
+
+  useEffect(() => {
+    loadReviews();
+  }, [loadReviews]);
+
+  async function handleSubmitReview() {
+    if (!isAuthenticated || isGuest) {
+      setReviewError('Sign in to leave a review.');
+      return;
+    }
+    if (myRating < 1) {
+      setReviewError('Select a star rating first.');
+      return;
+    }
+    setSubmittingReview(true);
+    setReviewError(null);
+    try {
+      await reviewService.submit(product.id, myRating, myComment);
+      await loadReviews();
+    } catch {
+      setReviewError('Could not submit your review. Please try again.');
+    } finally {
+      setSubmittingReview(false);
+    }
+  }
 
   const [stores, setStores] = useState<NearbyStore[] | null>(null);
   const [storesError, setStoresError] = useState<string | null>(null);
@@ -505,6 +569,69 @@ export default function ProductDetailScreen() {
           </View>
         )}
 
+        {/* Customer Reviews */}
+        <View style={[styles.suitabilityCard, Shadow.sm]}>
+          <View style={styles.suitabilityHeaderRow}>
+            <Icon name="star-outline" size={20} color={Colors.primary} />
+            <Text style={styles.sectionTitle}>Customer Reviews</Text>
+          </View>
+
+          <View style={styles.reviewAggregateRow}>
+            <Text style={styles.reviewAvgValue}>{reviewStats && reviewStats.reviewCount > 0 ? reviewStats.avgRating.toFixed(1) : '—'}</Text>
+            <View>
+              <StarRow rating={reviewStats?.avgRating ?? 0} size={16} />
+              <Text style={styles.reviewCountText}>
+                {reviewStats && reviewStats.reviewCount > 0
+                  ? `${reviewStats.reviewCount} review${reviewStats.reviewCount === 1 ? '' : 's'}`
+                  : 'No reviews yet'}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.reviewDivider} />
+
+          <Text style={styles.reviewFormLabel}>{myRating > 0 ? 'Your rating' : 'Rate this product'}</Text>
+          <View style={{ flexDirection: 'row', gap: 6, marginBottom: Spacing.sm }}>
+            {[1, 2, 3, 4, 5].map((n) => (
+              <TouchableOpacity key={n} onPress={() => setMyRating(n)} hitSlop={6}>
+                <Icon name={n <= myRating ? 'star' : 'star-outline'} size={26} color={Colors.gold} />
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <TextInput
+            style={styles.reviewInput}
+            placeholder="Share your experience (optional)"
+            placeholderTextColor={Colors.textMuted}
+            value={myComment}
+            onChangeText={setMyComment}
+            multiline
+          />
+
+          {reviewError && <Text style={styles.suitabilityErrorText}>{reviewError}</Text>}
+
+          <PrimaryButton
+            title={submittingReview ? 'Submitting…' : 'Submit Review'}
+            onPress={handleSubmitReview}
+            loading={submittingReview}
+            style={{ marginTop: Spacing.sm }}
+          />
+
+          {reviews.length > 0 && (
+            <View style={styles.reviewList}>
+              {reviews.map((r) => (
+                <View key={r.id} style={styles.reviewItem}>
+                  <View style={styles.reviewItemHeaderRow}>
+                    <Text style={styles.reviewAuthor}>{r.authorName}</Text>
+                    <StarRow rating={r.rating} size={12} />
+                  </View>
+                  {r.comment && <Text style={styles.reviewComment}>{r.comment}</Text>}
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+
         {/* AI Copilot CTA */}
         <View style={styles.copilotCtaBox}>
           <Icon name="sparkles" size={28} color={Colors.gold} />
@@ -515,7 +642,7 @@ export default function ProductDetailScreen() {
 
           <PrimaryButton
             title="Ask AyurTrace+"
-            onPress={() => router.push('/copilot')}
+            onPress={() => router.push({ pathname: '/copilot', params: { productName: product.name } } as any)}
             icon="sparkles"
             style={{ marginTop: Spacing.md }}
           />
@@ -816,6 +943,69 @@ const styles = StyleSheet.create({
     ...Type.bodySm,
     fontSize: 11,
     marginTop: 1,
+  },
+  reviewAggregateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  reviewAvgValue: {
+    fontFamily: Fonts.family.bold,
+    fontSize: 32,
+    color: Colors.text,
+  },
+  reviewCountText: {
+    ...Type.bodySm,
+    color: Colors.textMuted,
+    marginTop: 2,
+  },
+  reviewDivider: {
+    height: 1,
+    backgroundColor: Colors.borderLight,
+    marginBottom: Spacing.md,
+  },
+  reviewFormLabel: {
+    ...Type.labelMd,
+    color: Colors.onSurface,
+    marginBottom: Spacing.xs,
+  },
+  reviewInput: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.lg,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    minHeight: 70,
+    textAlignVertical: 'top',
+    fontFamily: Fonts.family.regular,
+    fontSize: Fonts.size.sm,
+    color: Colors.text,
+    backgroundColor: Colors.surfaceContainerLow,
+  },
+  reviewList: {
+    marginTop: Spacing.lg,
+    gap: Spacing.md,
+  },
+  reviewItem: {
+    paddingTop: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: Colors.outlineVariant,
+  },
+  reviewItemHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  reviewAuthor: {
+    ...Type.labelMd,
+    color: Colors.onSurface,
+  },
+  reviewComment: {
+    ...Type.bodySm,
+    color: Colors.textSecondary,
+    lineHeight: 18,
   },
   copilotCtaBox: {
     backgroundColor: Colors.darkGreen,

@@ -6,6 +6,7 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  Image,
   KeyboardAvoidingView,
   Keyboard,
   Platform,
@@ -147,11 +148,19 @@ interface ChatThreadProps {
   micState: 'idle' | 'recording' | 'transcribing' | 'denied';
   micError: string | null;
   handleMicPress: () => void;
+  attachingImage?: boolean;
+  handleAttachImage?: () => void;
   scrollRef: React.RefObject<any>;
   greeting: string;
   disclaimer: string;
   /** Renders a "Consult a Doctor" chip under cautionary replies. Omit to hide it entirely (e.g. already on the doctor-consult screen). */
   showConsultCta?: boolean;
+  /** 'doctor' gives the thread a private-consult look (different avatar/bubble
+   *  tint, no per-message AI footer since the screen's own top banner already
+   *  discloses it once) instead of the general "Ask AyurTrace+" assistant look. */
+  variant?: 'assistant' | 'doctor';
+  placeholder?: string;
+  suggestedPrompts?: string[];
 }
 
 export function ChatThread({
@@ -165,12 +174,19 @@ export function ChatThread({
   micState,
   micError,
   handleMicPress,
+  attachingImage = false,
+  handleAttachImage,
   scrollRef,
   greeting,
   disclaimer,
   showConsultCta = false,
+  variant = 'assistant',
+  placeholder,
+  suggestedPrompts,
 }: ChatThreadProps) {
   const router = useRouter();
+  const isDoctor = variant === 'doctor';
+  const prompts = suggestedPrompts ?? SUGGESTED_PROMPTS;
 
   return (
     <KeyboardWrapper>
@@ -190,10 +206,10 @@ export function ChatThread({
           </View>
         ) : (
           <View style={[styles.msgRow, styles.aiRow]}>
-            <View style={styles.aiAvatar}>
-              <Icon name="sparkles" size={16} color={Colors.gold} />
+            <View style={[styles.aiAvatar, isDoctor && styles.aiAvatarDoctor]}>
+              <Icon name={isDoctor ? 'medkit-outline' : 'sparkles'} size={16} color={isDoctor ? Colors.onSecondaryContainer : Colors.gold} />
             </View>
-            <View style={[styles.msgBubble, styles.aiBubble, Shadow.sm]}>
+            <View style={[styles.msgBubble, isDoctor ? styles.aiBubbleDoctor : styles.aiBubble, Shadow.sm]}>
               <Text style={[styles.msgText, styles.aiText]}>{greeting}</Text>
             </View>
           </View>
@@ -207,14 +223,14 @@ export function ChatThread({
             <View key={msg.id} style={{ marginBottom: Spacing.md }}>
               <View style={[styles.msgRow, isAi ? styles.aiRow : styles.userRow]}>
                 {isAi && (
-                  <View style={styles.aiAvatar}>
-                    <Icon name="sparkles" size={16} color={Colors.gold} />
+                  <View style={[styles.aiAvatar, isDoctor && styles.aiAvatarDoctor]}>
+                    <Icon name={isDoctor ? 'medkit-outline' : 'sparkles'} size={16} color={isDoctor ? Colors.onSecondaryContainer : Colors.gold} />
                   </View>
                 )}
                 <View
                   style={[
                     styles.msgBubble,
-                    isAi ? styles.aiBubble : styles.userBubble,
+                    isAi ? (isDoctor ? styles.aiBubbleDoctor : styles.aiBubble) : styles.userBubble,
                     msg.isError && styles.errorBubble,
                     Shadow.sm,
                   ]}
@@ -225,8 +241,9 @@ export function ChatThread({
                       <Text style={[styles.categoryTagText, { color: meta.fg }]}>{meta.label}</Text>
                     </View>
                   )}
+                  {msg.imageUri && <Image source={{ uri: msg.imageUri }} style={styles.msgImage} />}
                   <Text style={[styles.msgText, isAi ? styles.aiText : styles.userText]}>{msg.content}</Text>
-                  {isAi && !msg.isError && (
+                  {isAi && !msg.isError && !isDoctor && (
                     <Text style={styles.aiSourceTag}>
                       {msg.aiAvailable === false ? 'Direct data summary' : 'AI-generated explanation'} · not written by a doctor
                     </Text>
@@ -278,12 +295,12 @@ export function ChatThread({
 
         {sending && (
           <View style={[styles.msgRow, styles.aiRow]}>
-            <View style={styles.aiAvatar}>
-              <Icon name="sparkles" size={16} color={Colors.gold} />
+            <View style={[styles.aiAvatar, isDoctor && styles.aiAvatarDoctor]}>
+              <Icon name={isDoctor ? 'medkit-outline' : 'sparkles'} size={16} color={isDoctor ? Colors.onSecondaryContainer : Colors.gold} />
             </View>
-            <View style={[styles.msgBubble, styles.aiBubble, Shadow.sm, styles.typingBubble]}>
+            <View style={[styles.msgBubble, isDoctor ? styles.aiBubbleDoctor : styles.aiBubble, Shadow.sm, styles.typingBubble]}>
               <ActivityIndicator size="small" color={Colors.textMuted} />
-              <Text style={styles.typingText}>AyurTrace+ is thinking…</Text>
+              <Text style={styles.typingText}>{isDoctor ? 'Typing…' : 'AyurTrace+ is thinking…'}</Text>
             </View>
           </View>
         )}
@@ -292,7 +309,7 @@ export function ChatThread({
           <View style={styles.promptsContainer}>
             <Text style={styles.promptsTitle}>Suggested Questions</Text>
             <View style={styles.promptsGrid}>
-              {SUGGESTED_PROMPTS.map((prompt) => (
+              {prompts.map((prompt) => (
                 <TouchableOpacity key={prompt} style={styles.promptChip} onPress={() => handleSend(prompt)}>
                   <Text style={styles.promptText}>&quot;{prompt}&quot;</Text>
                 </TouchableOpacity>
@@ -314,6 +331,20 @@ export function ChatThread({
       )}
 
       <View style={styles.inputBar}>
+        {handleAttachImage && (
+          <TouchableOpacity
+            style={styles.micBtn}
+            onPress={handleAttachImage}
+            disabled={attachingImage || sending}
+            accessibilityLabel="Attach a photo or document"
+          >
+            {attachingImage ? (
+              <ActivityIndicator size="small" color={Colors.primary} />
+            ) : (
+              <Icon name="camera-outline" size={19} color={Colors.primary} />
+            )}
+          </TouchableOpacity>
+        )}
         <TouchableOpacity
           style={[styles.micBtn, micState === 'recording' && styles.micBtnActive]}
           onPress={handleMicPress}
@@ -332,7 +363,7 @@ export function ChatThread({
         </TouchableOpacity>
         <TextInput
           style={styles.textInput}
-          placeholder="Ask AyurTrace+..."
+          placeholder={placeholder ?? 'Ask AyurTrace+...'}
           value={inputText}
           onChangeText={setInputText}
           placeholderTextColor={Colors.textMuted}
@@ -412,11 +443,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.outlineVariant,
   },
+  aiAvatarDoctor: {
+    backgroundColor: Colors.secondaryContainer,
+  },
+  aiBubbleDoctor: {
+    backgroundColor: Colors.secondaryContainer + '55',
+    borderBottomLeftRadius: 4,
+    borderWidth: 1,
+    borderColor: Colors.secondaryContainer,
+  },
   userBubble: {
     backgroundColor: Colors.primary,
     borderBottomRightRadius: 4,
   },
   errorBubble: { borderColor: Colors.error },
+  msgImage: {
+    width: 180,
+    height: 180,
+    borderRadius: BorderRadius.lg,
+    marginBottom: Spacing.xs,
+    backgroundColor: Colors.surfaceVariant,
+  },
   msgText: {
     fontFamily: Fonts.family.regular,
     fontSize: Fonts.size.sm + 1,

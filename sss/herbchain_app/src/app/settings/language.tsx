@@ -6,15 +6,15 @@ import { Colors, Fonts, Spacing, BorderRadius, Shadow } from '@/theme';
 import { AppHeader } from '@/components/Header';
 import Icon from '@/components/Icon';
 import { useAuthStore } from '@/store/authStore';
-import { setAppLanguage } from '@/i18n';
+import { setAppLanguage, SUPPORTED_LANGUAGES, type AppLanguage } from '@/i18n';
 
 export default function LanguageSettingsScreen() {
   const router = useRouter();
   const { user, updateUser } = useAuthStore();
 
-  const selectedLang = user?.language || 'en';
+  const selectedLang = (user?.language as AppLanguage) || 'en';
 
-  const selectLanguage = async (lang: 'en' | 'ta') => {
+  const selectLanguage = async (lang: AppLanguage) => {
     updateUser({ language: lang });
     await setAppLanguage(lang);
   };
@@ -25,33 +25,25 @@ export default function LanguageSettingsScreen() {
 
       <View style={styles.content}>
         <View style={[styles.card, Shadow.sm]}>
-          <TouchableOpacity
-            style={[styles.langRow, selectedLang === 'en' && styles.selectedRow]}
-            onPress={() => selectLanguage('en')}
-          >
-            <View style={{ flex: 1 }}>
-              <Text style={styles.langName}>English</Text>
-              <Text style={styles.langSub}>Default Application Language</Text>
-            </View>
-            {selectedLang === 'en' && <Icon name="checkmark-circle" size={24} color={Colors.primary} />}
-          </TouchableOpacity>
-
-          <View style={styles.divider} />
-
-          <TouchableOpacity
-            style={[styles.langRow, selectedLang === 'ta' && styles.selectedRow]}
-            onPress={() => selectLanguage('ta')}
-          >
-            <View style={{ flex: 1 }}>
-              <Text style={styles.langName}>தமிழ் (Tamil)</Text>
-              <Text style={styles.langSub}>தமிழ் மொழியில் அப்ளிகேஷன்</Text>
-            </View>
-            {selectedLang === 'ta' && <Icon name="checkmark-circle" size={24} color={Colors.primary} />}
-          </TouchableOpacity>
+          {SUPPORTED_LANGUAGES.map((lang, i) => (
+            <React.Fragment key={lang.code}>
+              {i > 0 && <View style={styles.divider} />}
+              <TouchableOpacity
+                style={[styles.langRow, selectedLang === lang.code && styles.selectedRow]}
+                onPress={() => selectLanguage(lang.code)}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.langName}>{lang.nativeLabel}</Text>
+                  <Text style={styles.langSub}>{lang.label}</Text>
+                </View>
+                {selectedLang === lang.code && <Icon name="checkmark-circle" size={24} color={Colors.primary} />}
+              </TouchableOpacity>
+            </React.Fragment>
+          ))}
         </View>
 
         <Text style={styles.noteText}>
-          Support for more Indian languages (Hindi, Malayalam, Telugu, Kannada) will be added in future updates.
+          Ask AyurTrace+ and the Doctor Portal chat detect and reply in whichever of these languages you type or speak in — no need to switch this setting just to ask a question in a different one.
         </Text>
       </View>
     </SafeAreaView>

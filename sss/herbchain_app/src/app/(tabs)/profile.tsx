@@ -14,6 +14,7 @@ import { Colors, Type, Spacing, BorderRadius, Shadow } from '@/theme';
 import { AppHeader } from '@/components/Header';
 import Icon, { IconName } from '@/components/Icon';
 import { useAuthStore } from '@/store/authStore';
+import { SUPPORTED_LANGUAGES } from '@/i18n';
 
 interface ProfileMenuItem {
   id: string;
@@ -48,7 +49,13 @@ export default function ProfileScreen() {
       title: t('profileScreen.sectionPreferences'),
       items: [
         { id: 'notifications', title: t('profileScreen.notificationPrefs'), icon: 'notifications-outline', route: '/settings/notifications' },
-        { id: 'language', title: `${t('profileScreen.language')} (English / தமிழ்)`, icon: 'language-outline', route: '/settings/language', badge: user?.language === 'ta' ? 'தமிழ்' : 'English' },
+        {
+          id: 'language',
+          title: t('profileScreen.language'),
+          icon: 'language-outline',
+          route: '/settings/language',
+          badge: SUPPORTED_LANGUAGES.find((l) => l.code === user?.language)?.nativeLabel ?? 'English',
+        },
         { id: 'privacy', title: t('profileScreen.privacySecurity'), icon: 'shield-outline', route: '/settings/privacy' },
       ],
     },

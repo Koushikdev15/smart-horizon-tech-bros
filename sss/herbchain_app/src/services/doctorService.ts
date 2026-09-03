@@ -11,6 +11,7 @@ export interface AyurvedicDoctor {
   phone: string | null;
   latitude: number | null;
   longitude: number | null;
+  verificationStatus: string | null;
 }
 
 export interface NearbyDoctor extends AyurvedicDoctor {
@@ -29,11 +30,12 @@ function mapRow(row: any): AyurvedicDoctor {
     phone: row.phone,
     latitude: row.latitude != null ? Number(row.latitude) : null,
     longitude: row.longitude != null ? Number(row.longitude) : null,
+    verificationStatus: row.verification_status,
   };
 }
 
 const SELECT_FIELDS =
-  'id, registration_no, doctor_name, district, qualification, registered_address, clinic_hospital_name, phone, latitude, longitude';
+  'id, registration_no, doctor_name, district, qualification, registered_address, clinic_hospital_name, phone, latitude, longitude, verification_status';
 
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371;

@@ -41,7 +41,7 @@ export default function LaboratoryScreen() {
         <View style={{ marginTop: Spacing.md, gap: Spacing.sm }}>
           <PrimaryButton
             title="Explain This Report with AyurTrace+"
-            onPress={() => router.push('/copilot')}
+            onPress={() => router.push({ pathname: '/copilot', params: { productName: product.name } } as any)}
             icon="sparkles"
           />
 

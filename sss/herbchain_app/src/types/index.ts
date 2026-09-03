@@ -187,7 +187,7 @@ export interface User {
   name: string;
   email: string;
   phone: string;
-  language: 'en' | 'ta';
+  language: 'en' | 'ta' | 'hi' | 'kn' | 'te' | 'tcy';
   isGuest: boolean;
   profilePhoto?: string;
 

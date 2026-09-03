@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Colors, Type, Spacing, BorderRadius } from '@/theme';
 import { AppHeader } from '@/components/Header';
 import Icon from '@/components/Icon';
@@ -257,9 +258,16 @@ export default function HealthProfileScreen() {
     setError(null);
     try {
       const html = buildHealthProfileHtml(profile, user?.name || 'AyurTrace+ User', user?.ayurvedicId);
-      const { uri } = await Print.printToFileAsync({ html });
+      // Getting the PDF back as base64 and writing it out ourselves — rather
+      // than reading/copying expo-print's own cache/Print/ output file —
+      // sidesteps whatever is blocking reads from that specific path on this
+      // device; the file we hand to Sharing is one our own code created.
+      const { base64 } = await Print.printToFileAsync({ html, base64: true });
+      if (!base64) throw new Error('PDF generation did not return file data.');
+      const shareUri = `${FileSystem.cacheDirectory}HealthProfile-${Date.now()}.pdf`;
+      await FileSystem.writeAsStringAsync(shareUri, base64, { encoding: FileSystem.EncodingType.Base64 });
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: 'Health Profile PDF' });
+        await Sharing.shareAsync(shareUri, { mimeType: 'application/pdf', dialogTitle: 'Health Profile PDF' });
       } else {
         setError('Sharing is not available on this device — the PDF was generated but could not be saved.');
       }

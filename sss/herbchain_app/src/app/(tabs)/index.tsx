@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   FlatList,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -22,6 +23,7 @@ import { useProductStore } from '@/store/productStore';
 import { PRODUCTS, getProductById } from '@/data/mockProducts';
 import { FeaturedCarousel } from '@/components/FeaturedCarousel';
 import { useFeaturedProducts } from '@/hooks/useFeaturedProducts';
+import { blogService, type BlogPost } from '@/services/blogService';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -30,6 +32,14 @@ export default function HomeScreen() {
   const { scanHistory, savedProductIds, isSaved, toggleSaved, unreadAlertCount, isOffline } =
     useProductStore();
   const { products: featuredProducts, loading: featuredLoading } = useFeaturedProducts('home');
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+
+  useEffect(() => {
+    blogService
+      .listRecent(6)
+      .then(setBlogPosts)
+      .catch(() => setBlogPosts([]));
+  }, []);
 
   const recalledProduct = PRODUCTS.find((p) => p.status === 'recalled');
   const savedProducts = savedProductIds
@@ -118,13 +128,13 @@ export default function HomeScreen() {
 
           <TouchableOpacity
             style={[styles.toolCard, Shadow.sm]}
-            onPress={() => router.push('/search')}
+            onPress={() => router.push('/forum' as any)}
           >
             <View style={[styles.toolIcon, { backgroundColor: Colors.surfaceContainerHigh }]}>
-              <Icon name="search" size={22} color={Colors.primary} />
+              <Icon name="chatbubbles-outline" size={22} color={Colors.primary} />
             </View>
-            <Text style={styles.toolTitle}>{t('home.search')}</Text>
-            <Text style={styles.toolSub}>{t('home.searchSub')}</Text>
+            <Text style={styles.toolTitle}>{t('home.forum')}</Text>
+            <Text style={styles.toolSub}>{t('home.forumSub')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -190,6 +200,29 @@ export default function HomeScreen() {
                 onPress={() => router.push(`/product/${product.id}` as any)}
               />
             ))}
+          </>
+        )}
+
+        {/* Daily Reads */}
+        {blogPosts.length > 0 && (
+          <>
+            <SectionHeader title={t('home.dailyReads')} />
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: Spacing.md }}>
+              {blogPosts.map((post) => (
+                <TouchableOpacity
+                  key={post.id}
+                  style={[styles.blogCard, Shadow.sm]}
+                  activeOpacity={0.85}
+                  onPress={() => router.push(`/blog/${post.id}` as any)}
+                >
+                  <Image source={{ uri: post.imageUrl }} style={styles.blogImage} />
+                  <View style={styles.blogCardBody}>
+                    <Text style={styles.blogTitle} numberOfLines={2}>{post.title}</Text>
+                    <Text style={styles.blogExcerpt} numberOfLines={2}>{post.excerpt}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </>
         )}
 
@@ -335,5 +368,32 @@ const styles = StyleSheet.create({
     color: Colors.onSurfaceVariant,
     marginTop: 1,
     textAlign: 'center',
+  },
+  blogCard: {
+    width: 220,
+    backgroundColor: Colors.surfaceContainerLowest,
+    borderRadius: BorderRadius.xl,
+    marginRight: Spacing.md,
+    overflow: 'hidden',
+  },
+  blogImage: {
+    width: '100%',
+    height: 110,
+    backgroundColor: Colors.surfaceVariant,
+  },
+  blogCardBody: {
+    padding: Spacing.sm + 2,
+  },
+  blogTitle: {
+    fontFamily: Fonts.family.semiBold,
+    fontSize: Fonts.size.sm,
+    color: Colors.primary,
+    marginBottom: 2,
+  },
+  blogExcerpt: {
+    fontFamily: Fonts.family.regular,
+    fontSize: 11.5,
+    lineHeight: 15,
+    color: Colors.onSurfaceVariant,
   },
 });

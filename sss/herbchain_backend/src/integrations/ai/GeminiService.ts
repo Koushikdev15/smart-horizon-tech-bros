@@ -32,18 +32,28 @@ export class GeminiService {
     return this.client !== null;
   }
 
-  async generateReply(systemInstruction: string, history: ChatTurn[]): Promise<string> {
+  async generateReply(
+    systemInstruction: string,
+    history: ChatTurn[],
+    image?: { mimeType: string; data: string }
+  ): Promise<string> {
     if (!this.client) {
       throw new GeminiUnavailableError('AI assistant is not configured (missing GEMINI_API_KEY).');
     }
 
     try {
+      const lastIndex = history.length - 1;
       const response = await this.client.models.generateContent({
         model: MODEL,
-        contents: history.map((turn) => ({
-          role: turn.role === 'assistant' ? 'model' : 'user',
-          parts: [{ text: turn.content }],
-        })),
+        contents: history.map((turn, i) => {
+          const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [{ text: turn.content }];
+          // Attached only to the current (last) user turn — never re-sent on
+          // every subsequent turn in the same session.
+          if (image && i === lastIndex && turn.role === 'user') {
+            parts.unshift({ inlineData: image });
+          }
+          return { role: turn.role === 'assistant' ? 'model' : 'user', parts };
+        }),
         config: { systemInstruction, temperature: 0.4 },
       });
 
@@ -61,13 +71,19 @@ export class GeminiService {
    * Transcribes a short voice-chat recording. Text-only, never stored —
    * the caller just drops the result into the chat input for the user to
    * review/edit before sending, same as if they'd typed it.
+   *
+   * Auto-detects the spoken language rather than forcing translation into a
+   * fixed target — the app supports English, Tamil, Hindi, Kannada, Telugu,
+   * and Tulu, and a user should be able to just speak in whichever of these
+   * they're comfortable with. The transcript then flows into the normal chat
+   * pipeline, which detects the language of the message text itself and
+   * replies in kind — so nothing downstream needs to know which language
+   * was spoken, only what was said.
    */
-  async transcribeAudio(buffer: Buffer, mimeType: string, language: 'en' | 'ta'): Promise<string> {
+  async transcribeAudio(buffer: Buffer, mimeType: string): Promise<string> {
     if (!this.client) {
       throw new GeminiUnavailableError('Voice transcription is not configured (missing GEMINI_API_KEY).');
     }
-
-    const languageName = language === 'ta' ? 'Tamil' : 'English';
 
     try {
       const response = await this.client.models.generateContent({
@@ -77,7 +93,14 @@ export class GeminiService {
             role: 'user',
             parts: [
               { inlineData: { mimeType, data: buffer.toString('base64') } },
-              { text: `Transcribe this audio verbatim in ${languageName}. Return only the transcribed text, no commentary.` },
+              {
+                text:
+                  'Transcribe this audio verbatim, in whichever language is actually being spoken — it will be ' +
+                  'English, Tamil, Hindi, Kannada, Telugu, or Tulu. Write it in that language\'s own native script ' +
+                  '(Tulu, if spoken, should be written in Kannada script, which is the common practice since Tulu ' +
+                  'lacks a widely used digital script). Do not translate it into a different language. Return only ' +
+                  'the transcribed text, no commentary.',
+              },
             ],
           },
         ],

@@ -115,24 +115,44 @@ export default function DoctorPortalScreen() {
 
             {doctors.map((doctor) => (
               <View key={doctor.id} style={[styles.doctorCard, Shadow.sm]}>
-                <View style={styles.doctorIconBox}>
-                  <Icon name="medkit-outline" size={20} color={Colors.primary} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.doctorName} numberOfLines={1}>{doctor.doctorName}</Text>
-                  {doctor.qualification && <Text style={styles.doctorMeta}>{doctor.qualification}</Text>}
-                  {doctor.clinicHospitalName && (
-                    <Text style={styles.doctorMeta} numberOfLines={1}>{doctor.clinicHospitalName}</Text>
+                <View style={styles.doctorTopRow}>
+                  <View style={styles.doctorAvatar}>
+                    <Icon name="medkit-outline" size={26} color={Colors.primary} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.doctorName} numberOfLines={1}>{doctor.doctorName}</Text>
+                    {doctor.clinicHospitalName && (
+                      <Text style={styles.doctorClinic} numberOfLines={1}>{doctor.clinicHospitalName}</Text>
+                    )}
+                  </View>
+                  {doctor.verificationStatus && (
+                    <View style={styles.verifiedBadge}>
+                      <View style={styles.verifiedDot} />
+                      <Text style={styles.verifiedBadgeText}>Verified</Text>
+                    </View>
                   )}
-                  <Text style={styles.doctorDistrict}>
-                    {doctor.district}
-                    {'distanceKm' in doctor ? ` · ${doctor.distanceKm} km away` : ''}
-                  </Text>
                 </View>
+
+                <View style={styles.doctorTagsRow}>
+                  {doctor.qualification && (
+                    <View style={styles.tagPill}>
+                      <Text style={styles.tagPillText} numberOfLines={1}>{doctor.qualification}</Text>
+                    </View>
+                  )}
+                  <View style={styles.tagPill}>
+                    <Icon name="location-outline" size={11} color={Colors.onSecondaryContainer} />
+                    <Text style={styles.tagPillText}>
+                      {doctor.district}
+                      {'distanceKm' in doctor ? ` · ${doctor.distanceKm} km` : ''}
+                    </Text>
+                  </View>
+                </View>
+
                 <TouchableOpacity
                   style={styles.consultBtn}
                   onPress={() => router.push(`/doctor-consult/${doctor.id}` as any)}
                 >
+                  <Icon name="chatbubbles-outline" size={16} color={Colors.onPrimary} />
                   <Text style={styles.consultBtnText}>Consult</Text>
                 </TouchableOpacity>
               </View>
@@ -183,30 +203,65 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   doctorCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
     backgroundColor: Colors.surfaceContainerLowest,
-    borderRadius: BorderRadius.xl,
+    borderRadius: BorderRadius['2xl'],
     padding: Spacing.md,
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.outlineVariant,
   },
-  doctorIconBox: {
-    width: 40,
-    height: 40,
+  doctorTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+  },
+  doctorAvatar: {
+    width: 52,
+    height: 52,
     borderRadius: BorderRadius.lg,
     backgroundColor: Colors.secondaryContainer,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  doctorName: { fontFamily: Fonts.family.semiBold, fontSize: Fonts.size.sm + 1, color: Colors.onSurface },
-  doctorMeta: { fontFamily: Fonts.family.regular, fontSize: 12, color: Colors.textSecondary, marginTop: 1 },
-  doctorDistrict: { fontFamily: Fonts.family.regular, fontSize: 11, color: Colors.textMuted, marginTop: 2 },
-  consultBtn: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 8,
+  doctorName: { fontFamily: Fonts.family.semiBold, fontSize: Fonts.size.sm + 2, color: Colors.onSurface },
+  doctorClinic: { fontFamily: Fonts.family.regular, fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
+  verifiedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Colors.secondaryContainer,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
     borderRadius: BorderRadius.full,
+  },
+  verifiedDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.success },
+  verifiedBadgeText: { fontFamily: Fonts.family.semiBold, fontSize: 10, color: Colors.onSecondaryContainer },
+  doctorTagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.xs,
+    marginTop: Spacing.sm,
+  },
+  tagPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Colors.lightGreen + '80',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.full,
+    maxWidth: '100%',
+  },
+  tagPillText: { fontFamily: Fonts.family.medium, fontSize: 11, color: Colors.onSecondaryContainer },
+  consultBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: Colors.primary,
+    paddingVertical: 10,
+    borderRadius: BorderRadius.full,
+    marginTop: Spacing.md,
   },
   consultBtnText: { fontFamily: Fonts.family.semiBold, fontSize: Fonts.size.xs + 1, color: Colors.onPrimary },
 });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -9,14 +9,23 @@ import { ProductCard } from '@/components/ProductCard';
 import { SearchBar, EmptyState } from '@/components/CardsAndInputs';
 import { searchProducts, PRODUCTS } from '@/data/mockProducts';
 import { useProductStore } from '@/store/productStore';
+import { reviewService, type ProductReviewStats } from '@/services/reviewService';
 
 export default function ProductsScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const { isSaved, toggleSaved } = useProductStore();
+  const [reviewStatsMap, setReviewStatsMap] = useState<Record<string, ProductReviewStats>>({});
 
   const results = query.trim() ? searchProducts(query) : PRODUCTS;
+
+  useEffect(() => {
+    reviewService
+      .getStatsForMany(PRODUCTS.map((p) => p.id))
+      .then(setReviewStatsMap)
+      .catch(() => setReviewStatsMap({}));
+  }, []);
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -52,6 +61,7 @@ export default function ProductsScreen() {
                 isBookmarked={isSaved(item.id)}
                 onBookmarkPress={() => toggleSaved(item.id)}
                 onPress={() => router.push(`/product/${item.id}` as any)}
+                reviewStats={reviewStatsMap[item.id]}
               />
             )}
             contentContainerStyle={{ paddingBottom: Spacing['2xl'] }}

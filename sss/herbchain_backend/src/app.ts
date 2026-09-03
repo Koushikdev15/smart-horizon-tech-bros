@@ -20,6 +20,7 @@ import doctorGuidanceRoutes from './routes/doctorGuidanceRoutes';
 import adminDoctorGuidanceRoutes from './routes/adminDoctorGuidanceRoutes';
 import productRoutes from './routes/productRoutes';
 import chatRoutes from './routes/chatRoutes';
+import accountRoutes from './routes/accountRoutes';
 import storeRoutes from './routes/storeRoutes';
 import complaintRoutes from './routes/complaintRoutes';
 import adminComplaintRoutes from './routes/adminComplaintRoutes';
@@ -50,8 +51,9 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Parse JSON
-app.use(express.json());
+// Parse JSON — raised above the 100kb default for /chat's base64-encoded
+// audio/image attachments (never more than a few MB after base64 inflation).
+app.use(express.json({ limit: '15mb' }));
 
 // Logging
 app.use(morgan('combined'));
@@ -86,6 +88,7 @@ const chatLimiter = rateLimit({
   legacyHeaders: false,
 });
 app.use('/api/v1/chat', chatLimiter, chatRoutes);
+app.use('/api/v1/account', accountRoutes);
 app.use('/api/v1/stores', storeRoutes);
 app.use('/api/v1/complaints', complaintRoutes);
 app.use('/api/v1/admin/complaints', adminComplaintRoutes);

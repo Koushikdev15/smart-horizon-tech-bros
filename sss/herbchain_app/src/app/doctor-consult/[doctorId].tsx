@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Colors, Fonts, Spacing, BorderRadius } from '@/theme';
 import { AppHeader } from '@/components/Header';
 import Icon from '@/components/Icon';
@@ -12,6 +13,15 @@ import { useChatSession } from '@/hooks/useChatSession';
 import { useAuthStore } from '@/store/authStore';
 import { GuestGate } from '@/components/GuestGate';
 import { doctorService, type AyurvedicDoctor } from '@/services/doctorService';
+import type { ResponseCategory } from '@/services/chatService';
+
+const RISK_CATEGORIES: ResponseCategory[] = [
+  'URGENT_MEDICAL_ATTENTION',
+  'POTENTIAL_ALLERGY_CONFLICT',
+  'POTENTIAL_INTERACTION',
+  'CAUTION',
+  'MEDICAL_CONSULTATION_RECOMMENDED',
+];
 
 function escapeHtml(value: string): string {
   return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -82,7 +92,7 @@ export default function DoctorConsultScreen() {
     })();
   }, [doctorId]);
 
-  const chat = useChatSession(canChat);
+  const chat = useChatSession(canChat, doctorId);
   useKeyboardScrollNudge(chat.scrollRef, [chat.messages, chat.sending]);
 
   const [generatingPdf, setGeneratingPdf] = useState(false);
@@ -95,15 +105,24 @@ export default function DoctorConsultScreen() {
     }
   }
 
+  // The summary is only surfaced once the conversation has actually flagged
+  // something worth taking to a real appointment (an allergy conflict, a
+  // possible interaction, or similar) — not offered as a routine download
+  // after every ordinary wellness question.
+  const hasRiskySignal = chat.messages.some((m) => m.category && RISK_CATEGORIES.includes(m.category));
+
   async function handleGenerateSummary() {
     if (!doctor) return;
     setGeneratingPdf(true);
     setPdfError(null);
     try {
       const html = buildSummaryHtml(doctor, exchanges);
-      const { uri } = await Print.printToFileAsync({ html });
+      const { base64 } = await Print.printToFileAsync({ html, base64: true });
+      if (!base64) throw new Error('PDF generation did not return file data.');
+      const shareUri = `${FileSystem.cacheDirectory}ConsultSummary-${Date.now()}.pdf`;
+      await FileSystem.writeAsStringAsync(shareUri, base64, { encoding: FileSystem.EncodingType.Base64 });
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: 'AI Wellness Consultation Summary' });
+        await Sharing.shareAsync(shareUri, { mimeType: 'application/pdf', dialogTitle: 'AI Wellness Consultation Summary' });
       } else {
         setPdfError('Sharing is not available on this device — the PDF was generated but could not be saved.');
       }
@@ -142,7 +161,7 @@ export default function DoctorConsultScreen() {
                 {[doctor.qualification, doctor.district].filter(Boolean).join(' · ')}
               </Text>
             </View>
-            {exchanges.length > 0 && (
+            {hasRiskySignal && (
               <TouchableOpacity style={styles.summaryBtn} onPress={handleGenerateSummary} disabled={generatingPdf}>
                 {generatingPdf ? (
                   <ActivityIndicator size="small" color={Colors.onPrimary} />
@@ -152,6 +171,14 @@ export default function DoctorConsultScreen() {
               </TouchableOpacity>
             )}
           </View>
+          {hasRiskySignal && !pdfError && (
+            <View style={styles.riskyBanner}>
+              <Icon name="alert-circle-outline" size={14} color={Colors.onTertiaryFixedVariant} />
+              <Text style={styles.riskyBannerText}>
+                This conversation flagged something worth following up on — generate a summary to bring to your appointment.
+              </Text>
+            </View>
+          )}
           {pdfError && (
             <View style={styles.pdfErrorBox}>
               <Text style={styles.pdfErrorText}>{pdfError}</Text>
@@ -160,8 +187,16 @@ export default function DoctorConsultScreen() {
 
           <ChatThread
             {...chat}
-            greeting={`Hello! I'm here to help with your wellness questions. ${doctor.clinicHospitalName || doctor.doctorName} is shown as a suggested local contact — my answers are AI-generated, not written by them.`}
-            disclaimer="This consultation uses AyurTrace+'s AI. It never diagnoses or replaces professional medical advice — the doctor/clinic shown is a suggested contact, not the author of these replies."
+            variant="doctor"
+            greeting={`Hello, I'm here for your consultation. Tell me what's on your mind — symptoms, a product question, anything.`}
+            disclaimer={`Private consultation · ${doctor.doctorName}${doctor.clinicHospitalName ? `, ${doctor.clinicHospitalName}` : ''}. Answers are AI-generated on this doctor's behalf, not personally written by them, and this doesn't replace an in-person visit for anything serious.`}
+            placeholder="Type your message..."
+            suggestedPrompts={[
+              'I have a headache that won\'t go away, what should I do?',
+              'Is this product safe for me to take daily?',
+              'What lifestyle changes would help with my sleep?',
+              'Can you explain what this ingredient is used for?',
+            ]}
           />
         </GuestGate>
       )}
@@ -207,4 +242,19 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.errorContainer,
   },
   pdfErrorText: { fontFamily: Fonts.family.regular, fontSize: 11, color: Colors.onErrorContainer },
+  riskyBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    paddingHorizontal: Spacing.gutter,
+    paddingVertical: Spacing.xs + 2,
+    backgroundColor: Colors.tertiaryFixed,
+  },
+  riskyBannerText: {
+    flex: 1,
+    fontFamily: Fonts.family.medium,
+    fontSize: 11,
+    lineHeight: 15,
+    color: Colors.onTertiaryFixedVariant,
+  },
 });

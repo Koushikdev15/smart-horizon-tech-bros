@@ -31,33 +31,37 @@ export function setAuthToken(token: string | null) {
   authToken = token;
 }
 
-// Exposed for the rare caller that can't use apiRequest — e.g. a multipart
-// FormData upload, where apiRequest's hardcoded 'Content-Type: application/json'
-// would break the request's own multipart boundary header.
-export function getAuthTokenForUpload(): string | null {
-  return authToken;
-}
-
-export const API_BASE_URL_FOR_UPLOAD = API_BASE_URL;
-
 /**
  * Thin fetch wrapper for the HerbChain Express backend. Talks to the same
  * `{success, message, data, errors, timestamp}` envelope every controller in
  * herbchain_backend returns (see utils/response.ts), and throws ApiError so
  * callers can branch on `.status` without re-parsing the body.
+ *
+ * `timeoutMs` is opt-in (no timeout by default, matching prior behavior) —
+ * meaningfully larger requests, like a base64-encoded audio/image attachment,
+ * can sit on a slow connection far longer than a normal JSON call before
+ * genuinely failing, and fetch has no built-in timeout of its own.
  */
-export async function apiRequest<T = unknown>(path: string, options: RequestInit = {}): Promise<T> {
+export async function apiRequest<T = unknown>(path: string, options: RequestInit = {}, timeoutMs?: number): Promise<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string> | undefined),
   };
   if (authToken) headers.Authorization = `Bearer ${authToken}`;
 
+  const controller = timeoutMs ? new AbortController() : undefined;
+  const timeout = controller ? setTimeout(() => controller.abort(), timeoutMs) : undefined;
+
   let response: Response;
   try {
-    response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
-  } catch {
+    response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers, signal: controller?.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new ApiError(0, 'The request timed out — check your connection and try again.');
+    }
     throw new ApiError(0, "Couldn't reach the server. Check your connection and try again.");
+  } finally {
+    if (timeout) clearTimeout(timeout);
   }
 
   let body: ApiEnvelope<T> | undefined;
