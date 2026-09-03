@@ -16,14 +16,17 @@ import LoginBackdrop from '../../components/LoginBackdrop';
 import { authService } from '../../services/authService';
 
 /**
- * Demo shortcuts for roles that have no real registration flow yet.
+ * One-click credentials for the demo.
  *
- * Collection Center is deliberately absent: those accounts are created through
- * Member Registration in the Government portal, so they must sign in with the
- * real Ayurvedic ID / email / password issued there.
+ * Most of these are built-in shortcuts for roles with no registration flow yet
+ * and are matched locally. The Collection Centre entry is different: it is a
+ * real account issued through Member Registration, so clicking it fills the
+ * form and the normal Supabase sign-in handles it — the demo fallback below
+ * never sees it. Marked `real` so that stays clear.
  */
 const DEMO_CREDENTIALS = [
   { label: 'Government Admin', ayurvedicId: 'GOV-ADMIN-001', email: 'arjun.menon@ayush.gov.in', password: 'admin123', role: 'Government' as const, icon: Shield },
+  { label: 'Collection Centre', ayurvedicId: 'AYUR-CC-4NTACI', email: 'koushikiam18@gmail.com', password: 'Demo@CC01', role: 'Collection Center' as const, icon: Leaf, real: true },
   { label: 'Processing & Lab', ayurvedicId: 'AYU-PL-001', email: 'priya@kerapl.com', password: 'lab123', role: 'Processing & Laboratory' as const, icon: FlaskConical },
   { label: 'Manufacturer', ayurvedicId: 'AYU-MF-001', email: 'deepak@ayurnature.com', password: 'mfr123', role: 'Manufacturer' as const, icon: Factory },
   { label: 'Supply Chain', ayurvedicId: 'AYU-SC-001', email: 'suresh@indiaship.com', password: 'sc123', role: 'Supply Chain' as const, icon: Truck },
@@ -410,6 +413,11 @@ export default function Login() {
                 >
                   <cred.icon className="w-3.5 h-3.5 text-[#14B8A6]" />
                   <span className="font-medium text-foreground">{cred.label}</span>
+                  {'real' in cred && cred.real && (
+                    <span className="text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
+                      live
+                    </span>
+                  )}
                   <span className="text-muted-foreground ml-auto font-mono">{cred.ayurvedicId}</span>
                   <ChevronRight className="w-3 h-3 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
                 </button>
@@ -417,8 +425,8 @@ export default function Login() {
             </div>
 
             <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground text-center">
-              Collection Centres sign in with the Ayurvedic ID, email and password issued during
-              Member Registration — no demo account is provided.
+              The Collection Centre account is a real one issued through Member Registration;
+              the rest are built-in demo logins.
             </p>
           </div>
 
